@@ -185,4 +185,50 @@ assocated weth the offending expression
 	*/
 #define DBJ_MAYBE(x) x[[maybe_unused]]
 
+#pragma region very core type traits
+
+/* 
+Check at compile time if value (of 'any' type) is inside given boundaries (inclusive)
+
+example usage:
+
+template<unsigned K>
+using ascii_ordinal_compile_time = ::dbj::inside_t<unsigned, K, 0, 127>;
+
+constexpr auto compile_time_ascii_index = ascii_ordinal_compile_time<164>() ;
+
+164 above is outide of [0..127), compiler fails:
+
+'std::enable_if_t<false,std::integral_constant<unsigned int,164>>' : Failed to specialize alias template
+ constexpr auto compile_time__not_ascii_index = ascii_ordinal_compile_time<164>() ;
+*/
+template <typename T, T X, T L, T H>
+using inside_inclusive_t =
+    ::std::enable_if_t<(X <= H) && (X >= L),
+                       ::std::integral_constant<T, X>>;
+
+template <typename T, T X, T L, T H>
+inline constexpr bool inside_inclusive_v = inside_inclusive_t<T, X, L, H>();
+
+/*
+Example usage of bellow:
+	
+    static_assert(  dbj::is_any_same_as_first_v<float, float, float> ) ;
+
+	fails, none is same as bool:
+		static_assert(  dbj::is_any_same_as_first_v<bool,  float, float>  );
+	*/
+template <class _Ty,
+          class... _Types>
+inline constexpr bool is_any_same_as_first_v = ::std::disjunction_v<::std::is_same<_Ty, _Types>...>;
+#pragma endregion
+
+#pragma region numerics
+// compile time extrmely precise PI approximation
+//
+//  https://en.wikipedia.org/wiki/Proof_that_22/7_exceeds_π
+// https://www.wired.com/story/a-major-proof-shows-how-to-approximate-numbers-like-pi/
+constexpr inline auto DBJ_PI = 104348 / 33215;
+#pragma endregion
+
 } // namespace dbj::nanolib
