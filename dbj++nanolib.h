@@ -166,9 +166,15 @@ first arg has to be stdout, stderr, etc ...
 
 /*
 we use the macro bellow to create ever needed location info always 
-assocated weth the offenind exception
+assocated weth the offending expression
 */
 #define DBJ_ERR_PROMPT(x) (__FILE__ "(" _CRT_STRINGIZE(__LINE__) ") " _CRT_STRINGIZE(x))
+
+#define DBJ_TUNIT(x)                                                                 \
+    do                                                                               \
+    {                                                                                \
+        DBJ_FPRINTF(stdout, "\n\nExpression: '%s'\n\tResult: '", _DBJ_STRINGIZE(x)); \
+    } while (0)
 
 /*
 	this is for variables only
