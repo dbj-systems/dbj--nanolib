@@ -19,12 +19,11 @@ TU_REGISTER(
 );
 
 Place this wherever you like, but outside of functions or classes.
-
-                                                                  * /
+*/
 
 #define TU_REGISTER inline auto _DBJ_CONCATENATE(dumsy_, __COUNTER__) = ::dbj::tu::catalog
 
-                                                              namespace dbj::tu
+namespace dbj::tu
 {
 
     using namespace std;
