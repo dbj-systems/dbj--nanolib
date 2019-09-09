@@ -146,10 +146,10 @@ DBJ_TX( 4 + 2 );
 
 TX stands for Test eXpression
 */
-#define DBJ_TX(x)                                                                                     \
-    do                                                                                                \
-    {                                                                                                 \
- std::cout << std::boolalpha << "\n\nExpression: '" << _DBJ_STRINGIZE(x) << "'\n\tResult: " << (x) ); \
+#define DBJ_TX(x)                                                                                          \
+    do                                                                                                     \
+    {                                                                                                      \
+        std::cout << std::boolalpha << "\n\nExpression: '" << _DBJ_STRINGIZE(x) << "'\n\tResult: " << (x); \
     } while (0)
 
 #pragma endregion
