@@ -1,4 +1,6 @@
 #pragma once
+#ifndef DBJ_TU_INCLUDED
+#define DBJ_TU_INCLUDED
 /*
 (c) 2019 by dbj.org
 
@@ -78,7 +80,7 @@ struct timer final
         std::snprintf(retval.data(), retval.size(), "%.3f%s", arg, unit_);
         return retval;
     }
-};
+}; // timer
 
 constexpr inline static auto MSCVER = _MSC_VER;          // 1921
 constexpr inline static auto MSCFULLVER = _MSC_FULL_VER; //192127702
@@ -129,7 +131,7 @@ struct testing_system final
         }
         end();
     }
-};
+}; // testing system
 
 constexpr inline testing_system catalog;
 
@@ -165,24 +167,24 @@ primary compile time buffer is array of a char_type
 thus I will put required operators in here
 */
 
-std::ostream &operator<<(std::ostream &os_, std::vector<char> buff_)
+inline std::ostream &operator<<(std::ostream &os_, std::vector<char> buff_)
 {
     return os_ << buff_.data();
 }
 
-std::ostream &operator<<(std::ostream &os_, std::vector<wchar_t> buff_)
-{
-    return os_ << buff_.data();
-}
-
-template <size_t N>
-std::ostream &operator<<(std::ostream &os_, std::array<char, N> buff_)
+inline std::ostream &operator<<(std::ostream &os_, std::vector<wchar_t> buff_)
 {
     return os_ << buff_.data();
 }
 
 template <size_t N>
-std::ostream &operator<<(std::ostream &os_, std::array<wchar_t, N> buff_)
+inline std::ostream &operator<<(std::ostream &os_, std::array<char, N> buff_)
+{
+    return os_ << buff_.data();
+}
+
+template <size_t N>
+inline std::ostream &operator<<(std::ostream &os_, std::array<wchar_t, N> buff_)
 {
     return os_ << buff_.data();
 }
@@ -190,9 +192,11 @@ std::ostream &operator<<(std::ostream &os_, std::array<wchar_t, N> buff_)
 I use very often std::pair
 */
 template <typename T1, typename T2>
-std::ostream &operator<<(std::ostream &os_, std::pair<T1, T2> pair_)
+inline std::ostream &operator<<(std::ostream &os_, std::pair<T1, T2> pair_)
 {
     return os_ << "{ " << pair_.first << " , " << pair_.second << " }";
 }
 
 #endif
+
+#endif // DBJ_TU_INCLUDED

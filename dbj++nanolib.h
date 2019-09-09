@@ -1,4 +1,7 @@
 #pragma once
+
+#ifndef DBJ_NANOLIB_INCLUDED
+#define DBJ_NANOLIB_INCLUDED
 /*
 (c) 2019 by dbj.org
 
@@ -231,3 +234,5 @@ constexpr inline auto DBJ_PI = 104348 / 33215;
 #pragma endregion
 
 } // namespace dbj::nanolib
+
+#endif // DBJ_NANOLIB_INCLUDED
