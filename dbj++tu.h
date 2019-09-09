@@ -116,12 +116,14 @@ struct testing_system final
 
     void execute() const
     {
+        unsigned counter_{};
         start();
         for (auto &tu_ : units)
         {
+            printf("\n\nTest Unit: %d ", counter_++);
             timer timer_{};
             tu_();
-            line();
+            // line();
             printf("\nDone in: %s", as_buffer(timer_).data());
             line();
         }
@@ -130,5 +132,26 @@ struct testing_system final
 };
 
 constexpr inline testing_system catalog;
+
+#pragma region test macros
+/*
+
+I know my core principle is not to use iostreams, but I am not a zealot
+I am an pragmatist. For simple and usefull testing one can use iostreams,
+like in this macro bellow.
+
+Usage: 
+
+DBJ_TX( 4 + 2 );
+
+TX stands for Test eXpression
+*/
+#define DBJ_TX(x)                                                                                     \
+    do                                                                                                \
+    {                                                                                                 \
+ std::cout << std::boolalpha << "\n\nExpression: '" << _DBJ_STRINGIZE(x) << "'\n\tResult: " << (x) ); \
+    } while (0)
+
+#pragma endregion
 
 } // namespace dbj::tu

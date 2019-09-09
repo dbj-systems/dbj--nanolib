@@ -140,7 +140,7 @@ struct v_buffer final
 #pragma endregion
 
 /* 
-strerror_s() is very stronlgy recommended instead of strerro()
+strerror_s() is very stronlgy recommended instead of strerror()
 this is using it with dbj nanolib buffer type
 */
 inline v_buffer::buffer_type safe_strerror(int errno_)
@@ -152,7 +152,7 @@ inline v_buffer::buffer_type safe_strerror(int errno_)
 }
 
 /*
-we use fprintf throgh a macro to increase the change-ability
+we use fprintf throgh a macro to increase the resilience + the change-ability
 of dbj nano lib
 
 first arg has to be stdout, stderr, etc ...
@@ -164,17 +164,16 @@ first arg has to be stdout, stderr, etc ...
             ::dbj::nanolib::dbj_terror(::dbj::nanolib::safe_strerror(result_).data(), __FILE__, __LINE__); \
     } while (false)
 
+#define DBJ_PRINT(...) DBJ_FPRINTF(stdout, __VA_ARGS__)
 /*
 we use the macro bellow to create ever needed location info always 
-assocated weth the offending expression
+associated with the offending expression
 */
 #define DBJ_ERR_PROMPT(x) (__FILE__ "(" _CRT_STRINGIZE(__LINE__) ") " _CRT_STRINGIZE(x))
 
-#define DBJ_TUNIT(x)                                                                 \
-    do                                                                               \
-    {                                                                                \
-        DBJ_FPRINTF(stdout, "\n\nExpression: '%s'\n\tResult: '", _DBJ_STRINGIZE(x)); \
-    } while (0)
+#define DBJ_CHK(x)    \
+    if (false == (x)) \
+    DBJ_FPRINTF(stderr, "Evaluated to false! ", DBJ_ERR_PROMPT(x))
 
 /*
 	this is for variables only
@@ -224,7 +223,7 @@ inline constexpr bool is_any_same_as_first_v = ::std::disjunction_v<::std::is_sa
 #pragma endregion
 
 #pragma region numerics
-// compile time extrmely precise PI approximation
+// compile time extremely precise PI approximation
 //
 //  https://en.wikipedia.org/wiki/Proof_that_22/7_exceeds_π
 // https://www.wired.com/story/a-major-proof-shows-how-to-approximate-numbers-like-pi/
