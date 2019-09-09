@@ -135,16 +135,14 @@ constexpr inline testing_system catalog;
 
 #pragma region test macros
 /*
-
+TX stands for Test eXpression
 I know my core principle is not to use iostreams, but I am not a zealot
-I am an pragmatist. For simple and usefull testing one can use iostreams,
+I am an pragmatist. For simple and usefull test displays one can use iostreams,
 like in this macro bellow.
 
 Usage: 
 
 DBJ_TX( 4 + 2 );
-
-TX stands for Test eXpression
 */
 #define DBJ_TX(x)                                                                                          \
     do                                                                                                     \
@@ -155,3 +153,46 @@ TX stands for Test eXpression
 #pragma endregion
 
 } // namespace dbj::tu
+
+#ifdef DBJ_TX
+
+#include <iostream>
+
+/*
+primary runtime buffer is vector of a char_type
+primary compile time buffer is array of a char_type
+
+thus I will put required operators in here
+*/
+
+std::ostream &operator<<(std::ostream &os_, std::vector<char> buff_)
+{
+    return os_ << buff_.data();
+}
+
+std::ostream &operator<<(std::ostream &os_, std::vector<wchar_t> buff_)
+{
+    return os_ << buff_.data();
+}
+
+template <size_t N>
+std::ostream &operator<<(std::ostream &os_, std::array<char, N> buff_)
+{
+    return os_ << buff_.data();
+}
+
+template <size_t N>
+std::ostream &operator<<(std::ostream &os_, std::array<wchar_t, N> buff_)
+{
+    return os_ << buff_.data();
+}
+/*
+I use very often std::pair
+*/
+template <typename T1, typename T2>
+std::ostream &operator<<(std::ostream &os_, std::pair<T1, T2> pair_)
+{
+    return os_ << "{ " << pair_.first << " , " << pair_.second << " }";
+}
+
+#endif
