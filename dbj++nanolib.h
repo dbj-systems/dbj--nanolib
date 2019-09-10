@@ -70,8 +70,8 @@ using namespace std;
 [[noreturn]] inline void dbj_terror(const char *msg_, const char *file_, const int line_)
 {
     _ASSERTE(msg_ && file_ && line_);
-    std::fprintf(stderr, "\n\ndbj++ini Terminating error:%s\n%s (%d)", msg_, file_, line_);
-    ::exit(EXIT_FAILURE);
+    std::fprintf(stderr, "\n\ndbj++ Terminating error:%s\n%s (%d)", msg_, file_, line_);
+    std::exit(EXIT_FAILURE);
 }
 
 #ifndef DBJ_VERIFY
@@ -108,12 +108,9 @@ constexpr inline std::size_t DBJ_64KB = UINT16_MAX;
 /*
 for runtime buffering the most comfortable and in the same time fast
 solution is vector<char_type>
-
 only unique_ptr<char[]> is faster than vector of  chars, by a margin
-
 UNICODE does not mean 'char' is forbiden. We deliver 'char' based buffering 
 only.
-
 Bellow is a helper, with function most frequently used to make buffer aka vector<char>
 */
 struct v_buffer final
@@ -134,9 +131,27 @@ struct v_buffer final
         _ASSERTE(sview_.size() > 0);
         _ASSERTE(DBJ_64KB >= sview_.size());
         buffer_type retval_(sview_.begin(), sview_.end());
-        // zero terminate!
+        // zero terminate?
         retval_.push_back(char(0));
         return retval_;
+    }
+
+    template <typename... Args, size_t max_arguments = 255>
+    static buffer_type
+    format(char const *format_, Args... args) noexcept
+    {
+        static_assert(sizeof...(args) < max_arguments, "\n\nmax 255 arguments allowed\n");
+        _ASSERTE(format_);
+        // 1: what is the size required
+        size_t size = 1 + std::snprintf(nullptr, 0, format_, args...);
+        _ASSERTE(size > 0);
+        // 2: use it at runtime
+        buffer_type buf = make(size);
+        //
+        size = std::snprintf(buf.get(), size, format_, args...);
+        _ASSERTE(size > 0);
+
+        return buf;
     }
 
 }; // v_buffer
