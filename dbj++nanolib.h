@@ -148,7 +148,7 @@ struct v_buffer final
         // 2: use it at runtime
         buffer_type buf = make(size);
         //
-        size = std::snprintf(buf.get(), size, format_, args...);
+        size = std::snprintf(buf.data(), size, format_, args...);
         _ASSERTE(size > 0);
 
         return buf;
