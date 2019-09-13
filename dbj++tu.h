@@ -1,11 +1,7 @@
 #pragma once
+/* (c) 2019 by dbj.org   -- CC BY-SA 4.0 -- https://creativecommons.org/licenses/by-sa/4.0/ */
 #ifndef DBJ_TU_INCLUDED
 #define DBJ_TU_INCLUDED
-/*
-(c) 2019 by dbj.org
-
-Appache 2.0 licence. Please review the licence file in this project
-*/
 
 #include "dbj++nanolib.h"
 
@@ -89,7 +85,7 @@ constexpr inline static auto MSCBUILD = _MSC_BUILD;      // 2
 using tu_function = void (*)();
 using units_ = vector<tu_function>;
 
-inline void line() noexcept { printf("\n----------------------------------------------------------------------"); }
+inline void line() noexcept { DBJ_PRINT("\n----------------------------------------------------------------------"); }
 
 struct testing_system final
 {
@@ -103,17 +99,19 @@ struct testing_system final
 
     void start() const
     {
+		DBJ_PRINT(DBJ_FG_CYAN);
         line();
-        printf("\n " _DBJ_STRINGIZE(MSCVER) " :\t\t %d", MSCVER);
-        printf("\n " _DBJ_STRINGIZE(MSCFULLVER) " :\t\t %d", MSCFULLVER);
-        printf("\n " _DBJ_STRINGIZE(MSCBUILD) " :\t\t %d", MSCBUILD);
-        printf("\n\n Catalogue has %zd test units", units.size());
+        DBJ_PRINT("\n " _DBJ_STRINGIZE(MSCVER) " :\t\t %d", MSCVER);
+        DBJ_PRINT("\n " _DBJ_STRINGIZE(MSCFULLVER) " :\t\t %d", MSCFULLVER);
+        DBJ_PRINT("\n " _DBJ_STRINGIZE(MSCBUILD) " :\t\t %d", MSCBUILD);
+        DBJ_PRINT("\n\n Catalogue has %zd test units", units.size());
         line();
+		DBJ_PRINT(DBJ_RESET);
     }
 
     void end() const
     {
-        printf("\n\n All tests done.\n\n");
+        DBJ_PRINT(DBJ_FG_CYAN "\n\n All tests done.\n\n" DBJ_RESET);
     }
 
     void execute() const
@@ -122,12 +120,17 @@ struct testing_system final
         start();
         for (auto &tu_ : units)
         {
-            printf("\n\nTest Unit: %d ", counter_++);
+            DBJ_PRINT(DBJ_FG_CYAN);
+            DBJ_PRINT("\n\nTest Unit: %d ", counter_++);
             timer timer_{};
+            DBJ_PRINT(DBJ_RESET);
+
             tu_();
             // line();
-            printf("\nDone in: %s", as_buffer(timer_).data());
+            DBJ_PRINT(DBJ_FG_CYAN);
+            DBJ_PRINT("\nDone in: %s", as_buffer(timer_).data());
             line();
+            DBJ_PRINT(DBJ_RESET);
         }
         end();
     }

@@ -1,26 +1,24 @@
-# dbj++nanolib&trade;
+# dbj++nanolib&trade; 
+### CC BY-SA 4.0 -- https://creativecommons.org/licenses/by-sa/4.0/ 
 &copy; 2019 by dbj.org
 
-Licence: Appache 2.0
+Very opinionated and very small ISO C++ library.I do hope you might find it usefull too. 
 
-Very small C++ library
+It is not portable, yet. I develop primarily on Windows 10 PRO using Visual Studio, the latest.
 
- I use it for quickly building Visual Studio , console projects, running on Windows.
-
- I do hope you might find it usefull too. 
-## The Purpose
+## The Purpose & Motivation
 However small they might be, your C++ programs should always promote good design, good implementation and reusability.
 
-Also, you reusable solutions should not "get in the way". They should be small and transparent and comfortable to use, beside being very usefull.
+Also, you reusable solutions should not "get in the way". They should be small and transparent and comfortable to use, beside being very usefull too.
 
-### Use subset of UML
-Whatever you do, alwyas think about it and use diagrams before deciding your design is complete and you can proceed onto the implementation.
+#### Use subset of UML
+Whatever you do, alwyas plan and think about it. Use diagrams before deciding your design is complete and you can proceed onto the implementation.
 
 ![Current dbj++nanolib](https://yuml.me/e26c4eef.jpg)
 
-diagrams are invaluable first to explaining to yourself your solution, second to make others understand your solution.
+Desings and diagrams are invaluable. First for explaining to yourself your solution, and second to make others understand your solution, before you lose the patience.
 
-## The key implementation concepts
+## Implementation concepts
 - inheritance in C++ is used for
   - Sub-Typing
   - Sub-Classing
@@ -35,15 +33,13 @@ diagrams are invaluable first to explaining to yourself your solution, second to
   - it is not a replacement but consider using `std::errc`
 - C++ streams is old, complicated design too. 
    - using iostreams creates slow applications
-
-
 - use ISO C++, which is C++17 as of 2019 Q4.
   - use ISO C++ std lib as much as possible
   - Do not lose your C experience. 
     - C is simple and forces you to deliver things, instead of re-inventing things before delivering things. 
     - take same time to learn about modern ISO C
 
-This is "nano" lib. Before adding anything into it, think.
+**This is "nano" lib. Before adding anything into it, think.**
 
 
 

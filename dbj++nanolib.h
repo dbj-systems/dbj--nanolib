@@ -1,12 +1,11 @@
 #pragma once
-
+/* (c) 2019 by dbj.org   -- CC BY-SA 4.0 -- https://creativecommons.org/licenses/by-sa/4.0/ */
 #ifndef DBJ_NANOLIB_INCLUDED
 #define DBJ_NANOLIB_INCLUDED
-/*
-(c) 2019 by dbj.org
 
-Appache 2.0 licence. Please review the licence file in this project
-*/
+#ifdef _MSVC_LANG
+#define DBJ_NANO_WIN32
+#endif
 
 #include <stdint.h>
 #include <stdio.h>
@@ -15,8 +14,21 @@ Appache 2.0 licence. Please review the licence file in this project
 #include <chrono>
 #include <cmath>
 #include <string_view>
-#include <future>
+// #include <future>
 #include <mutex>
+
+#ifdef DBJ_NANO_WIN32
+#include <io.h>
+#include <fcntl.h>
+#define NOMINMAX
+#define min(x, y) ((x) < (y) ? (x) : (y))
+#define max(x, y) ((x) > (y) ? (x) : (y))
+#define STRICT
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#include <system_error>
+#include "vt100win10.h"
+#endif
 
 #ifdef _MSVC_LANG
 #if _MSVC_LANG < 201402L
@@ -64,9 +76,75 @@ DBJ_REPEAT(50){ std::printf("\n%d", _dbj_repeat_counter ); }
 
 namespace dbj::nanolib
 {
+constexpr auto RELEASE = "2.0.0";
 
 using namespace std;
 
+#ifdef DBJ_NANO_WIN32
+void enable_vt_100();
+#endif
+
+/* do this only once and do this as soon as possible */
+inline const bool dbj_nanolib_initialized = ([]() -> bool {
+#ifdef DBJ_NANO_WIN32
+			/*
+			WIN32 console is one notorious 30+ years old forever teenager
+			WIN32 UNICODE situation does not help at all
+			https://www.goland.org/unicode_c_windows/
+
+			To stay sane and healthy, the rules are:
+
+			0. stick to UTF8 as much as you can -- article above is good but sadly wrong about UTF16, see www.utf8.com
+			1. NEVER mix printf and wprintf
+			1.1 you can mix printf and std::cout but very carefully
+			1.2 UCRT and printf and _setmode() are not friends see the commenct bellow, just here
+			2. NEVER mix std::cout  and std::wcout
+			3. use _setmode() and use it only once -- if third party libs you use fiddle with _setmode()  discard them ASAP.
+			4. be (very_ aware that you need particular font to see *all* of your funky unicode glyphs is windows console
+			*/
+
+			//#define _O_TEXT        0x4000  // file mode is text (translated)
+			//#define _O_BINARY      0x8000  // file mode is binary (untranslated)
+			//#define _O_WTEXT       0x10000 // file mode is UTF16 (translated)
+			//#define _O_U16TEXT     0x20000 // file mode is UTF16 no BOM (translated)
+			//#define _O_U8TEXT      0x40000 // file mode is UTF8  no BOM (translated)
+
+			if (-1 == _setmode(_fileno(stdin), _O_TEXT)) perror("Can not set mode");
+			if (-1 == _setmode(_fileno(stdout), _O_TEXT)) perror("Can not set mode");
+			if (-1 == _setmode(_fileno(stderr), _O_TEXT)) perror("Can not set mode");
+
+			enable_vt_100();
+
+#ifdef DBJ_TESTING_CONSOLE_MODE
+
+			// see the MSFT response to this here
+			// https://developercommunity.visualstudio.com/solutions/411680/view.html
+
+			// with _O_TEXT simply no output
+			// works with _O_WTEXT, _O_U16TEXT and _O_U8TEXT
+			wprintf(L"\x043a\x043e\x0448\x043a\x0430 \x65e5\x672c\x56fd\n");
+
+			// "kicks the bucket" with _O_WTEXT, _O_U16TEXT and _O_U8TEXT
+			// works with _O_TEXT and u8
+
+			// THIS IS THE ONLY WAY TO USE CHAR AND UTF8 AND HAVE THE UCRT CONSOLE UNICODE OUTPUT
+			printf(u8"\x043a\x043e\x0448\x043a\x0430 \x65e5\x672c\x56fd\n");
+
+    // also see the /utf-8 compiler command line option
+    // https://docs.microsoft.com/en-us/cpp/build/reference/utf-8-set-source-and-executable-character-sets-to-utf-8?view=vs-2019&viewFallbackFrom=vs-2017)
+
+    // error C2022:  '1082': too big for character and so on  for every character
+    // printf(  "\x043a\x043e\x0448\x043a\x0430 \x65e5\x672c\x56fd\n");
+#endif
+#endif // DBJ_NANO_WIN32
+			/* this might(!) slow down the ostreams but is much safer solution */
+			ios_base::sync_with_stdio(true);
+			/*-----------------------------------------------------------------------------------------*/
+			return true; }());
+/*
+	terror == terminating error
+	NOTE: std::exit *is* different to C API exit()
+	*/
 [[noreturn]] inline void dbj_terror(const char *msg_, const char *file_, const int line_)
 {
     _ASSERTE(msg_ && file_ && line_);
@@ -78,24 +156,18 @@ using namespace std;
 #define DBJ_VERIFY_(x, file, line) \
     if (false == x)                \
     ::dbj::nanolib::dbj_terror(#x ", failed", file, line)
+// NOTE! works in release builds too
 #define DBJ_VERIFY(x) DBJ_VERIFY_(x, __FILE__, __LINE__)
 #endif
 
 #pragma region synchronisation
 
 /*
-	usage:
-
-	void thread_safe_fun() {
-		lock_unlock autolock_ ;
-	}
-
+		usage:	void thread_safe_fun() {		lock_unlock autolock_ ;  	}
 	*/
 struct lock_unlock final
 {
-
     mutable std::mutex mux_;
-
     lock_unlock() noexcept { mux_.lock(); }
     ~lock_unlock() { mux_.unlock(); }
 };
@@ -106,13 +178,13 @@ struct lock_unlock final
 
 constexpr inline std::size_t DBJ_64KB = UINT16_MAX;
 /*
-for runtime buffering the most comfortable and in the same time fast
-solution is vector<char_type>
-only unique_ptr<char[]> is faster than vector of  chars, by a margin
-UNICODE does not mean 'char' is forbiden. We deliver 'char' based buffering 
-only.
-Bellow is a helper, with function most frequently used to make buffer aka vector<char>
-*/
+	for runtime buffering the most comfortable and in the same time fast
+	solution is vector<char_type>
+	only unique_ptr<char[]> is faster than vector of  chars, by a margin
+	UNICODE does not mean 'char' is forbiden. We deliver 'char' based buffering
+	only.
+	Bellow is a helper, with function most frequently used to make buffer aka vector<char>
+	*/
 struct v_buffer final
 {
 
@@ -154,20 +226,33 @@ struct v_buffer final
         return buf;
     }
 
-}; // v_buffer
-#pragma endregion
+#ifdef DBJ_NANO_WIN32
+    /*
+		CP_ACP == ANSI
+		CP_UTF8
+		*/
+    template <auto CODE_PAGE_T_P_ = CP_UTF8>
+    static std::vector<wchar_t> n2w(string_view s)
+    {
+        const int slength = (int)s.size() + 1;
+        int len = MultiByteToWideChar(CODE_PAGE_T_P_, 0, s.data(), slength, 0, 0);
+        std::vector<wchar_t> rez(len, L'\0');
+        MultiByteToWideChar(CODE_PAGE_T_P_, 0, s.data(), slength, rez.data(), len);
+        return rez;
+    }
 
-/* 
-strerror_s() is very stronlgy recommended instead of strerror()
-this is using it with dbj nanolib buffer type
-*/
-inline v_buffer::buffer_type safe_strerror(int errno_)
-{
-    v_buffer::buffer_type buffy_ = v_buffer::make(BUFSIZ);
-    if (0 != strerror_s(buffy_.data(), buffy_.size(), errno_))
-        dbj_terror("strerror_s failed", __FILE__, __LINE__);
-    return buffy_;
-}
+    template <auto CODE_PAGE_T_P_ = CP_UTF8>
+    static buffer_type w2n(wstring_view s)
+    {
+        const int slength = (int)s.size() + 1;
+        int len = WideCharToMultiByte(CODE_PAGE_T_P_, 0, s.data(), slength, 0, 0, 0, 0);
+        buffer_type rez(len, '\0');
+        WideCharToMultiByte(CODE_PAGE_T_P_, 0, s.data(), slength, rez.data(), len, 0, 0);
+        return rez;
+    }
+#endif // DBJ_NANO_WIN32
+};     // v_buffer
+#pragma endregion
 
 /*
 we use fprintf throgh a macro to increase the resilience + the change-ability
@@ -184,7 +269,7 @@ first arg has to be stdout, stderr, etc ...
 
 #define DBJ_PRINT(...) DBJ_FPRINTF(stdout, __VA_ARGS__)
 /*
-we use the macro bellow to create ever needed location info always 
+we use the macro bellow to create ever needed location info always
 associated with the offending expression
 */
 #define DBJ_ERR_PROMPT(x) (__FILE__ "(" _CRT_STRINGIZE(__LINE__) ") " _CRT_STRINGIZE(x))
@@ -204,21 +289,21 @@ associated with the offending expression
 
 #pragma region very core type traits
 
-/* 
-Check at compile time if value (of 'any' type) is inside given boundaries (inclusive)
+/*
+	Check at compile time if value (of 'any' type) is inside given boundaries (inclusive)
 
-example usage:
+	example usage:
 
-template<unsigned K>
-using ascii_ordinal_compile_time = ::dbj::inside_t<unsigned, K, 0, 127>;
+	template<unsigned K>
+	using ascii_ordinal_compile_time = ::dbj::inside_t<unsigned, K, 0, 127>;
 
-constexpr auto compile_time_ascii_index = ascii_ordinal_compile_time<164>() ;
+	constexpr auto compile_time_ascii_index = ascii_ordinal_compile_time<164>() ;
 
-164 above is outide of [0..127), compiler fails:
+	164 above is outide of [0..127), compiler fails:
 
-'std::enable_if_t<false,std::integral_constant<unsigned int,164>>' : Failed to specialize alias template
- constexpr auto compile_time__not_ascii_index = ascii_ordinal_compile_time<164>() ;
-*/
+	'std::enable_if_t<false,std::integral_constant<unsigned int,164>>' : Failed to specialize alias template
+	 constexpr auto compile_time__not_ascii_index = ascii_ordinal_compile_time<164>() ;
+	*/
 template <typename T, T X, T L, T H>
 using inside_inclusive_t =
     ::std::enable_if_t<(X <= H) && (X >= L),
@@ -228,13 +313,13 @@ template <typename T, T X, T L, T H>
 inline constexpr bool inside_inclusive_v = inside_inclusive_t<T, X, L, H>();
 
 /*
-Example usage of bellow:
-	
-    static_assert(  dbj::is_any_same_as_first_v<float, float, float> ) ;
+	Example usage of bellow:
 
-	fails, none is same as bool:
-		static_assert(  dbj::is_any_same_as_first_v<bool,  float, float>  );
-	*/
+		static_assert(  dbj::is_any_same_as_first_v<float, float, float> ) ;
+
+		fails, none is same as bool:
+			static_assert(  dbj::is_any_same_as_first_v<bool,  float, float>  );
+		*/
 template <class _Ty,
           class... _Types>
 inline constexpr bool is_any_same_as_first_v = ::std::disjunction_v<::std::is_same<_Ty, _Types>...>;
@@ -249,5 +334,115 @@ constexpr inline auto DBJ_PI = 104348 / 33215;
 #pragma endregion
 
 } // namespace dbj::nanolib
+
+#ifdef DBJ_NANO_WIN32
+
+namespace dbj::nanolib
+{
+/*
+	strerror_s() is very stronlgy recommended instead of strerror()
+	this is using it with dbj nanolib buffer type
+	*/
+inline v_buffer::buffer_type safe_strerror(int errno_)
+{
+    v_buffer::buffer_type buffy_ = v_buffer::make(BUFSIZ);
+    if (0 != strerror_s(buffy_.data(), buffy_.size(), errno_))
+        dbj_terror("strerror_s failed", __FILE__, __LINE__);
+    return buffy_;
+}
+
+inline void last_perror(char const *prompt = nullptr)
+{
+    std::error_code ec(::GetLastError(), std::system_category());
+
+    DBJ_FPRINTF(stderr, "\n\n%s\nLast WIN32 Error message: %s\n\n", (prompt ? prompt : ""), ec.message().c_str());
+    perror("\n\nerrno status is");
+    ::SetLastError(0);
+}
+
+inline bool set_console_font(wstring_view font_name)
+{
+    CONSOLE_FONT_INFOEX font_info{};
+    font_info.cbSize = sizeof(CONSOLE_FONT_INFOEX);
+
+    HANDLE con_out_handle = ::GetStdHandle(STD_OUTPUT_HANDLE);
+    if (con_out_handle == INVALID_HANDLE_VALUE)
+        return false;
+
+    BOOL rez_ = GetCurrentConsoleFontEx(
+        con_out_handle,
+        TRUE,
+        &font_info);
+
+    if (rez_ == 0)
+    {
+        dbj::nanolib::last_perror("GetCurrentConsoleFontEx() failed with message: ");
+        return false;
+    }
+
+    (void)memset(font_info.FaceName, 0, LF_FACESIZE);
+
+    std::copy(font_name.begin(), font_name.end(), std::begin(font_info.FaceName));
+
+    rez_ = SetCurrentConsoleFontEx(
+        con_out_handle,
+        TRUE, /* for the max window size */
+        &font_info);
+
+    if (rez_ == 0)
+    {
+        dbj::nanolib::last_perror("SetCurrentConsoleFontEx() failed with message: ");
+        return false;
+    }
+    return true;
+}
+
+/*
+	current machine may or may not  be on WIN10 where VT100 ESC codes are on by default
+	they are or have been off by default
+
+	Reuired WIN10 build number is 10586 or greater
+
+	to dance with exact win version please proceed here:
+	https://docs.microsoft.com/en-us/windows/win32/sysinfo/verifying-the-system-version
+	*/
+
+#ifdef _WIN32_WINNT_WIN10
+
+#ifndef ENABLE_VIRTUAL_TERMINAL_PROCESSING
+#error ENABLE_VIRTUAL_TERMINAL_PROCESSING not found? Try retargeting to the latest SDK.
+#endif
+
+inline void enable_vt_100()
+{
+    static bool visited{false};
+    if (visited)
+        return;
+
+    // Set output mode to handle virtual terminal sequences
+    HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+    if (hOut == INVALID_HANDLE_VALUE)
+    {
+        dbj_terror("GetStdHandle() failed", __FILE__, __LINE__);
+    }
+
+    DWORD dwMode = 0;
+    if (!GetConsoleMode(hOut, &dwMode))
+    {
+        dbj_terror("GetConsoleMode() failed", __FILE__, __LINE__);
+    }
+
+    dwMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+    if (!SetConsoleMode(hOut, dwMode))
+    {
+        dbj_terror("SetConsoleMode() failed", __FILE__, __LINE__);
+    }
+    visited = true;
+}
+
+#endif _WIN32_WINNT_WIN10
+
+} // namespace dbj::nanolib
+#endif DBJ_NANO_WIN32
 
 #endif // DBJ_NANOLIB_INCLUDED
