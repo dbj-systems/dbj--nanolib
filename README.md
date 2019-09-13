@@ -14,13 +14,13 @@ Also, you reusable solutions should not "get in the way". They should be small a
 #### Use subset of UML
 Whatever you do, alwyas plan and think about it. Use diagrams before deciding your design is complete and you can proceed onto the implementation.
 
-![Current dbj++nanolib](https://yuml.me/e26c4eef.jpg)
+![Current dbj++nanolib](https://yuml.me/ab2e4249.jpg)
 
-Desings and diagrams are invaluable. First for explaining to yourself your solution, and second to make others understand your solution, before you lose the patience.
+Desings and [diagrams](http://yuml.me/edit/ab2e4249) are invaluable. First for explaining to yourself your solution, and second to make others understand your solution, before you lose the patience.
 
 ## Implementation concepts
 - inheritance in C++ is used for
-  - Sub-Typing
+  - [Sub-Typing](https://en.wikipedia.org/wiki/Subtyping)
   - Sub-Classing
     - Sub-Classing is evil
 - Polymorphism does not require inheritance
