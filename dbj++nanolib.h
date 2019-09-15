@@ -101,11 +101,9 @@ inline const bool dbj_nanolib_initialized = ([]() -> bool {
 			2. NEVER mix std::cout  and std::wcout
 			3. use _setmode() and use it only once -- if third party libs you use fiddle with _setmode()  discard them ASAP.
 			4. be (very_ aware that you need particular font to see *all* of your funky unicode glyphs is windows console
-			*/
-#if defined(DEBUG) || defined(_DEBUG)
-            /*
-            Steve Wishnousky (MSFT) publicly has advised agains
-            uisng _setmode() at all
+
+            Steve Wishnousky (MSFT) publicly has advised me personaly, against
+            using _setmode() at all
             */
 			//#define _O_TEXT        0x4000  // file mode is text (translated)
 			//#define _O_BINARY      0x8000  // file mode is binary (untranslated)
@@ -113,10 +111,10 @@ inline const bool dbj_nanolib_initialized = ([]() -> bool {
 			//#define _O_U16TEXT     0x20000 // file mode is UTF16 no BOM (translated)
 			//#define _O_U8TEXT      0x40000 // file mode is UTF8  no BOM (translated)
 
-			if (-1 == _setmode(_fileno(stdin), _O_TEXT)) perror("Can not set mode");
-			if (-1 == _setmode(_fileno(stdout), _O_TEXT)) perror("Can not set mode");
-			if (-1 == _setmode(_fileno(stderr), _O_TEXT)) perror("Can not set mode");
-#endif
+			if (-1 == _setmode(_fileno(stdin), _O_U8TEXT)) perror("Can not set mode");
+			if (-1 == _setmode(_fileno(stdout), _O_U8TEXT)) perror("Can not set mode");
+			if (-1 == _setmode(_fileno(stderr), _O_U8TEXT)) perror("Can not set mode");
+
 			enable_vt_100();
 
 #ifdef DBJ_TESTING_CONSOLE_MODE
@@ -259,17 +257,24 @@ struct v_buffer final
 #pragma endregion
 
 /*
-we use fprintf throgh a macro to increase the resilience + the change-ability
+DO NOT USE "naked" printf() family !
+UCRT is still in a mess about CONSOLE output
+
+We use (x)fprintf through a macro to increase the resilience + the change-ability
 of dbj nano lib
 
 first arg has to be stdout, stderr, etc ...
 */
+#ifdef NDEBUG #define DBJ_FPRINTF(...) std::fprintf(__VA_ARGS__)
+#else
 #define DBJ_FPRINTF(...)                                                                                   \
     do                                                                                                     \
     {                                                                                                      \
-        if (errno_t result_ = ::fprintf(__VA_ARGS__); result_ < 0)                                         \
+        if (errno_t result_ = std::fprintf(__VA_ARGS__); result_ < 0)                                      \
             ::dbj::nanolib::dbj_terror(::dbj::nanolib::safe_strerror(result_).data(), __FILE__, __LINE__); \
     } while (false)
+
+#endif
 
 #define DBJ_PRINT(...) DBJ_FPRINTF(stdout, __VA_ARGS__)
 /*
