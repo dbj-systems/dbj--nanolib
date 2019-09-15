@@ -368,7 +368,7 @@ inline void last_perror(char const *prompt = nullptr)
     ::SetLastError(0);
 }
 
-inline bool set_console_font(wstring_view font_name)
+inline bool set_console_font(wstring_view font_name, SHORT font_height_ = SHORT(0))
 {
     CONSOLE_FONT_INFOEX font_info{};
     font_info.cbSize = sizeof(CONSOLE_FONT_INFOEX);
@@ -388,9 +388,19 @@ inline bool set_console_font(wstring_view font_name)
         return false;
     }
 
+    // set the new font name
     (void)memset(font_info.FaceName, 0, LF_FACESIZE);
-
     std::copy(font_name.begin(), font_name.end(), std::begin(font_info.FaceName));
+
+    // if reuested set the new font size
+    if (font_height_ > 0)
+    {
+        // quietly discard the silly sizes
+        if ((font_height_ > 7) && (font_height_ < 145))
+        {
+            font_info.dwFontSize.Y = font_height_;
+        }
+    }
 
     rez_ = SetCurrentConsoleFontEx(
         con_out_handle,
