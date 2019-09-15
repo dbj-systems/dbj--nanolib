@@ -87,7 +87,7 @@ void enable_vt_100();
 /* do this only once and do this as soon as possible */
 inline const bool dbj_nanolib_initialized = ([]() -> bool {
 #ifdef DBJ_NANO_WIN32
-			/*
+/*
 			WIN32 console is one notorious 30+ years old forever teenager
 			WIN32 UNICODE situation does not help at all
 			https://www.goland.org/unicode_c_windows/
@@ -102,7 +102,11 @@ inline const bool dbj_nanolib_initialized = ([]() -> bool {
 			3. use _setmode() and use it only once -- if third party libs you use fiddle with _setmode()  discard them ASAP.
 			4. be (very_ aware that you need particular font to see *all* of your funky unicode glyphs is windows console
 			*/
-
+#id defined(DEBUG || _DEBUG)
+            /*
+            Steve Wishnousky (MSFT) publicly has advised agains
+            uisng _setmode() at all
+            */
 			//#define _O_TEXT        0x4000  // file mode is text (translated)
 			//#define _O_BINARY      0x8000  // file mode is binary (untranslated)
 			//#define _O_WTEXT       0x10000 // file mode is UTF16 (translated)
@@ -112,7 +116,7 @@ inline const bool dbj_nanolib_initialized = ([]() -> bool {
 			if (-1 == _setmode(_fileno(stdin), _O_TEXT)) perror("Can not set mode");
 			if (-1 == _setmode(_fileno(stdout), _O_TEXT)) perror("Can not set mode");
 			if (-1 == _setmode(_fileno(stderr), _O_TEXT)) perror("Can not set mode");
-
+#endif
 			enable_vt_100();
 
 #ifdef DBJ_TESTING_CONSOLE_MODE
@@ -356,7 +360,6 @@ inline void last_perror(char const *prompt = nullptr)
     std::error_code ec(::GetLastError(), std::system_category());
 
     DBJ_FPRINTF(stderr, "\n\n%s\nLast WIN32 Error message: %s\n\n", (prompt ? prompt : ""), ec.message().c_str());
-    perror("\n\nerrno status is");
     ::SetLastError(0);
 }
 
@@ -413,6 +416,11 @@ inline bool set_console_font(wstring_view font_name)
 #error ENABLE_VIRTUAL_TERMINAL_PROCESSING not found? Try retargeting to the latest SDK.
 #endif
 
+/*
+will not exit the app *only* if app is started in WIN32 CONSOLE
+Example: if running from git bash on win this will exit the app
+if app output is redirected to file, this will also fail.
+*/
 inline void enable_vt_100()
 {
     static bool visited{false};
@@ -423,19 +431,25 @@ inline void enable_vt_100()
     HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
     if (hOut == INVALID_HANDLE_VALUE)
     {
-        dbj_terror("GetStdHandle() failed", __FILE__, __LINE__);
+        last_perror();
+        fprintf(stderr, "\nFile: %s\nLine: %ul\nWhy: %s\n", __FILE__, __LINE__, "GetStdHandle() failed");
+        return;
     }
 
-    DWORD dwMode = 0;
     if (!GetConsoleMode(hOut, &dwMode))
     {
-        dbj_terror("GetConsoleMode() failed", __FILE__, __LINE__);
+        last_perror();
+        fprintf(stderr, "\nFile: %s\nLine: %ul\nWhy: %s\n", __FILE__, __LINE__, "GetConsoleMode() failed");
+        fprintf(stderr, "\nPlease rerurn in either WIN console or powershell console\n");
+        return;
     }
 
-    dwMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+    DWORD dwMode = |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
     if (!SetConsoleMode(hOut, dwMode))
     {
-        dbj_terror("SetConsoleMode() failed", __FILE__, __LINE__);
+        last_perror();
+        fprintf(stderr, "\nFile: %s\nLine: %ul\nWhy: %s\n", __FILE__, __LINE__, "SetConsoleMode() failed");
+        return;
     }
     visited = true;
 }
