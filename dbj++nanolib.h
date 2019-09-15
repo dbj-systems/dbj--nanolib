@@ -436,6 +436,7 @@ inline void enable_vt_100()
         return;
     }
 
+    DWORD dwMode{};
     if (!GetConsoleMode(hOut, &dwMode))
     {
         last_perror();
@@ -444,7 +445,7 @@ inline void enable_vt_100()
         return;
     }
 
-    DWORD dwMode = |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+    dwMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
     if (!SetConsoleMode(hOut, dwMode))
     {
         last_perror();
