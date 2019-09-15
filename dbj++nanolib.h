@@ -102,7 +102,7 @@ inline const bool dbj_nanolib_initialized = ([]() -> bool {
 			3. use _setmode() and use it only once -- if third party libs you use fiddle with _setmode()  discard them ASAP.
 			4. be (very_ aware that you need particular font to see *all* of your funky unicode glyphs is windows console
 			*/
-#id defined(DEBUG || _DEBUG)
+#if defined(DEBUG || _DEBUG)
             /*
             Steve Wishnousky (MSFT) publicly has advised agains
             uisng _setmode() at all
