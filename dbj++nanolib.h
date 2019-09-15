@@ -265,7 +265,8 @@ of dbj nano lib
 
 first arg has to be stdout, stderr, etc ...
 */
-#ifdef NDEBUG #define DBJ_FPRINTF(...) std::fprintf(__VA_ARGS__)
+#ifdef NDEBUG
+#define DBJ_FPRINTF(...) std::fprintf(__VA_ARGS__)
 #else
 #define DBJ_FPRINTF(...)                                                                                   \
     do                                                                                                     \
