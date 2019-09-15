@@ -90,6 +90,7 @@ inline const bool dbj_nanolib_initialized = ([]() -> bool {
 /*
 			WIN32 console is one notorious 30+ years old forever teenager
 			WIN32 UNICODE situation does not help at all
+            UCRT team started well then dispersed
 			https://www.goland.org/unicode_c_windows/
 
 			To stay sane and healthy, the rules are:
@@ -99,12 +100,15 @@ inline const bool dbj_nanolib_initialized = ([]() -> bool {
 			1.1 you can mix printf and std::cout but very carefully
 			1.2 UCRT and printf and _setmode() are not friends see the commenct bellow, just here
 			2. NEVER mix std::cout  and std::wcout
-			3. use _setmode() and use it only once -- if third party libs you use fiddle with _setmode()  discard them ASAP.
-			4. be (very_ aware that you need particular font to see *all* of your funky unicode glyphs is windows console
-
+			3. be (very_ aware that you need particular font to see *all* of your funky unicode glyphs is windows console
+            */
+#if 0
+            /*
             Steve Wishnousky (MSFT) publicly has advised me personaly, against
             using _setmode() at all
+			https://developercommunity.visualstudio.com/solutions/411680/view.html
             */
+
 			//#define _O_TEXT        0x4000  // file mode is text (translated)
 			//#define _O_BINARY      0x8000  // file mode is binary (untranslated)
 			//#define _O_WTEXT       0x10000 // file mode is UTF16 (translated)
@@ -114,13 +118,6 @@ inline const bool dbj_nanolib_initialized = ([]() -> bool {
 			if (-1 == _setmode(_fileno(stdin), _O_U8TEXT)) perror("Can not set mode");
 			if (-1 == _setmode(_fileno(stdout), _O_U8TEXT)) perror("Can not set mode");
 			if (-1 == _setmode(_fileno(stderr), _O_U8TEXT)) perror("Can not set mode");
-
-			enable_vt_100();
-
-#ifdef DBJ_TESTING_CONSOLE_MODE
-
-			// see the MSFT response to this here
-			// https://developercommunity.visualstudio.com/solutions/411680/view.html
 
 			// with _O_TEXT simply no output
 			// works with _O_WTEXT, _O_U16TEXT and _O_U8TEXT
@@ -138,8 +135,10 @@ inline const bool dbj_nanolib_initialized = ([]() -> bool {
     // error C2022:  '1082': too big for character and so on  for every character
     // printf(  "\x043a\x043e\x0448\x043a\x0430 \x65e5\x672c\x56fd\n");
 #endif
+			enable_vt_100(); // enable VT100 ESC code for WIN10 console
+
 #endif // DBJ_NANO_WIN32
-			/* this might(!) slow down the ostreams but is much safer solution */
+			/* this might(!) slow down the ostreams but is much safer */
 			ios_base::sync_with_stdio(true);
 			/*-----------------------------------------------------------------------------------------*/
 			return true; }());
