@@ -105,7 +105,7 @@ inline const bool dbj_nanolib_initialized = ([]() -> bool {
 #if 0
             /*
             Steve Wishnousky (MSFT) publicly has advised me personaly, against
-            using _setmode() at all
+            using _setmode(), at all
 			https://developercommunity.visualstudio.com/solutions/411680/view.html
             */
 
@@ -153,19 +153,30 @@ inline const bool dbj_nanolib_initialized = ([]() -> bool {
     std::exit(EXIT_FAILURE);
 }
 
+// CAUTION! DBJ_VERIFY works in release builds too
 #ifndef DBJ_VERIFY
 #define DBJ_VERIFY_(x, file, line) \
     if (false == x)                \
-    ::dbj::nanolib::dbj_terror(#x ", failed", file, line)
-// NOTE! works in release builds too
+    ::dbj::nanolib::dbj_terror("Expression: " #x ", failed ", file, line)
+
 #define DBJ_VERIFY(x) DBJ_VERIFY_(x, __FILE__, __LINE__)
 #endif
 
-#pragma region synchronisation
+#ifdef DBJ_ASSERT
+#error remove previous DBJ_ASSERT definition
+#endif
 
-/*
-		usage:	void thread_safe_fun() {		lock_unlock autolock_ ;  	}
-	*/
+#ifdef _ASSERTE
+#define DBJ_ASSERT _ASSERTE
+#else
+#include <cassert>
+#define DBJ_ASSERT assert
+#endif
+
+#pragma region synchronisation
+/* 
+usage:	void thread_safe_fun() {		lock_unlock autolock_ ;  	} 
+*/
 struct lock_unlock final
 {
     mutable std::mutex mux_;
@@ -177,7 +188,11 @@ struct lock_unlock final
 
 #pragma region buffer type and helper
 
-constexpr inline std::size_t DBJ_64KB = UINT16_MAX;
+/*
+in case you need more change this
+by default it is 64KB aka 65535 bytes, which is quite a lot perhaps?
+*/
+constexpr inline std::size_t DBJ_MAX_BUFER_SIZE = UINT16_MAX;
 /*
 	for runtime buffering the most comfortable and in the same time fast
 	solution is vector<char_type>
@@ -194,7 +209,7 @@ struct v_buffer final
     static buffer_type make(size_t count_)
     {
         _ASSERTE(count_ > 0);
-        _ASSERTE(DBJ_64KB >= count_);
+        _ASSERTE(DBJ_MAX_BUFER_SIZE >= count_);
         buffer_type retval_(count_ + 1, char(0));
         return retval_;
     }
@@ -202,7 +217,7 @@ struct v_buffer final
     static buffer_type make(std::basic_string_view<char> sview_)
     {
         _ASSERTE(sview_.size() > 0);
-        _ASSERTE(DBJ_64KB >= sview_.size());
+        _ASSERTE(DBJ_MAX_BUFER_SIZE >= sview_.size());
         buffer_type retval_(sview_.begin(), sview_.end());
         // zero terminate?
         retval_.push_back(char(0));
