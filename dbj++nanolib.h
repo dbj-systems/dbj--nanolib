@@ -36,6 +36,17 @@
 #endif
 #endif
 
+#ifdef DBJ_ASSERT
+#error remove previous DBJ_ASSERT definition
+#endif
+
+#ifdef ASSERTE_
+#define DBJ_ASSERT ASSERTE_
+#else
+#include <cassert>
+#define DBJ_ASSERT assert
+#endif
+
 /*
 from vcruntime.h
 */
@@ -148,7 +159,7 @@ inline const bool dbj_nanolib_initialized = ([]() -> bool {
 	*/
 [[noreturn]] inline void dbj_terror(const char *msg_, const char *file_, const int line_)
 {
-    _ASSERTE(msg_ && file_ && line_);
+    DBJ_ASSERT(msg_ && file_ && line_);
     std::fprintf(stderr, "\n\ndbj++ Terminating error:%s\n%s (%d)", msg_, file_, line_);
     std::exit(EXIT_FAILURE);
 }
@@ -160,17 +171,6 @@ inline const bool dbj_nanolib_initialized = ([]() -> bool {
     ::dbj::nanolib::dbj_terror("Expression: " #x ", failed ", file, line)
 
 #define DBJ_VERIFY(x) DBJ_VERIFY_(x, __FILE__, __LINE__)
-#endif
-
-#ifdef DBJ_ASSERT
-#error remove previous DBJ_ASSERT definition
-#endif
-
-#ifdef _ASSERTE
-#define DBJ_ASSERT _ASSERTE
-#else
-#include <cassert>
-#define DBJ_ASSERT assert
 #endif
 
 #pragma region synchronisation
@@ -208,16 +208,16 @@ struct v_buffer final
 
     static buffer_type make(size_t count_)
     {
-        _ASSERTE(count_ > 0);
-        _ASSERTE(DBJ_MAX_BUFER_SIZE >= count_);
+        DBJ_ASSERT(count_ > 0);
+        DBJ_ASSERT(DBJ_MAX_BUFER_SIZE >= count_);
         buffer_type retval_(count_ + 1, char(0));
         return retval_;
     }
 
     static buffer_type make(std::basic_string_view<char> sview_)
     {
-        _ASSERTE(sview_.size() > 0);
-        _ASSERTE(DBJ_MAX_BUFER_SIZE >= sview_.size());
+        DBJ_ASSERT(sview_.size() > 0);
+        DBJ_ASSERT(DBJ_MAX_BUFER_SIZE >= sview_.size());
         buffer_type retval_(sview_.begin(), sview_.end());
         // zero terminate?
         retval_.push_back(char(0));
@@ -229,15 +229,15 @@ struct v_buffer final
     format(char const *format_, Args... args) noexcept
     {
         static_assert(sizeof...(args) < max_arguments, "\n\nmax 255 arguments allowed\n");
-        _ASSERTE(format_);
+        DBJ_ASSERT(format_);
         // 1: what is the size required
         size_t size = 1 + std::snprintf(nullptr, 0, format_, args...);
-        _ASSERTE(size > 0);
+        DBJ_ASSERT(size > 0);
         // 2: use it at runtime
         buffer_type buf = make(size);
         //
         size = std::snprintf(buf.data(), size, format_, args...);
-        _ASSERTE(size > 0);
+        DBJ_ASSERT(size > 0);
 
         return buf;
     }
