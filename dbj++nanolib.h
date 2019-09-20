@@ -375,10 +375,19 @@ inline v_buffer::buffer_type safe_strerror(int errno_)
     return buffy_;
 }
 
+/* Last WIN32 error, message */
+inline v_buffer::buffer_type last_win32_error_message( int code = 0 ) {
+	std::error_code ec(
+		( code ? code :  ::GetLastError() ), 
+		std::system_category());
+	::SetLastError(0); //yes this helps
+	return v_buffer::format("%s", ec.message().c_str());
+}
+
+/* like perror but for WIN32 */
 inline void last_perror(char const *prompt = nullptr)
 {
     std::error_code ec(::GetLastError(), std::system_category());
-
     DBJ_FPRINTF(stderr, "\n\n%s\nLast WIN32 Error message: %s\n\n", (prompt ? prompt : ""), ec.message().c_str());
     ::SetLastError(0);
 }
