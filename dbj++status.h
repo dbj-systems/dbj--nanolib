@@ -14,8 +14,22 @@ namespace dbj::nanolib
 
 	In case you have missed it: status is error when there is no value returned
 	*/
-	template <typename TYPE_, typename STATUS_ >
-	using generic_return_type = std::pair<std::optional<TYPE_>, std::optional<STATUS_> >;
+	//template <typename TYPE_, typename STATUS_ >
+	//using generic_return_type = std::pair<std::optional<TYPE_>, std::optional<STATUS_> >;
+
+	template <typename T1_, typename T2_ >
+	struct options_pair final {
+		using type = options_pair ;
+		using return_type = typename std::pair< optional<T1_>, optional<T2_> >;
+
+		using first_t = typename return_type::first_type ;
+		using second_t = typename return_type::second_type;
+
+		static return_type make(first_t v_	) { return { {v_},{} }; }
+		static return_type make(second_t v_	) { return { {},{v_} }; }
+		static return_type make(first_t f_, second_t s_) { return { {f_},{s_} }; }
+		static return_type make(			) { return { {},{} }; }
+	};
 	/*
 	return_type dbj_function () ;
 
@@ -24,10 +38,15 @@ namespace dbj::nanolib
 	if ( ! value )
 		 printf ("\nError: %s", status.data() ) ;
 	*/
-	using status_type = v_buffer::buffer_type;
+	using status_type = typename v_buffer::buffer_type;
 
 	template <typename T >
-	using return_type = generic_return_type<T, status_type >;
+	using value_status_type =  options_pair<T, status_type >;
+
+	template <typename T >
+	using return_type = typename value_status_type<T>::return_type ;
+
+
 
 	/*
 	here is the secret sauce DBJ: status is a json encoded string
@@ -42,7 +61,8 @@ namespace dbj::nanolib
 	in essence we erase the type by using json formated string messages.
 	*/
 	constexpr auto json_code_message_template =
-	"{ \"code\" : %%d , \"message\" : \"%%s\", \"category\" : \"%%s\", \"location\" : { \"file\" : \"%%s\", \"line\" : %%d } }";
+	//"{ \"code\" : %%d , \"message\" : \"%%s\", \"category\" : \"%%s\", \"location\" : { \"file\" : \"%%s\", \"line\" : %%d } }";
+	"{ \"code\" : %d , \"message\" : \"%s\", \"category\" : \"%s\", \"location\" : { \"file\" : \"%s\", \"line\" : %d } }";
 
 
 	template<
@@ -84,15 +104,15 @@ namespace dbj::nanolib
 		/*
 		error return has no value, just a status second part
 		*/
-		template<typename T>
-		static return_type<T> make_retval (
-			optional<T> value ,
-			code_type code, char const* file, long line
-		)
-		{
-			/*	error return has no value, just a status second part	*/
-			return { value ,  {  make_status( code, file, line) } };
-		}
+		//template<typename T>
+		//static return_type<T> make_retval (
+		//	optional<T> value ,
+		//	code_type code, char const* file, long line
+		//)
+		//{
+		//	/*	error return has no value, just a status second part	*/
+		//	return { value ,  {  make_status( code, file, line) } };
+		//}
 	}; // return_type_service
 
 	/*
@@ -100,29 +120,49 @@ namespace dbj::nanolib
 	factory methods is all we need to reach to, and use a particular service
 	*/
 	template<typename SVC_>
-	inline status_type make_status(
-		typename SVC_::code_type code,
-		char const* file, long line
-	) {
+	inline status_type make_status
+	( typename SVC_::code_type code,char const* file, long line ) 
+	{
 		return SVC_::make_status(code, file, line);
 	}
 
-	template<typename SVC_, typename T>
-	inline return_type<T> make_retval(
-		std::optional<T> val ,
-		typename SVC_::code_type code,
-		char const* file, long line
-	) {
-		return SVC_::make_retval( val, code, file, line);
+	template<typename SVC_>
+	inline status_type make_status
+	( char const * information ,	char const* file, long line	) {
+		return SVC_::make_status(information, file, line);
 	}
+
+	template<typename SVC_, typename T>
+	inline return_type<T> make_error
+	(  status_type status_ )
+	{
+		return value_status_type<T>::make(  status_  );
+	}
+
+	template<typename SVC_, typename T>
+	inline return_type<T> make_ok(	T const & value_) 
+	{
+		return value_status_type<T>::make(value_);
+	}
+
+	template<typename SVC_, typename T>
+	inline return_type<T> make_full(
+		T const& value,
+		status_type status_
+	) {
+		return  value_status_type<T>::make( value, status_) ;
+	}
+
 	/*
 And now the shamefull macros ;)
 */
 #define DBJ_STATUS( SVC_, CODE_) dbj::nanolib::make_status<SVC_>( CODE_, __FILE__, __LINE__ )
 
-#define DBJ_RETVAL_ERR( SVC_, T, CODE_) dbj::nanolib::make_retval<SVC_, T >( std::nullopt, CODE_, __FILE__, __LINE__ )
+#define DBJ_RETVAL_ERR( SVC_, T_, CODE_) dbj::nanolib::make_error< SVC_ , T_ >( DBJ_STATUS(SVC_, CODE_) )
 
-#define DBJ_RETVAL_OK(VAL_) typename dbj::nanolib::return_type< decltype<VAL_> >{ { VAL_ }, {} }
+#define DBJ_RETVAL_FULL( SVC_, VAL_, CODE_) dbj::nanolib::make_full< SVC_ , decltype(VAL_) >( VAL_, DBJ_STATUS(SVC_, CODE_) )
+
+#define DBJ_RETVAL_OK(  SVC_, VAL_) dbj::nanolib::make_ok< SVC_ , decltype(VAL_) >( VAL_ )
 
 /*
 some use cases do require both value and simple status message
@@ -131,8 +171,9 @@ here is just a simple macro to do this for example:
 
 return DBJ_RETVAL_INFO( false, "but all was OK" ) ;
 */
-#define DBJ_RETVAL_INFO(SVC_, VAL_, MSG_) \
-	dbj::nanolib::make_error<SVC_>{ { VAL_ }, { dbj::nanolib::make_status<SVC_>( MSG_ , __FILE__, __LINE__ )  } }
+//#define DBJ_RETVAL_INFO(SVC_, VAL_, MSG_) \
+//	dbj::nanolib::return_type< decltype(VAL_) > \ 
+//	{ { VAL_ }, { dbj::nanolib::make_status<SVC_>( MSG_ , __FILE__, __LINE__ )  } }
 	/*----------------------------------------------------------------------------------------------
 	create servises
 	*/
