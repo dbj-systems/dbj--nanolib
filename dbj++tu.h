@@ -149,10 +149,10 @@ Usage:
 
 DBJ_TX( 4 + 2 );
 */
-#define DBJ_TX(x)                                                                                                                              \
-    do                                                                                                                                         \
-    {                                                                                                                                          \
-        std::cout << std::boolalpha << "\n\nExpression: '" << #x << "'\n\tResult: " << (x) << "\n\tIt's type: " << typeid(x).name() << "\n\n"; \
+#define DBJ_TX(x)                                                                                                                          \
+    do                                                                                                                                     \
+    {                                                                                                                                      \
+        std::cout << std::boolalpha << "\n\nExpression: '" << #x << "'\nResult: " << (x) << "\nIt's type: " << typeid(x).name() << "\n\n"; \
     } while (0)
 
 #pragma endregion
@@ -172,24 +172,40 @@ thus I will put required operators in here
 
 inline std::ostream &operator<<(std::ostream &os_, std::vector<char> buff_)
 {
-    return os_ << buff_.data();
+    if (os_.good())
+    {
+        os_ << buff_.data();
+    }
+    return os_;
 }
 
 inline std::ostream &operator<<(std::ostream &os_, std::vector<wchar_t> buff_)
 {
-    return os_ << buff_.data();
+    if (os_.good())
+    {
+        os_ << buff_.data();
+    }
+    return os_;
 }
 
 template <size_t N>
 inline std::ostream &operator<<(std::ostream &os_, std::array<char, N> buff_)
 {
-    return os_ << buff_.data();
+    if (os_.good())
+    {
+        os_ << buff_.data();
+    }
+    return os_;
 }
 
 template <size_t N>
 inline std::ostream &operator<<(std::ostream &os_, std::array<wchar_t, N> buff_)
 {
-    return os_ << buff_.data();
+    if (os_.good())
+    {
+        os_ << buff_.data();
+    }
+    return os_;
 }
 /*
 I use very often std::pair
@@ -197,9 +213,39 @@ I use very often std::pair
 template <typename T1, typename T2>
 inline std::ostream &operator<<(std::ostream &os_, std::pair<T1, T2> pair_)
 {
-    return os_ << "{ " << pair_.first << " , " << pair_.second << " }";
+    if (os_.good())
+    {
+        os_ << "{ " << pair_.first << " , " << pair_.second << " }";
+    }
+    return os_;
 }
 
+inline std::ostream &operator<<(std::ostream &os_, std::nullopt_t const &)
+{
+    if (os_.good())
+    {
+        os_ << "nullopt";
+    }
+    return os_;
+}
+
+/*
+no this does not help
+https://www.boost.org/doc/libs/1_34_0/boost/optional/optional_io.hpp
+*/
+template <typename T1>
+inline std::ostream &operator<<(std::ostream &os_, std::optional<T1> const &opt_)
+{
+    if (os_.good())
+    {
+        if (opt_)
+            return os_ << "{ " << *opt_ << " }";
+        return os_ << "{ "
+                   << "empty"
+                   << " }";
+    }
+    return os_;
+}
 #endif
 
 #endif // DBJ_TU_INCLUDED
