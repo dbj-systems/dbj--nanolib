@@ -99,14 +99,14 @@ struct testing_system final
 
     void start() const
     {
-		DBJ_PRINT(DBJ_FG_CYAN);
+        DBJ_PRINT(DBJ_FG_CYAN);
         line();
         DBJ_PRINT("\n " _DBJ_STRINGIZE(MSCVER) " :\t\t %d", MSCVER);
         DBJ_PRINT("\n " _DBJ_STRINGIZE(MSCFULLVER) " :\t\t %d", MSCFULLVER);
         DBJ_PRINT("\n " _DBJ_STRINGIZE(MSCBUILD) " :\t\t %d", MSCBUILD);
         DBJ_PRINT("\n\n Catalogue has %zd test units", units.size());
         line();
-		DBJ_PRINT(DBJ_RESET);
+        DBJ_PRINT(DBJ_RESET);
     }
 
     void end() const
@@ -149,10 +149,13 @@ Usage:
 
 DBJ_TX( 4 + 2 );
 */
-#define DBJ_TX(x)                                                                                          \
-    do                                                                                                     \
-    {                                                                                                      \
-        std::cout << std::boolalpha << "\n\nExpression: '" << _DBJ_STRINGIZE(x) << "'\n\tResult: " << (x); \
+#define DBJ_TX(x)                                                                                                            \
+    do                                                                                                                       \
+    {                                                                                                                        \
+        auto const &R = (x);                                                                                                 \
+        auto const &S = #x;                                                                                                  \
+        auto const &T = typeid(R).name();                                                                                    \
+        std::cout << std::boolalpha << "\n\nExpression: '" << S << "'\n\tResult: " << R << "\n\tIt's type: " << T << "\n\n"; \
     } while (0)
 
 #pragma endregion

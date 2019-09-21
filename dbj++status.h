@@ -14,8 +14,6 @@ namespace dbj::nanolib
 
 	In case you have missed it: status is error when there is no value returned
 	*/
-	//template <typename TYPE_, typename STATUS_ >
-	//using generic_return_type = std::pair<std::optional<TYPE_>, std::optional<STATUS_> >;
 
 	template <typename T1_, typename T2_ >
 	struct options_pair final {
@@ -45,8 +43,6 @@ namespace dbj::nanolib
 
 	template <typename T >
 	using return_type = typename value_status_type<T>::return_type ;
-
-
 
 	/*
 	here is the secret sauce DBJ: status is a json encoded string
@@ -101,18 +97,7 @@ namespace dbj::nanolib
 			);
 			return buff;
 		}
-		/*
-		error return has no value, just a status second part
-		*/
-		//template<typename T>
-		//static return_type<T> make_retval (
-		//	optional<T> value ,
-		//	code_type code, char const* file, long line
-		//)
-		//{
-		//	/*	error return has no value, just a status second part	*/
-		//	return { value ,  {  make_status( code, file, line) } };
-		//}
+
 	}; // return_type_service
 
 	/*
@@ -168,12 +153,8 @@ And now the shamefull macros ;)
 some use cases do require both value and simple status message
 users should, if required, handle that separately
 here is just a simple macro to do this for example:
-
-return DBJ_RETVAL_INFO( false, "but all was OK" ) ;
 */
-//#define DBJ_RETVAL_INFO(SVC_, VAL_, MSG_) \
-//	dbj::nanolib::return_type< decltype(VAL_) > \ 
-//	{ { VAL_ }, { dbj::nanolib::make_status<SVC_>( MSG_ , __FILE__, __LINE__ )  } }
+
 	/*----------------------------------------------------------------------------------------------
 	create servises
 	*/
