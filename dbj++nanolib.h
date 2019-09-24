@@ -14,7 +14,7 @@
 #include <chrono>
 #include <cmath>
 #include <string_view>
-// #include <future>
+#include <optional>
 #include <mutex>
 
 #ifdef DBJ_NANO_WIN32
@@ -376,12 +376,13 @@ inline v_buffer::buffer_type safe_strerror(int errno_)
 }
 
 /* Last WIN32 error, message */
-inline v_buffer::buffer_type last_win32_error_message( int code = 0 ) {
-	std::error_code ec(
-		( code ? code :  ::GetLastError() ), 
-		std::system_category());
-	::SetLastError(0); //yes this helps
-	return v_buffer::format("%s", ec.message().c_str());
+inline v_buffer::buffer_type last_win32_error_message(int code = 0)
+{
+    std::error_code ec(
+        (code ? code : ::GetLastError()),
+        std::system_category());
+    ::SetLastError(0); //yes this helps
+    return v_buffer::format("%s", ec.message().c_str());
 }
 
 /* like perror but for WIN32 */
