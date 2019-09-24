@@ -8,23 +8,11 @@ namespace dbj::nanolib
 	/*
 	abstract generic structure, with no apparent application domain
 	*/
-
 	template <typename T1_, typename T2_>
-	struct options_pair final
-	{
-		using type = options_pair;
-		using return_type = typename std::pair<optional<T1_>, optional<T2_>>;
+	using pair_of_options = std::pair<optional<T1_>, optional<T2_>>;
 
-		using first_t = typename return_type::first_type;
-		using second_t = typename return_type::second_type;
-
-		static return_type make(first_t v_) { return { {v_}, {} }; }
-		static return_type make(second_t v_) { return { {}, {v_} }; }
-		static return_type make(first_t f_, second_t s_) { return { {f_}, {s_} }; }
-		static return_type make() { return { {}, {} }; }
-	};
 	/*
-		here we use options_pair in the domain of return types
+		In here we use pair_of_options in the domain of return types
 		synopsis:
 
 		generic_return_type generic_function () ;
@@ -59,24 +47,25 @@ namespace dbj::nanolib
 		"{ \"code\" : %d , \"message\" : \"%s\", \"category\" : \"%s\", \"location\" : { \"file\" : \"%s\", \"line\" : %d } }";
 
 	template <
-		typename T_,
+		typename value_type_,
 		typename code_type_param, /* has to be castable to int */
 		v_buffer::buffer_type(*code_to_message)(code_type_param),
 		int (*code_to_int)(code_type_param),
-		char const* (*category_name)()>
+		char const* (*category_name)()
+	>
 		struct return_type_service final
 	{
-		using value_type = T_;
+		using type = return_type_service;
+		using value_type = value_type_;
 		/*
 		second we use abstract options_pair structure to form
 		a type that will contins value of type T and a status
 		we have delcared as a message in the buffer
 		*/
-		using value_and_status = options_pair< value_type, status_type>;
+		// using value_and_status = options_pair< value_type, status_type>;
 
-		using return_type = typename value_and_status::return_type;
-
-		// using value_status_engine = typename value_and_status<value_type>
+		// using return_type = typename value_and_status::return_type;
+		using return_type = pair< optional<value_type>, optional<status_type> >;
 
 		using code_type = code_type_param;
 		constexpr static inline char const* category = category_name();
@@ -109,28 +98,39 @@ namespace dbj::nanolib
 
 		// just status present  means error
 		// --> { { } , { status } }
-		static auto make_error(status_type status_)
+		static return_type make_error(status_type status_)
 		{
-			return value_and_status::make(status_);
+			// return value_and_status::make(status_);
+			return  return_type{ { } , { status_ } };
 		}
 
 		// just value no status is normal return
 		// status part is redundant --> { { value } , { } }
 		static return_type make_ok(value_type /*const&*/ value_)
 		{
-			return value_and_status::make(value_);
+			return  { { value_ } , { } };
 		}
 
 		// both status and value we cann "info return"
 		// --> { { value } , { status } }
-		static return_type make_full(value_type /*const&*/ value, status_type status_)
+		static return_type make_full(value_type /*const&*/ value_, status_type status_)
 		{
-			return value_and_status::make(value, status_);
+			return  { { value_ } , { status_ } };
 		}
 	}; // return_type_service
 	/*----------------------------------------------------------------------------------------------
 		And now the shamefull macros ;)
 	*/
+	/*
+	if static method inside the class depends on the nested type
+	of return_type_service above
+	the said class will not be defined until the last };
+	and that declaration will not compile
+	ditto we can simply re-declare that return as local non nested type
+	and use it insted
+	*/
+#define DBJ_DECLARE_VALSTAT_TYPE(VT_) pair< optional<VT_>, optional<dbj::nanolib::v_buffer::buffer_type> >
+
 #define DBJ_STATUS(SVC_, CODE_) SVC_::make_status(CODE_, __FILE__, __LINE__)
 
 // value part is redundant --> { {} , { status } }
