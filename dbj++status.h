@@ -6,7 +6,7 @@
 namespace dbj::nanolib
 {
 	/*
-	abstract generic structure, with no apparent application domain
+	abstract generic structure, with no apparent solution domain
 	*/
 	template <typename T1_, typename T2_>
 	using pair_of_options = std::pair<optional<T1_>, optional<T2_>>;
@@ -221,5 +221,50 @@ here is just a simple macro to do this for example:
 #endif // DBJ_NANO_WIN32
 
 } // namespace dbj::nanolib
+
+// #define TESTING_DBJ_RETVALS
+#ifdef TESTING_DBJ_RETVALS
+#include "dbj++tu.h"
+
+namespace tempo_test {
+
+	// we do not need to predefine the type 
+	// particular service will use
+	// since template declarations are not permited inside functions
+	// we declare the type here
+	// error C2951 : template declarations are only permitted at global, namespace, or class scope
+	template<typename value_type>
+	using win32 = typename dbj::nanolib::win32_retval_service<value_type>;
+
+	TU_REGISTER(
+		[]
+		{
+			// here we pre-define the service we will use
+			// here we are saying our status will be posix codes related
+			// and the value's return will be of the bool type
+			using posix = typename dbj::nanolib::posix_retval_service<bool>;
+
+			DBJ_TX(DBJ_STATUS(posix, std::errc::already_connected));
+			DBJ_TX(DBJ_STATUS(posix, "Wowza!"));
+			DBJ_TX(DBJ_RETVAL_ERR(posix, std::errc::already_connected));
+			DBJ_TX(DBJ_RETVAL_OK(posix, true));
+			DBJ_TX(DBJ_RETVAL_FULL(posix, true, "OK"));
+
+			// we respect the error_code type for a win32  returns service
+			// if you look into it you will see it is a struct 
+			// it also uses win32 GetLastError to obtain the last win32 error
+			// automaticaly, users can not send it in
+			using win32_ec = typename dbj::nanolib::win32::error_code;
+
+			DBJ_TX(DBJ_STATUS(win32< bool  >, win32_ec{}));
+			DBJ_TX(DBJ_STATUS(win32< float >, "Wowza!"));
+			DBJ_TX(DBJ_RETVAL_ERR(win32< std::string >, win32_ec{}));
+			DBJ_TX(DBJ_RETVAL_OK(win32<  std::string >, "this content is made and returned"));
+			DBJ_TX(DBJ_RETVAL_FULL(win32< char >, '0', 0));
+
+
+		});
+}
+#endif // TESTING_DBJ_RETVALS
 
 #endif // _DBJ_STATUS_INC_
