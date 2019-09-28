@@ -15,6 +15,7 @@
 #include <cmath>
 #include <string_view>
 #include <optional>
+#include <utility>
 #include <mutex>
 
 #ifdef DBJ_NANO_WIN32
@@ -293,7 +294,7 @@ first arg has to be stdout, stderr, etc ...
 
 #define DBJ_PRINT(...) DBJ_FPRINTF(stdout, __VA_ARGS__)
 
-#define DBJ_FILE_LINE  __FILE__ "(" _CRT_STRINGIZE(__LINE__) ")"
+#define DBJ_FILE_LINE __FILE__ "(" _CRT_STRINGIZE(__LINE__) ")"
 /*
 we use the macro bellow to create ever needed location info always
 associated with the offending expression
@@ -498,22 +499,33 @@ inline void enable_vt_100()
 }
 
 // dbj::nanolib::system_call("@chcp 65001")
-bool system_call(const char* cmd_) {
-	_ASSERTE(cmd_);
-	if (0 != system(NULL)) {
-		if (-1 == system(cmd_))// utf-8 codepage! 
-		{
-			switch (errno) {
-			case E2BIG:		perror("The argument list(which is system - dependent) is too big"); break;
-			case ENOENT:	perror("The command interpreter cannot be found."); break;
-			case ENOEXEC:	perror("The command - interpreter file cannot be executed because the format is not valid."); break;
-			case ENOMEM:	perror("Not enough memory is available to execute command; or available memory has been corrupted; or a non - valid block exists, which indicates that the process that's making the call was not allocated correctly."); break;
-			}
-			return false;
-		}
-		return true;
-	}
-	return false;
+bool system_call(const char *cmd_)
+{
+    _ASSERTE(cmd_);
+    if (0 != system(NULL))
+    {
+        if (-1 == system(cmd_)) // utf-8 codepage!
+        {
+            switch (errno)
+            {
+            case E2BIG:
+                perror("The argument list(which is system - dependent) is too big");
+                break;
+            case ENOENT:
+                perror("The command interpreter cannot be found.");
+                break;
+            case ENOEXEC:
+                perror("The command - interpreter file cannot be executed because the format is not valid.");
+                break;
+            case ENOMEM:
+                perror("Not enough memory is available to execute command; or available memory has been corrupted; or a non - valid block exists, which indicates that the process that's making the call was not allocated correctly.");
+                break;
+            }
+            return false;
+        }
+        return true;
+    }
+    return false;
 }
 
 #endif _WIN32_WINNT_WIN10
