@@ -210,7 +210,7 @@ constexpr auto category_name() { return "win32"; }
 } // namespace win32
 
 template <typename T>
-	using > win32_valstat_trait = valstat_trait<
+using win32_valstat_trait = valstat_trait<
 	// value type
 	T,
 	//  code type
@@ -237,7 +237,7 @@ namespace tempo_test
 // we declare the type here
 // error C2951 : template declarations are only permitted at global, namespace, or class scope
 template <typename value_type>
-using win32 = typename dbj::nanolib:: > win32_valstat_trait<value_type>;
+using win32 = typename dbj::nanolib::win32_valstat_trait<value_type>;
 
 TU_REGISTER(
 	[] {
