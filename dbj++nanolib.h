@@ -499,7 +499,7 @@ inline void enable_vt_100()
 }
 
 // dbj::nanolib::system_call("@chcp 65001")
-bool system_call(const char *cmd_)
+inline bool system_call(const char *cmd_)
 {
     _ASSERTE(cmd_);
     if (0 != system(NULL))

@@ -60,18 +60,6 @@ struct valstat_trait final
 	using code_type = code_type_param;
 	constexpr static inline char const *category = category_name();
 
-	/* value_ref name to remind not a value is retuned */
-	static optional<value_type> &val_ref(return_type &rt_) noexcept
-	{
-		rt_.first;
-	}
-
-	/* status_ref name to remind not a value is retuned */
-	static optional<value_type> &stat_ref(return_type &rt_) noexcept
-	{
-		rt_.second;
-	}
-
 	static status_type make_status(code_type code, char const *file, long line)
 	{
 		auto buff = v_buffer::format(json_code_message_template,
