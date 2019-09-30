@@ -31,7 +31,7 @@ using pair_of_options = std::pair<optional<T1_>, optional<T2_>>;
 using status_type = typename v_buffer::buffer_type;
 
 /*
-			here is the secret sauce DBJ: status is a json encoded string
+	here is the secret sauce DBJ: status is a json encoded string
 
 			which in 99.99% of use cases and in the context of programing is enough.
 			in case it is not, we need to decode this string message to find out what was
@@ -45,7 +45,28 @@ using status_type = typename v_buffer::buffer_type;
 constexpr auto json_code_message_template =
 	//"{ \"code\" : %%d , \"message\" : \"%%s\", \"category\" : \"%%s\", \"location\" : { \"file\" : \"%%s\", \"line\" : %%d } }";
 	"{ \"code\" : %d , \"message\" : \"%s\", \"category\" : \"%s\", \"location\" : { \"file\" : \"%s\", \"line\" : %d } }";
+/*
+general info status is typeless, just a category name is associating it with a solution domain
+just make info status, example json generated:
 
+{ "code" : 0 , "message" : "All is fine here", "category" : "win32", location : { file: "main.cpp", line: 42 } }";
+*/
+inline status_type make_status(char const *information, char const *category_name, char const *file, long line)
+{
+	auto buff = v_buffer::format(json_code_message_template,
+								 0,
+								 information,
+								 category_name,
+								 file,
+								 line);
+	return buff;
+}
+/*
+-----------------------------------------------------------------------
+val stat trait for a particular domain
+requires a type, presumably from that domain
+and all the other info describing that domain sufficiently
+*/
 template <
 	typename value_type_,
 	typename code_type_param, /* has to be castable to int */
@@ -70,20 +91,15 @@ struct valstat_trait final
 									 line);
 		return buff;
 	}
-
-	/* just make info status , for example:
-
-			{ "code" : 0 , "message" : "All is fine here", "category" : "win32", location : { file: "main.cpp", line: 42 } }";
-			*/
+	/* make info status from inside the trait */
 	static status_type make_status(char const *information, char const *file, long line)
 	{
-		auto buff = v_buffer::format(json_code_message_template,
-									 0,
-									 information,
-									 category_name,
-									 file,
-									 line);
-		return buff;
+		return make_status(json_code_message_template,
+						   0,
+						   information,
+						   category_name(), /* trait 'knows' about its category */
+						   file,
+						   line);
 	}
 
 	// just status present  means error
@@ -124,17 +140,21 @@ struct valstat_trait final
 #define DBJ_STATUS(SVC_, CODE_) SVC_::make_status(CODE_, __FILE__, __LINE__)
 
 // value part is redundant --> { {} , { status } }
-#define DBJ_RETVAL_ERR(SVC_, CODE_) SVC_::make_error(DBJ_STATUS(SVC_, CODE_))
+#define DBJ_STATVAL_ERR(SVC_, CODE_) SVC_::make_error(DBJ_STATUS(SVC_, CODE_))
 
 // status part is redundant --> { { value } , { } }
-#define DBJ_RETVAL_OK(SVC_, VAL_) SVC_::make_ok(VAL_)
+#define DBJ_STATVAL_OK(SVC_, VAL_) SVC_::make_ok(VAL_)
 
 /*
 some use cases do require both value and simple status message
 users should, if required, handle that separately
 here is just a simple macro to do this for example:
 */
-#define DBJ_RETVAL_FULL(SVC_, VAL_, CODE_) SVC_::make_full(VAL_, DBJ_STATUS(SVC_, CODE_))
+#define DBJ_STATVAL_FULL(SVC_, VAL_, CODE_) SVC_::make_full(VAL_, DBJ_STATUS(SVC_, CODE_))
+/*
+do not go overboard with macros
+*/
+#define DBJ_PRINT_STATUS(S_) DBJ_FPRINTF(stderr, "\nStatus" DBJ_FG_YELLOW_BOLD " \n%s\n\n" DBJ_RESET, S_->data())
 
 /*----------------------------------------------------------------------------------------------
 	And now the two concrete services: posix and win32
