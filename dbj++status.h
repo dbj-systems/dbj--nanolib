@@ -1,5 +1,6 @@
 #ifndef _DBJ_STATUS_INC_
 #define _DBJ_STATUS_INC_
+/* (c) 2019 by dbj.org   -- CC BY-SA 4.0 -- https://creativecommons.org/licenses/by-sa/4.0/ */
 
 #include "dbj++nanolib.h"
 
@@ -12,18 +13,32 @@ template <typename T1_, typename T2_>
 using pair_of_options = std::pair<optional<T1_>, optional<T2_>>;
 
 /*
+Thinking about and solving the architecture of my return type I have came to 
+the conscious and key conceptual decision: value AND status, not value OR status. 
+AFAIK, all the solutions up till now are based on the valey OR error concept, 
+most often implemented with a uniion structure.
+
+So DBJ return type conceot is: Value AND Statu. Further to that, I postulate:
+
+1. if value AND status are empty that is an fatal error (std::exit() )
+2. if value AND status are not empty that is info state, e.g in dealing with TCP retval’s
+3. Just value –> OK state
+4. Just status –> ERR state
+
+I have developed a little top level traits templates for std::errc and for WIN32 ::GetLastError and then on top of that I have developed traits to use in my little SQLite3 C++ lib.
+
+It loooks rather complex but just because of namespaces and long type names … And yes there are macros.
+
 		In here we use pair_of_options in the domain of return types
 		synopsis:
 
-		generic_return_type generic_function () ;
 		auto [value,status] = generic_function() ;
 		if ( ! value ) ... then error ..
 		else ... use the value ...
 
-		Looks a lot like GO concepts. In case you have missed it: status is error when there is no value returned
-		*/
-/*
-		first we decide the status type will be a message
+		Looks a lot like GO concepts. https://blog.golang.org/error-handling-and-go
+		
+		First we decide the status type will be a message
 		we will use dbj nanolib buffer type
 		status type is not a template 
 		it is used in any returned type value pair as this same type
