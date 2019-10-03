@@ -10,29 +10,32 @@ Three primary objectives
 2. Make a simple, universally applicable solution, now.
 3. Achieve maximum with minimum 
 
-They are always coming as trios. After much more than expected, of experimenting and testing, this is my architecture of the solution. With reasoning behind.
+They are always coming as trios. After spending much more time than expected, in experimenting and testing, this is my architecture of the solution. With reasoning behind.
 
 #### "Error Handling" becomes Light and Useful
 
-Error handling was a wrong name. Not every return denotes an error. In this architecture, both value and status might be returned. The **"and"** is the key word. Not "or".
+Error (handling) was a wrong name. Not every return denotes an error. In this architecture, both value and status are potentially returned. The **"and"** is the key word. Not **"or"**.
 
-Here is the simple standard C++ code, actually explaining it all.
+Here is the simple and standard C++ code, actually explaining it all.
 
 ```cpp
 using namespace std ;
 
-/* abstract generic structure, with no apparent solution domain */
+/* the core data structure */
 template <typename T1_, typename T2_>
 using pair_of_options = std::pair<optional<T1_>, optional<T2_>>;
+```
+Here is the solution domain for the above: 
+ Instant type to return optional value and optional status.
+```cpp
 /* 
-here is the solution domain for the above 
-return optional value and optional status
-
 Not much is developed, it is all just about using the std:: lib. Not much can go wrong.
 */
 template<typename T>
 using valstat = pair_of_options<T, string > ;
-
+```
+The simple usage with the "structured binding" core usage idioms.
+```cpp
 valstat<int> my_fun ( int arg ) {
       if ( arg < 0 ) 
 /* on error return status only */
@@ -45,18 +48,18 @@ int main( int , char * [] )
 {
     auto test = []( int arg_) 
     {
-/* No macros. Structured binding is the preferred way to consume value and status */
+/* Structured binding is the preferred way to consume value and status */
         auto [ val, stat ] = my_fun(arg_);
-    
-        if ( ! val  ) 
-        { 
-            fprintf ( stderr, "\nError: %s ", stat->c_str() ) ; 
-        } else {
-            fprintf ( stdout, "\nValue: %d ", *(val) ) ; 
+/* No macros here */    
+    if ( ! val  ) 
+    { 
+    fprintf ( stderr, "\nError: %s ", stat->c_str() ) ; 
+    } else {
+    fprintf ( stdout, "\nValue: %d ", *(val) ) ; 
         }
     };
-        test(+ 42);
-        test(- 42);
+    test(+ 42);
+    test(- 42);
 }
 ```
 An distillation of many weeks of work. Very simple and logical. No macros. Just standard C++. 
@@ -64,7 +67,7 @@ An distillation of many weeks of work. Very simple and logical. No macros. Just 
 ## Key concept is the AND word
 #### Value AND Status
 
-`pair_of_options` is the core data structure. 
+Recap. `pair_of_options` is the core data structure. 
 ```cpp
 template <typename T1_, typename T2_>
 using pair_of_options = std::pair<std::optional<T1_>, std::optional<T2_>>;
@@ -78,13 +81,15 @@ Four (4) possible states of "occupancy" of this structure are:
 4. `{ {   } , {   } }`
 
 Thinking about and solving the architecture of return types, I have came to 
-the conscious and key conceptual conclusion: value AND status, not value OR error. Error is just one of the states (a condition) of the return event, at the consuming site. 
+the conscious and key conceptual conclusion: value AND status, not value OR error. 
+
+Error is just one of the states (a condition) of the return event, at the consuming site. 
 
 Error is a misleading name here. **Status** is the right name for what might be returned, with optional value. 
 
-Both absence and presence, of both value and state, gives the logic, the meaning for the consumers aka callers.
+Both absence and presence, of both value and state, gives the logic, to be used by the consumers aka callers.
 
- In the core structure, both Value and Status are optional. They might be or might not be present in the structure returned. This renders four (4) possible states at the consuming site.
+ In the core structure, both Value and Status are optional. They might be or might not be present in the structure returned. For the consuming code, this renders four (4) possible states at the consuming site.
 
 1. FATAL  
     1. If both value AND status are empty that is an fatal error
@@ -95,7 +100,7 @@ Both absence and presence, of both value and state, gives the logic, the meaning
 4. ERROR 
    1. Just status is returned, there is no value.
 
-Does this mean we have to check always, for all four in using this paradigm? I think not.
+Does this mean we have to check always, for all four when using this type returned? I think not.
 
 FATAL state we might take care of checking in debug builds only. INFO, OK or ERROR consuming  depends on the consumers logic, on the context.
 
@@ -105,22 +110,40 @@ As an example, consider consuming HTTP codes.
 valstat<http_code> http_get ( uri );
 // consuming site
 auto [ val, stat ] = http_get("...") ;
-   // debug builds check for the FATAL state
+   // only in debug builds check for the FATAL state
    // both can't be empty in the same time
    assert( val || stat ) ;
+   // no value means error
     if ( ! val ) return ;
-/* all the HTTP results are in the INFO state, both value and status are present as described by HTTP protocol */
-if ( val == http_code(200)) { /* the request was fulfilled */  }
-if ( val == http_code(203)) { /* partial information */  }
-if ( val == http_code(400)) { /* bad request */  }
+   // if that is required we can easily pass to the caller
+   // the valstat<http_code>  in an error state
+   // return {{},{stat}};
+
+/* 
+all the HTTP valstat results are made to be in the INFO state, both value and status are present as described by HTTP protocol 
+
+at debug time we might check if the implementor of http_get() has done that
+*/
+assert( val && stat );
+
+/* the request was fulfilled */ 
+if ( val == http_code(200)) { LOG(stat); }
+/* partial information */ 
+if ( val == http_code(203)) { LOG(stat); }
+/* bad request */
+if ( val == http_code(400)) { LOG(stat);  }
+
+...
 ```
-I any of the cases above, status returned will be expected and used.
+I any of the cases above, status returned is expected and used. `LOG` is probably some macro using the `syslog()` behind.
 ## Conclusion
 
-Probably, all the solutions up till now are based on the "value OR error" concept, 
+Probably, all the similar solutions up till now are based on the "value OR error" concept, 
 most often implemented using the union type. Sometime using the [discriminated union](https://pdfs.semanticscholar.org/0a8c/2e0f3a194b15970472dca07c37c2172b69fb.pdf) type, a.k.a variant. 
 
 I might be so bold to claim they are mostly over-engineered. I do not implement things (at least not in this instance). I simply use the types from the std:: lib.
+
+I do hope this solution for handling c++ returns, is recognized as simple enough to be used and resilient enough to be trusted.
 
 ## Appendix A
 
