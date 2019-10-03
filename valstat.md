@@ -74,11 +74,14 @@ using pair_of_options = std::pair<std::optional<T1_>, std::optional<T2_>>;
 ```
 Four (4) possible states of "occupancy" of this structure are:
 
+ | id  | occupancy pattern   | name   |
+ | --- | ------------------- | ------ |
+ | 1   | `{ { a } , { b } }` | full   |
+ | 2   | `{ { a } , {   } }` | first  |
+ | 3   | `{ {   } , { b } }` | second |
+ | 4   | `{ {   } , {   } }` | empty  |
 
-1. `{ { a } , { b } }`
-2. `{ { a } , {   } }`
-3. `{ {   } , { b } }`
-4. `{ {   } , {   } }`
+Above are the four (4) possible states in which instance of the core structure can exist.
 
 Thinking about and solving the architecture of return types, I have came to 
 the conscious and key conceptual conclusion: value AND status, not value OR error. 
