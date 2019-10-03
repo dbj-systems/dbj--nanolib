@@ -2,14 +2,14 @@
 ### CC BY-SA 4.0 -- https://creativecommons.org/licenses/by-sa/4.0/ 
 &copy; 2019 by dbj.org
 
-Very opinionated and very small ISO C++ library.I do hope you might find it usefull too. 
+Very opinionated and very small ISO C++ library.I do hope you might find it useful too. 
 
 dbj nano lib, is not portable. Yet. I develop primarily on Windows 10 PRO using Visual Studio, the latest.
 
 ## The Purpose & Motivation
 However small they might be, C++ programs should always promote good design, good implementation and reusability.
 
-Also, reusable solutions should not "get in the way". They should be small and transparent and comfortable to use, beside being very usefull too.
+Also, reusable solutions should not "get in the way". They should be small and transparent and comfortable to use, beside being very useful too.
 #### Slight detour: Use subset of UML
 Whatever you do, alwyas plan and think about it. Use diagrams before deciding your design is complete and you can proceed onto the implementation.
 
