@@ -72,7 +72,7 @@ Recap. `pair_of_options` is the core data structure.
 template <typename T1_, typename T2_>
 using pair_of_options = std::pair<std::optional<T1_>, std::optional<T2_>>;
 ```
-Four (4) possible states of "occupancy" of this structure are:
+Four (4) possible states of "occupancy" of this structure are (a and b are instances of types T1 and T2):
 
  | id  | occupancy pattern   | name   |
  | --- | ------------------- | ------ |
@@ -208,3 +208,36 @@ Using CLANG, output is garbage for the empty  `optional<string>`. Using G++ outp
         printf("\nFlags B: %d , %s", *flags2.first , flags2.second->c_str() );
 ```
 Using CLANG, output is empty string, when using `std::optional'. Using G++ output is (a lot of) garbage.
+
+## Appendix B
+
+#### Non movable ans non copyable types
+
+As `std::optional` is used as holder of instance of actual type we are bounded by the requirements of that std:: type.
+
+To save you of a lot of prose let me just paste from the `std::optional` implementation
+
+```cpp
+    static_assert(!is_reference_v<_Ty>, "T in optional<T> cannot be a reference type (N4659 23.6.2 [optional.syn]/1).");
+    static_assert(!is_same_v<remove_cv_t<_Ty>, nullopt_t>,
+        "T in optional<T> cannot be nullopt_t (N4659 23.6.2 [optional.syn]/1).");
+    static_assert(!is_same_v<remove_cv_t<_Ty>, in_place_t>,
+        "T in optional<T> cannot be in_place_t (N4659 23.6.2 [optional.syn]/1).");
+    static_assert(is_reference_v<_Ty> || is_object_v<_Ty>,
+        "T in optional<T> must be an object type (N4659 23.6.3 [optional.optional]/3).");
+    static_assert(is_destructible_v<_Ty> && !is_array_v<_Ty>,
+        "T in optional<T> must satisfy the requirements of Destructible (N4659 23.6.3 [optional.optional]/3).");
+```
+Of the above the somewhat controversial one is the requirement **not** to handle references.
+
+To solve that situation we shall use the `std::reference_wrapper<T>`. Example
+
+```cpp
+// there is always a single instance of a
+// single database
+class sql::database ;
+
+// since that makes objects of non movable not copyable type we have to use the reference_wrapper<> like so
+using db_valstat = valstat< reference_wrapper<sql::database>> ;
+
+```
