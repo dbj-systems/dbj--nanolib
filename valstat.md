@@ -136,7 +136,7 @@ pair_of_options<bool,bool> valstat
     {} /* empty */
   } ;
 ```
-To use the preferred style always is important for code resilience. It makes cleaner code. Here is the same but with `std::nullopt` to signal 'empty':
+To use the preferred style always is important for code resilience. It also makes cleaner code. Here is the same but with `std::nullopt` to signal 'empty':
 
 ```cpp
 // 'empty' as std::nullopt
