@@ -7,14 +7,14 @@
 Three primary objectives
 
 1. Can not wait C++23 and [P0709 realization](https://herbsutter.com/2018/07/02/trip-report-summer-iso-c-standards-meeting-rapperswil/) 
-2. Make a simple, universally applicable solution, now.
+2. Produce a simple, universally applicable solution, now.
 3. Achieve maximum with minimum 
 
 They are always coming as trios. After spending much more time than expected, in experimenting and testing, this is my architecture of the solution. With reasoning behind.
 
 #### "Error Handling" becomes Light and Useful
 
-Error (handling) was a wrong name. Not every return denotes an error. In this architecture, both value and status are potentially returned. The **"and"** is the key word. Not **"or"**.
+Error (handling) was a wrong name. Not every return denotes an error. In this architecture, both value and status are potentially returned. The **"and"** is the key word. Not the **"or"**.
 
 Here is the simple and standard C++ code, actually explaining it all.
 
@@ -121,12 +121,11 @@ auto [ val, stat ] = http_get("...") ;
    // if that is required we can easily pass to the caller
    // the valstat<http_code>  in an error state
    // return {{},{stat}};
+```
+All the HTTP valstat results are made to be in the INFO state, both value and status are present as described by HTTP protocol 
 
-/* 
-all the HTTP valstat results are made to be in the INFO state, both value and status are present as described by HTTP protocol 
-
-at debug time we might check if the implementor of http_get() has done that
-*/
+At debug time we might check if the implementor of http_get() has done that
+```cpp
 assert( val && stat );
 
 /* the request was fulfilled */ 
@@ -146,7 +145,13 @@ most often implemented using the union type. Sometime using the [discriminated u
 
 I might be so bold to claim they are mostly over-engineered. I do not implement things (at least not in this instance). I simply use the types from the std:: lib.
 
-I do hope this solution for handling c++ returns, is recognized as simple enough to be used and resilient enough to be trusted.
+I know about expected and outcome, etc. I  might suggest if and when approaching them please do read first the ["History" page](https://ned14.github.io/outcome/history/). Nial is really great guy (never met him). I think his experiences written here are the most precious. 
+
+Outcome of the outcome V1 peer review is the most telling. Thus VALSTAT fully conforms to the point 1: **Lightweight**. 
+
+At it core there is no implementation. Just usage of the types available from the std:: lib of C++17.
+
+I do hope the VALSTAT solution for handling c++ returns, is recognized as simple enough to be used and resilient enough to be trusted.
 
 ## Appendix A
 
@@ -203,6 +208,8 @@ Further to that, different compilers and std:: implementations do implement `std
         printf("\nFlags A: %d , %s", *flags.first , flags.second->c_str() );
 ```
 Using CLANG, output is garbage for the empty  `optional<string>`. Using G++ output is nicely formated, string: "(null)".
+
+Let us now try the above example, but with nullopt, used.
 ```cpp        
     pair_of_options<bool, string > flags2 = {{ true }, nullopt };
         printf("\nFlags B: %d , %s", *flags2.first , flags2.second->c_str() );
@@ -211,7 +218,7 @@ Using CLANG, output is empty string, when using `std::optional'. Using G++ outpu
 
 ## Appendix B
 
-#### Non movable ans non copyable types
+#### Non movable and non copyable types
 
 As `std::optional` is used as holder of instance of actual type we are bounded by the requirements of that std:: type.
 
@@ -240,4 +247,28 @@ class sql::database ;
 // since that makes objects of non movable not copyable type we have to use the reference_wrapper<> like so
 using db_valstat = valstat< reference_wrapper<sql::database>> ;
 
+```
+Thus we have solved the handling of the non copyable / non moveable object.
+
+`std::reference_wrapper` has this transformation operator to take out what is in, without using the ugly `get()` method
+```cpp
+int forty_two = 42 ;
+std::reference_wrapper<int> ir = forty_two ;
+// the ref type value contained
+int & val = ir; 
+```
+Obviously the `auto` will produce the wrong value
+```cpp
+int forty_two = 42 ;
+std::reference_wrapper<int> ir;
+// just the copy of the std::reference_wrapper<int> instance
+auto val = ir; 
+```
+As ever the best course of action is to use C++ , by the book
+```cpp
+using ref_int = std::reference_wrapper<int> ;
+int forty_two = 42 ;
+ref_int ir = forty_two ;
+// value of the type contained 
+ref_int::type val = ir; 
 ```
