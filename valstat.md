@@ -23,18 +23,15 @@ using namespace std ;
 
 /* the core data structure */
 template <typename T1_, typename T2_>
-using pair_of_options = std::pair<optional<T1_>, optional<T2_>>;
+using pair_of_options = pair<optional<T1_>, optional<T2_>>;
 ```
 Here is the solution domain for the above: 
  Instant type to return optional value and optional status.
 ```cpp
-/* 
-Not much is developed, it is all just about using the std:: lib. Not much can go wrong.
-*/
 template<typename T>
 using valstat = pair_of_options<T, string > ;
 ```
-The simple usage with the "structured binding" core usage idioms.
+Not much is developed here, it is all just about using the std:: lib. Not much can go wrong. The simple usage with the "structured binding" core usage idioms.
 ```cpp
 valstat<int> my_fun ( int arg ) {
       if ( arg < 0 ) 
@@ -55,7 +52,7 @@ int main( int , char * [] )
     { 
     fprintf ( stderr, "\nError: %s ", stat->c_str() ) ; 
     } else {
-    fprintf ( stdout, "\nValue: %d ", *(val) ) ; 
+    fprintf ( stdout, "\nValue: %d ", *val ) ; 
         }
     };
     test(+ 42);
@@ -92,7 +89,7 @@ Error is a misleading name here. **Status** is the right name for what might be 
 
 Both absence and presence, of both value and state, gives the logic, to be used by the consumers aka callers.
 
- In the core structure, both Value and Status are optional. They might be or might not be present in the structure returned. For the consuming code, this renders four (4) possible states at the consuming site.
+In the core structure, both Value and Status are optional. They might be or might not be present in the structure returned. For the consuming code, this renders four (4) possible states at the consuming site.
 
 1. FATAL  
     1. If both value AND status are empty that is an fatal error
@@ -135,21 +132,27 @@ if ( val == http_code(203)) { LOG(stat); }
 /* bad request */
 if ( val == http_code(400)) { LOG(stat);  }
 
-...
+... and so on ...
 ```
 I any of the cases above, status returned is expected and used. `LOG` is probably some macro using the `syslog()` behind.
 ## Conclusion
 
-Probably, all the similar solutions up till now are based on the "value OR error" concept, 
+All the similar solutions up till now are based on the "value OR error" concept, 
 most often implemented using the union type. Sometime using the [discriminated union](https://pdfs.semanticscholar.org/0a8c/2e0f3a194b15970472dca07c37c2172b69fb.pdf) type, a.k.a variant. 
 
-I might be so bold to claim they are mostly over-engineered. I do not implement things (at least not in this instance). I simply use the types from the std:: lib.
+I might be so bold to claim they are mostly over-engineered. In this instance, I do not implement things. I simply use the types from the std:: lib.
 
 I know about expected and outcome, etc. I  might suggest if and when approaching them please do read first the ["History" page](https://ned14.github.io/outcome/history/). Nial is really great guy (never met him). I think his experiences written here are the most precious. 
 
-Outcome of the outcome V1 peer review is the most telling. Thus VALSTAT fully conforms to the point 1: **Lightweight**. 
+Outcome of the outcome V1 peer review, is the most telling part for me. VALSTAT fully conforms to the point 1: **Lightweight**. 
 
-At it core there is no implementation. Just usage of the types available from the std:: lib of C++17.
+At its core there is no implementation. Just usage of the types available from the std:: lib of C++17.
+
+#### Application
+
+I have developed a valstat core inside my `dbj++nanolib`, then I expanded and used it in my minimal SQLITE3, C++ wrap up.
+
+The code is not as simple as in this text, but the concept is exactly the same. I am hoping in future releases, I can make it much simpler.
 
 I do hope the VALSTAT solution for handling c++ returns, is recognized as simple enough to be used and resilient enough to be trusted.
 
