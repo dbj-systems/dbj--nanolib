@@ -232,7 +232,8 @@ struct v_buffer final
         static_assert(sizeof...(args) < max_arguments, "\n\nmax 255 arguments allowed\n");
         DBJ_ASSERT(format_);
         // 1: what is the size required
-        size_t size = 1 + std::snprintf(nullptr, 0, format_, args...);
+        size_t size = 1 + size_t(
+                              std::snprintf(nullptr, 0, format_, args...));
         DBJ_ASSERT(size > 0);
         // 2: use it at runtime
         buffer_type buf = make(size);
