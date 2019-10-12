@@ -12,6 +12,32 @@ Three primary objectives
 
 They are always coming as trios. After spending much more time than expected, in experimenting and testing, this is my architecture of the solution. With reasoning behind.
 
+And first part of the reasoning behind is to draw logical conclusions from the current state of affairs, around this issue.
+
+#### What do we know so far
+
+C++ is going ([now officially](https://herbsutter.com/2018/07/02/trip-report-summer-iso-c-standards-meeting-rapperswil/)) into the following direction
+, without the [outcome](https://ned14.github.io/outcome/) and certainly without the completely unknown `valstat` :
+
+- No to `try`/`catch`/`throw` as we know them today
+     - No to `try {}` block -- perhaps
+- No to `std::outcome`
+- Yes to contracts 
+- Yes to `std::error` and `throws` adornments
+- No to exceptions flying out of `std::` space
+
+#### What seems to be a common wisdom by now
+
+- Not every return is error
+   - please if you could fins some time to read [this (long) paper](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p1677r1.pdf) aptly titled "Cancellation is not an Error" 
+ - Every error returned should be treated as one 
+    - in that context fast exit is not a bad idea
+  - `if`/`else` code replacing `try`/`catch` blocks makes code smaller (Nial has informed that Herb has checked with a Xbox team, I have no source yet)
+
+
+## The Works
+
+
 #### "Error Handling" becomes Light and Useful
 
 Error (handling) was a wrong name. Not every return denotes an error. In this architecture, both value and status are potentially returned. The **"and"** is the key word. Not the **"or"**.
@@ -91,8 +117,8 @@ Both absence and presence, of both value and state, gives the logic, to be used 
 
 In the core structure, both Value and Status are optional. They might be or might not be present in the structure returned. For the consuming code, this renders four (4) possible states at the consuming site.
 
-1. FATAL  
-    1. If both value AND status are empty that is an fatal error
+1. EMPTY  
+    1. If both value AND status are empty that is an state acceptable in some scenarios
 2. INFO 
     1. if both value AND status are not empty that is an info state.
 3. OK 
@@ -102,7 +128,9 @@ In the core structure, both Value and Status are optional. They might be or migh
 
 Does this mean we have to check always, for all four when using this type returned? I think not.
 
-FATAL state we might take care of checking in debug builds only. INFO, OK or ERROR consuming  depends on the consumers logic, on the context.
+EMPTY, INFO, OK or ERROR consuming  depends on the consumers logic, on the context.
+
+There is a nice term we might use here "algorithms that consume returns".
 
 As an example, consider consuming HTTP codes.
 ```cpp
@@ -110,7 +138,7 @@ As an example, consider consuming HTTP codes.
 valstat<http_code> http_get ( uri );
 // consuming site
 auto [ val, stat ] = http_get("...") ;
-   // only in debug builds check for the FATAL state
+   // only in debug builds check for the EMPTY state
    // both can't be empty in the same time
    assert( val || stat ) ;
    // no value means error
@@ -140,13 +168,13 @@ I any of the cases above, status returned is expected and used. `LOG` is probabl
 All the similar solutions up till now are based on the "value OR error" concept, 
 most often implemented using the union type. Sometime using the [discriminated union](https://pdfs.semanticscholar.org/0a8c/2e0f3a194b15970472dca07c37c2172b69fb.pdf) type, a.k.a variant. 
 
-I might be so bold to claim they are mostly over-engineered. In this instance, I do not implement things. I simply use the types from the std:: lib.
+I might be so bold to claim they are mostly over-engineered. In this instance, I do not implement things. I simply use the types from the std:: lib. This is "Almost a Zero Effort" library. It is more of an agreement to use it's core data structure ubiquitously.
 
 I know about expected and outcome, etc. I  might suggest if and when approaching them please do read first the ["History" page](https://ned14.github.io/outcome/history/). Nial is really great guy (never met him). I think his experiences written here are the most precious. 
 
-Outcome of the outcome V1 peer review, is the most telling part for me. VALSTAT fully conforms to the point 1: **Lightweight**. 
+Outcome of the outcome V1, peer review, is the most telling part for me. VALSTAT fully conforms to the point 1: **Lightweight**. 
 
-At its core there is no implementation. Just usage of the types available from the std:: lib of C++17.
+At its core there is almost no implementation. Just usage of the types available from the std:: lib of C++17.
 
 #### Application
 
@@ -155,6 +183,38 @@ I have developed a valstat core inside my `dbj++nanolib`, then I expanded and us
 The code is not as simple as in this text, but the concept is exactly the same. I am hoping in future releases, I can make it much simpler.
 
 I do hope the VALSTAT solution for handling c++ returns, is recognized as simple enough to be used and resilient enough to be trusted.
+
+#### The Future
+
+**Distributed Systems**
+
+Domain where valstat might be used with no much effort. Even in different languages, the same core principles can be preserved.
+
+Think of micro services. Cluster of micro services are orchestrated to make applications. 
+
+On the cluster level request sending and status feedback is reported usually through some messaging. 
+
+valstat status if made to be "just" a string can me JSON formated string. Universally acceptable and usable. Even between components developed in different languages.
+
+I have actually implemented valstat to have this shape in my `dbj++nanolib`.
+```cpp
+	using return_type = pair<optional<value_type>, optional<status_type>>;
+```
+Where `status type` is a special char buffer, aka "string". Not an `std::string` .
+
+**C Language**
+
+I am not sure yet. How about
+
+```cpp
+typedef valstat struct 
+{
+  void * value ;
+  void * status;
+} valstat ;
+```
+
+With a "Wall of Macros" around it. C community might have no problems with that.
 
 ## Appendix A
 
