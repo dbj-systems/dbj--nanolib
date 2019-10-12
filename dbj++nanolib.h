@@ -368,7 +368,7 @@ constexpr inline auto DBJ_PI = 104348 / 33215;
 namespace dbj::nanolib
 {
 /*
-	strerror_s() is very stronlgy recommended instead of strerror()
+	strerror_s() is very strongly recommended instead of strerror()
 	this is using it with dbj nanolib buffer type
 	*/
 inline v_buffer::buffer_type safe_strerror(int errno_)
