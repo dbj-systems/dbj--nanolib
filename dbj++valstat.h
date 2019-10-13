@@ -289,7 +289,7 @@ TU_REGISTER(
 		using posix_vt = typename dbj::nanolib::posix_valstat_trait<bool>;
 
 		prompt("posix valstat trait is prepared");
-		DBJ_TX(posix_vt);
+		DBJ_TX(typeid(posix_vt).name());
 		// DBJ_TX is a Test Unit macro showing the expression, it's value and type
 		// DBJ_STATUS and DBJ_VALSTAT* macros need a
 		// valstat trait as a first argument
@@ -315,7 +315,7 @@ TU_REGISTER(
 
 		using win32_ec = typename dbj::nanolib::win32::error_code;
 		prompt("WIN32 valstat trait 'code' is a struct i.e it is non trivial");
-		DBJ_TX(win32_ec);
+		DBJ_TX(typeid(win32_ec).name());
 
 		prompt("\nvs the previous example this time we crate required vastat traits ad-hoc");
 
