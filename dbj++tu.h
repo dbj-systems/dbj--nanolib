@@ -149,10 +149,13 @@ Usage:
 
 DBJ_TX( 4 + 2 );
 */
-#define DBJ_TX(x)                                                                                                                          \
-    do                                                                                                                                     \
-    {                                                                                                                                      \
-        std::cout << std::boolalpha << "\n\nExpression: '" << #x << "'\nResult: " << (x) << "\nIt's type: " << typeid(x).name() << "\n\n"; \
+#define DBJ_TX(x)                                                              \
+    do                                                                         \
+    {                                                                          \
+        std::cout << std::boolalpha << "\n\nExpression: '"                     \
+                  << DBJ_FG_YELLOW << #x << DBJ_RESET                          \
+                  << "'\n\nResult: " << DBJ_FG_YELLOW_BOLD << (x) << DBJ_RESET \
+                  << "\n\nType: " << typeid(x).name() << "\n\n";               \
     } while (0)
 
 #pragma endregion
