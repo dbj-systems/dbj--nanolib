@@ -207,18 +207,6 @@ inline std::ostream &operator<<(std::ostream &os_, std::array<wchar_t, N> buff_)
     }
     return os_;
 }
-/*
-I use very often std::pair
-*/
-template <typename T1, typename T2>
-inline std::ostream &operator<<(std::ostream &os_, std::pair<T1, T2> pair_)
-{
-    if (os_.good())
-    {
-        os_ << "{ " << pair_.first << " , " << pair_.second << " }";
-    }
-    return os_;
-}
 
 inline std::ostream &operator<<(std::ostream &os_, std::nullopt_t const &)
 {
@@ -239,10 +227,24 @@ inline std::ostream &operator<<(std::ostream &os_, std::optional<T1> const &opt_
     if (os_.good())
     {
         if (opt_)
-            return os_ << "{ " << *opt_ << " }";
+            return os_ << std::boolalpha << "{ " << *opt_ << " }";
+
         return os_ << "{ "
                    << "empty"
                    << " }";
+    }
+    return os_;
+}
+
+/*
+std::pair pair is the core of valstat
+*/
+template <typename T1, typename T2>
+inline std::ostream &operator<<(std::ostream &os_, std::pair<T1, T2> pair_)
+{
+    if (os_.good())
+    {
+        os_ << "{ " << pair_.first << " , " << pair_.second << " }";
     }
     return os_;
 }
