@@ -249,35 +249,23 @@ It just specifies the signature of those two constructors, and "Ensures": *...af
 
 It is simpler to type `{}` vs `optional` and most importantly code exhibits different behavior. 
 
-**Please use `std::optional' judiciously.**
+**Please use empty `std::optional<T>` judiciously.**
 
-Is there a resilience penalty if one does (not) uses `std::nullopt`?  It depends on the implementation of `std::optional`.
+You might have noticed we do not use std::nullopt, but rather '{}'. Is there a "penalty" if one does (not) uses `std::nullopt`?  It depends on the implementation, but we have not suffered so far.
 
-Now `the core of the trick`: one can try and output (aka print) the empty optional, but one should never do it. It is very easy and advisable to test the optional value for existence, before using it.
+Now `the core of the trick`: one can try and, for example, output (aka print) the empty optional, but one should never do it. It is very easy and advisable to test the optional value for existence, before using it.
 
+Using the value of empty optional is clearly an "Undefined Behavior" (UB). Please do avoid it.
+
+Just get in the habit, as you do with native pointers.
 ```cpp
-  pair_of_options<bool, string > flags = {{ true },{}};
+optional<int> opti ;
+// some code here
+// then
+if ( ! opti ) { /* it is empty */ }
+else {  auto value = *opti; }
 
-  if ( ! flags.second )
-   // second optional has no value
-   // it is in a *empty state*
-   // this is how optional is used
 ```
-
-Further to that, different compilers and std:: implementations do implement `std::optional` differently. Little, but non-trivial test:
-
-```cpp
-   pair_of_options<bool, string > flags = {{ true },{}};
-        printf("\nFlags A: %d , %s", *flags.first , flags.second->c_str() );
-```
-Using CLANG, output is garbage for the empty  `optional<string>`. Using G++ output is nicely formated, string: "(null)".
-
-Let us now try the above example, but with nullopt, used.
-```cpp        
-    pair_of_options<bool, string > flags2 = {{ true }, nullopt };
-        printf("\nFlags B: %d , %s", *flags2.first , flags2.second->c_str() );
-```
-Using CLANG, output is empty string, when using `std::optional'. Using G++ output is (a lot of) garbage.
 
 ## Appendix B
 
@@ -300,18 +288,19 @@ To save you of a lot of prose let me just paste from the `std::optional` impleme
 ```
 Of the above the somewhat controversial one is the requirement **not** to handle references.
 
-To solve that situation we shall use the `std::reference_wrapper<T>`. Example
+To solve that situation we shall use the `std::reference_wrapper<T>`. Why would we do this? Example
 
 ```cpp
 // there is always a single instance of a
 // single database
 class sql::database ;
 
-// since that makes objects of non movable not copyable type we have to use the reference_wrapper<> like so
+// since that makes sql::database objects of non movable not copyable type we have to use the reference_wrapper<> like so
+// otherwise the code will not compile
 using db_valstat = valstat< reference_wrapper<sql::database>> ;
 
 ```
-Thus we have solved the handling of the non copyable / non moveable object.
+Thus we have solved the `optional<T>` handling of the non copyable / non moveable object.
 
 `std::reference_wrapper` has this transformation operator to take out what is in, without using the ugly `get()` method
 ```cpp
@@ -332,6 +321,6 @@ As ever the best course of action is to use C++ , by the book
 using ref_int = std::reference_wrapper<int> ;
 int forty_two = 42 ;
 ref_int ir = forty_two ;
-// value of the type contained 
+// value of the type contained is nested in the ref_int type
 ref_int::type val = ir; 
 ```
