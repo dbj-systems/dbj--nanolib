@@ -311,9 +311,9 @@ TU_REGISTER(
 		DBJ_TX(DBJ_VALSTAT_FULL(posix_vt, true, "OK"));
 
 		prompt("");
-		prompt("Going to test WIN32 valstat trait")
+		prompt("Going to test WIN32 valstat trait");
 
-			using win32_ec = typename dbj::nanolib::win32::error_code;
+		using win32_ec = typename dbj::nanolib::win32::error_code;
 		prompt("WIN32 valstat trait 'code' is a struct i.e it is non trivial");
 		DBJ_TX(win32_ec);
 
