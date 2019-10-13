@@ -163,17 +163,17 @@ struct valstat_trait final
 #define DBJ_STATUS(SVC_, CODE_) SVC_::make_status(CODE_, __FILE__, __LINE__)
 
 // value part is redundant --> { {} , { status } }
-#define DBJ_STATVAL_ERR(SVC_, CODE_) SVC_::make_error(DBJ_STATUS(SVC_, CODE_))
+#define DBJ_VALSTAT_ERR(SVC_, CODE_) SVC_::make_error(DBJ_STATUS(SVC_, CODE_))
 
 // status part is redundant --> { { value } , { } }
-#define DBJ_STATVAL_OK(SVC_, VAL_) SVC_::make_ok(VAL_)
+#define DBJ_VALSTAT_OK(SVC_, VAL_) SVC_::make_ok(VAL_)
 
 /*
 some use cases do require both value and simple status message
 users should, if required, handle that separately
 here is just a simple macro to do this for example:
 */
-#define DBJ_STATVAL_FULL(SVC_, VAL_, CODE_) SVC_::make_full(VAL_, DBJ_STATUS(SVC_, CODE_))
+#define DBJ_VALSTAT_FULL(SVC_, VAL_, CODE_) SVC_::make_full(VAL_, DBJ_STATUS(SVC_, CODE_))
 /*
 do not go overboard with macros
 */
