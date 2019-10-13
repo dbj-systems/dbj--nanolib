@@ -119,8 +119,7 @@ struct valstat_trait final
 	/* make info status from inside the trait */
 	static status_type make_status(char const *information, char const *file, long line)
 	{
-		return make_info_status(json_code_message_template,
-								0,
+		return make_info_status(0,
 								information,
 								category_name(), /* trait 'knows' about its category */
 								file,
