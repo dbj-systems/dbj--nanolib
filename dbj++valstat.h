@@ -263,37 +263,49 @@ namespace tempo_test
 {
 
 // we do not need to predefine the type
-// particular service will use
-// since template declarations are not permited inside functions
-// we declare the type here
-// error C2951 : template declarations are only permitted at global, namespace, or class scope
+// particular valstat trait will use
+// template declarations are not permited inside functions
+// we declare the templated type alias here
+// here we are doing this to avoid very long nested names
+// suffix '_vt' denotes "valstat trait"
 template <typename value_type>
-using win32 = typename dbj::nanolib::win32_valstat_trait<value_type>;
+using win32_vt = typename dbj::nanolib::win32_valstat_trait<value_type>;
 
 TU_REGISTER(
 	[] {
-		// here we pre-define the service we will use
+		// here we pre-define the trait we will use
 		// here we are saying our status will be posix codes related
 		// and the value's return will be of the bool type
-		using posix = typename dbj::nanolib::posix_valstat_trait<bool>;
+		// suffix '_vt' denotes "valstat trait"
+		using posix_vt = typename dbj::nanolib::posix_valstat_trait<bool>;
 
-		DBJ_TX(DBJ_STATUS(posix, std::errc::already_connected));
-		DBJ_TX(DBJ_STATUS(posix, "Wowza!"));
-		DBJ_TX(DBJ_RETVAL_ERR(posix, std::errc::already_connected));
-		DBJ_TX(DBJ_RETVAL_OK(posix, true));
-		DBJ_TX(DBJ_RETVAL_FULL(posix, true, "OK"));
+		// DBJ_TX is a Test Unit macro showing the expression, it's value and type
+		// DBJ_STATUS and DBJ_VALSTAT* macros need a
+		// valstat trait as a first argument
+		DBJ_TX(DBJ_STATUS(posix_vt, std::errc::already_connected));
+		// sending string as a status means we want an INFO valstat
+		DBJ_TX(DBJ_STATUS(posix_vt, "Wowza!"));
+		DBJ_TX(DBJ_VALSTAT_ERR(posix_vt, std::errc::already_connected));
+		// this is classical OK return
+		// notice it has to be of the type for which the trait is made
+		DBJ_TX(DBJ_VALSTAT_OK(posix_vt, true));
+		// classical FULL return
+		// with message we want to pass to the consuming site
+		DBJ_TX(DBJ_VALSTAT_FULL(posix_vt, true, "OK"));
 
-		// we respect the error_code type for a win32  returns service
+		// we respect the error_code type for a win32  valstat trait
 		// if you look into it you will see it is a struct
 		// it also uses win32 GetLastError to obtain the last win32 error
-		// automaticaly, users can not send it in
+		// automaticaly, thus users can not send it in
 		using win32_ec = typename dbj::nanolib::win32::error_code;
 
-		DBJ_TX(DBJ_STATUS(win32<bool>, win32_ec{}));
-		DBJ_TX(DBJ_STATUS(win32<float>, "Wowza!"));
-		DBJ_TX(DBJ_RETVAL_ERR(win32<std::string>, win32_ec{}));
-		DBJ_TX(DBJ_RETVAL_OK(win32<std::string>, "this content is made and returned"));
-		DBJ_TX(DBJ_RETVAL_FULL(win32<char>, '0', 0));
+		// vs previous example this time we crate required vastat traits ad-hoc
+
+		DBJ_TX(DBJ_STATUS(win32_vt<bool>, win32_ec{}));
+		DBJ_TX(DBJ_STATUS(win32_vt<float>, "Wowza!"));
+		DBJ_TX(DBJ_VALSTAT_ERR(win32_vt<std::string>, win32_ec{}));
+		DBJ_TX(DBJ_VALSTAT_OK(win32_vt<std::string>, "this content is made and returned"));
+		DBJ_TX(DBJ_VALSTAT_FULL(win32_vt<char>, '0', 0));
 	});
 } // namespace tempo_test
 #endif // TESTING_DBJ_RETVALS
