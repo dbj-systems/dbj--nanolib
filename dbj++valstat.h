@@ -275,9 +275,13 @@ namespace tempo_test
 template <typename value_type>
 using win32_vt = typename dbj::nanolib::win32_valstat_trait<value_type>;
 
+inline void prompt(const char *m_ = "")
+{
+	DBJ_PRINT(DBJ_FG_YELLOW "\n%s" DBJ_RESET, m_);
+}
+
 TU_REGISTER(
 	[] {
-		auto prompt(const char *m_) { DBJ_PRINT(DBJ_FG_YELLOW "\n%s" DBJ_RESET, m_); };
 		// here we pre-define the trait we will use
 		// here we are saying our status will be posix codes related
 		// and the value's return will be of the bool type
