@@ -74,7 +74,8 @@ just make info status, example json generated:
 
 { "code" : 0 , "message" : "All is fine here", "category" : "win32", location : { file: "main.cpp", line: 42 } }";
 */
-inline status_type make_status(char const *information, char const *category_name, char const *file, long line)
+inline status_type
+make_info_status(char const *information, char const *category_name, char const *file, long line)
 {
 	auto buff = v_buffer::format(json_code_message_template,
 								 0,
@@ -104,6 +105,7 @@ struct valstat_trait final
 	using code_type = code_type_param;
 	constexpr static inline char const *category = category_name();
 
+	/* not info status is made from code */
 	static status_type make_status(code_type code, char const *file, long line)
 	{
 		auto buff = v_buffer::format(json_code_message_template,
@@ -117,12 +119,12 @@ struct valstat_trait final
 	/* make info status from inside the trait */
 	static status_type make_status(char const *information, char const *file, long line)
 	{
-		return make_status(json_code_message_template,
-						   0,
-						   information,
-						   category_name(), /* trait 'knows' about its category */
-						   file,
-						   line);
+		return make_info_status(json_code_message_template,
+								0,
+								information,
+								category_name(), /* trait 'knows' about its category */
+								file,
+								line);
 	}
 
 	// just status present  means error
@@ -160,6 +162,9 @@ struct valstat_trait final
 	*/
 #define DBJ_DECLARE_VALSTAT_TYPE(VT_) pair<optional<VT_>, optional<dbj::nanolib::v_buffer::buffer_type>>
 
+// make_stauts inside a trait is overloaded
+// this is not good, CODE_ type can be char * or "something else"
+// using macros we do not have types
 #define DBJ_STATUS(SVC_, CODE_) SVC_::make_status(CODE_, __FILE__, __LINE__)
 
 // value part is redundant --> { {} , { status } }
