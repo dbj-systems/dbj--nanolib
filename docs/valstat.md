@@ -20,19 +20,22 @@ C++ is going ([now officially](https://herbsutter.com/2018/07/02/trip-report-sum
 , without the [outcome](https://ned14.github.io/outcome/) and certainly without the completely unknown `valstat` :
 
 - No to `try`/`catch`/`throw` as we know them today
-     - No to `try {}` block -- perhaps
+     - Removal of the `try {}` block -- perhaps
 - No to `std::outcome`
 - Yes to contracts 
 - Yes to `std::error` and `throws` adornments
-- No to exceptions flying out of `std::` space
+- No to exceptions popping out of `std::` space
 
 #### What seems to be a common wisdom by now
 
-- Not every return is error
-   - please if you could fins some time to read [this (long) paper](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p1677r1.pdf) aptly titled "Cancellation is not an Error" 
- - Every error returned should be treated as one 
+- return consuming situation is **not** binary, it is not error or no error
+   - there are possible outcomes in between these two
+   - There are signs collective is moving in that direction. Please if you could, find some time to read [this paper](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p1677r1.pdf) aptly titled "Cancellation is not an Error" 
+ - Every error **if** consumed as a such, should be treated as one 
     - in that context fast exit is not a bad idea
+    - in the same context return might not be an error at all
   - `if`/`else` code replacing `try`/`catch` blocks makes code smaller (Nial has informed that Herb has checked with a Xbox team, I have no source yet)
+     -  Why is that so? Because compilers are able to compile if/else cascades to zero bytes, surprisingly well.
 
 
 ## The Works
@@ -85,7 +88,10 @@ int main( int , char * [] )
     test(- 42);
 }
 ```
-An distillation of many weeks of work. Very simple and logical. No macros. Just standard C++. 
+And that is it in essence. This is the core proposal. An distillation of many weeks of work. Very simple and logical. No macros. Just standard C++. Although this is just the concept, not the implementation of it.
+
+It might be that valstat and [outcome](https://github.com/ned14/outcome) are not to be compared. Or it might be people will use status code, [well defined in there](https://github.com/ned14/status-code) with valstat, time will tell.
+
 
 ## Key concept is the AND word
 #### Value AND Status
@@ -118,7 +124,7 @@ Both absence and presence, of both value and state, gives the logic, to be used 
 In the core structure, both Value and Status are optional. They might be or might not be present in the structure returned. For the consuming code, this renders four (4) possible states at the consuming site.
 
 1. EMPTY  
-    1. If both value AND status are empty that is an state acceptable in some scenarios
+    1. Both value AND status empty, are acceptable in some scenarios
 2. INFO 
     1. if both value AND status are not empty that is an info state.
 3. OK 
@@ -140,11 +146,12 @@ valstat<http_code> http_get ( uri );
 auto [ val, stat ] = http_get("...") ;
    // only in debug builds check for the EMPTY state
    // both can't be empty in the same time
+   // in the context of the HTTP returns
    assert( val || stat ) ;
-   // no value means error
+   // no value means "hard" error
     if ( ! val ) return ;
-   // if that is required we can easily pass to the caller
-   // the valstat<http_code>  in an error state
+   // or if that is required we can easily pass the valstat
+   // to the caller in an error state
    // return {{},{stat}};
 ```
 All the HTTP valstat results are made to be in the INFO state, both value and status are present as described by HTTP protocol 
@@ -153,14 +160,14 @@ At debug time we might check if the implementor of http_get() has done that
 ```cpp
 assert( val && stat );
 
-/* the request was fulfilled */ 
-if ( val == http_code(200)) { LOG(stat); }
-/* partial information */ 
-if ( val == http_code(203)) { LOG(stat); }
-/* bad request */
-if ( val == http_code(400)) { LOG(stat);  }
 
-... and so on ...
+if ( val == http_code(200)) { LOG(stat); /* the request was fulfilled */  }
+
+if ( val == http_code(203)) { LOG(stat); /* partial information */  }
+
+if ( val == http_code(400)) { LOG(stat); /* bad request */ }
+
+// ... and so on ...
 ```
 I any of the cases above, status returned is expected and used. `LOG` is probably some macro using the `syslog()` behind.
 ## Conclusion
@@ -176,13 +183,15 @@ Outcome of the outcome V1, peer review, is the most telling part for me. VALSTAT
 
 At its core there is almost no implementation. Just usage of the types available from the std:: lib of C++17.
 
+Please do remember the 3 valid and urgent requirements from the top. I am going ahead and using this.
+
 #### Application
 
 I have developed a valstat core inside my `dbj++nanolib`, then I expanded and used it in my minimal SQLITE3, C++ wrap up.
 
-The code is not as simple as in this text, but the concept is exactly the same. I am hoping in future releases, I can make it much simpler.
+The code is certainly working, but it is perhaps not as simple as in this text, but the concept is exactly the same. I am hoping in future releases, I can make it much simpler.
 
-I do hope the VALSTAT solution for handling c++ returns, is recognized as simple enough to be used and resilient enough to be trusted.
+I do hope the VALSTAT solution for handling c++ returns, is recognized as simple enough to be used and resilient enough to be trusted, by the "significant others".
 
 #### The Future
 
@@ -214,7 +223,7 @@ typedef valstat struct
 } valstat ;
 ```
 
-With a "Wall of Macros" around it. C community might have no problems with that.
+With a "Wall of Macros" around it. C community might have no problems with that. It is all in agreement being reached.
 
 ## Appendix A
 
@@ -247,7 +256,7 @@ constexpr optional(nullopt_t) noexcept;
 ```
 It just specifies the signature of those two constructors, and "Ensures": *...after any of those constructions the optional doesn't contain any value*... No other guarantees are given.
 
-It is simpler to type `{}` vs `optional` and most importantly code exhibits different behavior. 
+It is simpler to type `{}` vs `optional`. Also.
 
 **Please use empty `std::optional<T>` judiciously.**
 
