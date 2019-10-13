@@ -277,38 +277,57 @@ using win32_vt = typename dbj::nanolib::win32_valstat_trait<value_type>;
 
 TU_REGISTER(
 	[] {
+		auto prompt(const char *m_) { DBJ_PRINT(DBJ_FG_YELLOW "\n%s" DBJ_RESET, m_); };
 		// here we pre-define the trait we will use
 		// here we are saying our status will be posix codes related
 		// and the value's return will be of the bool type
 		// suffix '_vt' denotes "valstat trait"
 		using posix_vt = typename dbj::nanolib::posix_valstat_trait<bool>;
 
+		prompt("posix valstat trait is prepared");
+		DBJ_TX(posix_vt);
 		// DBJ_TX is a Test Unit macro showing the expression, it's value and type
 		// DBJ_STATUS and DBJ_VALSTAT* macros need a
 		// valstat trait as a first argument
+		prompt("showing how status is made and what is the result json formated string");
 		DBJ_TX(DBJ_STATUS(posix_vt, std::errc::already_connected));
-		// sending string as a status means we want an INFO valstat
+
+		prompt("making a status with user defined message");
 		DBJ_TX(DBJ_STATUS(posix_vt, "Wowza!"));
+
+		prompt("making a valstat with particular std::errc error code");
 		DBJ_TX(DBJ_VALSTAT_ERR(posix_vt, std::errc::already_connected));
-		// this is classical OK return
-		// notice it has to be of the type for which the trait is made
+
+		prompt("this is classical OK return");
+		prompt("notice it has to be of the type for which the trait is made");
 		DBJ_TX(DBJ_VALSTAT_OK(posix_vt, true));
-		// classical FULL return
-		// with message we want to pass to the consuming site
+
+		prompt("classical FULL return");
+		prompt("with user defined message");
 		DBJ_TX(DBJ_VALSTAT_FULL(posix_vt, true, "OK"));
 
-		// we respect the error_code type for a win32  valstat trait
-		// if you look into it you will see it is a struct
-		// it also uses win32 GetLastError to obtain the last win32 error
-		// automaticaly, thus users can not send it in
-		using win32_ec = typename dbj::nanolib::win32::error_code;
+		prompt("");
+		prompt("Going to test WIN32 valstat trait")
 
-		// vs previous example this time we crate required vastat traits ad-hoc
+			using win32_ec = typename dbj::nanolib::win32::error_code;
+		prompt("WIN32 valstat trait 'code' is a struct i.e it is non trivial");
+		DBJ_TX(win32_ec);
 
+		prompt("\nvs the previous example this time we crate required vastat traits ad-hoc");
+
+		prompt("\ntrait for a bool type, status making for the default win32 error code");
 		DBJ_TX(DBJ_STATUS(win32_vt<bool>, win32_ec{}));
+
+		prompt("\ntrait for a float type, status making for the user defined message");
 		DBJ_TX(DBJ_STATUS(win32_vt<float>, "Wowza!"));
+
+		prompt("\nERR valstat, trait for a string type, status making for the default win32  code");
 		DBJ_TX(DBJ_VALSTAT_ERR(win32_vt<std::string>, win32_ec{}));
-		DBJ_TX(DBJ_VALSTAT_OK(win32_vt<std::string>, "this content is made and returned"));
+
+		prompt("\nOK valstat, trait for a string type, value is made from user defined string literal");
+		DBJ_TX(DBJ_VALSTAT_OK(win32_vt<std::string>, "this message is made and returned as std::string"));
+
+		prompt("\nFULL valstat, trait for a char type, value is made from user defined char literal");
 		DBJ_TX(DBJ_VALSTAT_FULL(win32_vt<char>, '0', 0));
 	});
 } // namespace tempo_test
