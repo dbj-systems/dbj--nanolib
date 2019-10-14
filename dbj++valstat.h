@@ -77,14 +77,24 @@ just make info status, example json generated:
 inline status_type
 make_info_status(char const *information, char const *category_name, char const *file, long line)
 {
-	auto buff = v_buffer::format(json_code_message_template,
-								 0,
-								 information,
-								 category_name,
-								 file,
-								 line);
+	auto buff = v_buffer::format(
+		json_code_message_template,
+		0,
+		information,
+		category_name,
+		file,
+		line);
 	return buff;
 }
+
+// for	the time being we are strict and modern
+// thus we pass arguments by value only
+// this is about the value part of the valstat
+#ifndef DBJ_VALSTAT_VALUE_ARG_PASSING
+#define DBJ_VALSTAT_VALUE_ARG_PASSING const &
+#endif
+// users can combat that situation by using reference_wrapper
+
 /*
 -----------------------------------------------------------------------
 val stat trait for a particular domain
@@ -105,15 +115,16 @@ struct valstat_trait final
 	using code_type = code_type_param;
 	constexpr static inline char const *category = category_name();
 
-	/* not info status is made from code */
+	/* default status is made from code */
 	static status_type status(code_type code, char const *file, long line)
 	{
-		auto buff = v_buffer::format(json_code_message_template,
-									 code_to_int(code),
-									 code_to_message(code).data(),
-									 category_name(),
-									 file,
-									 line);
+		auto buff = v_buffer::format(
+			json_code_message_template,
+			code_to_int(code),
+			code_to_message(code).data(),
+			category_name(),
+			file,
+			line);
 		return buff;
 	}
 	/* make info status from inside the trait */
@@ -134,21 +145,48 @@ struct valstat_trait final
 		return return_type{{}, {status_}};
 	}
 
+	static return_type error(code_type code, char const *file, long line)
+	{
+		return type::error(type::status(code, file, line));
+	}
+
+	static return_type error(char const *information, char const *file, long line)
+	{
+		return type::error(type::status(information, file, line));
+	}
+
 	// just value no status is normal return
 	// status part is redundant --> { { value } , { } }
-	static return_type ok(value_type /*const&*/ value_)
+	static return_type ok(value_type DBJ_VALSTAT_VALUE_ARG_PASSING value_)
 	{
 		return {{value_}, {}};
 	}
 
-	// both status and value we cann "info return"
+	// both status and value aka "info return"
 	// --> { { value } , { status } }
-	static return_type info(value_type /*const&*/ value_, status_type status_)
+	static return_type info(value_type DBJ_VALSTAT_VALUE_ARG_PASSING value_, status_type status_)
 	{
 		return {{value_}, {status_}};
 	}
+
+	static return_type info(value_type DBJ_VALSTAT_VALUE_ARG_PASSING value_, code_type code, char const *file, long line)
+	{
+		return type::info(value_type, type::status(code, file, line));
+	}
+
+	static return_type info(value_type DBJ_VALSTAT_VALUE_ARG_PASSING value_, const char *information, char const *file, long line)
+	{
+		static return_type info(value_type DBJ_VALSTAT_VALUE_ARG_PASSING value_, const char *information, char const *file, long line) return type::info(value_type, type::status(code, file, line));
+	}
+
+	// no status and no value aka "empty return"
+	// --> { {  } , {  } }
+	static return_type empty()
+	{
+		return {{}, {}};
+	}
 }; // valstat_trait
-   /*----------------------------------------------------------------------------------------------
+/*----------------------------------------------------------------------------------------------
 		And now the shamefull macros ;)
 
 	if static method inside the class depends on the nested type
