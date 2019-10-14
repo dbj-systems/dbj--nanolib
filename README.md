@@ -1,5 +1,4 @@
 # dbj++nanolib&trade; 
-### CC BY-SA 4.0 -- https://creativecommons.org/licenses/by-sa/4.0/ 
 &copy; 2019 by dbj.org
 
 Very opinionated and very small ISO C++ library.I do hope you might find it useful too. 
@@ -136,5 +135,18 @@ First, if your whatever is intended to operate with continuous uptime. It should
 
 **This is "nano" lib. Before adding anything into it, think.**
 
+## Contact
+
+In case you hotly dislike or hotly like my work, or anything in between, for what you might find in here, please do write me:
+
+[dbj@dbj.org](mailto:dbj@dbj.org)
+
+## License
+
+### CC BY-SA 4.0 -- https://creativecommons.org/licenses/by-sa/4.0/ 
+
+---
+[![dbjdbj github avatar](https://github.com/dbjdbj.png)
+ &copy; 2019](https://dbj.netlify.com)
 
 
