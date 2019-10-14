@@ -171,12 +171,12 @@ struct valstat_trait final
 
 	static return_type info(value_type DBJ_VALSTAT_VALUE_ARG_PASSING value_, code_type code, char const *file, long line)
 	{
-		return type::info(value_type, type::status(code, file, line));
+		return type::info(value_, type::status(code, file, line));
 	}
 
 	static return_type info(value_type DBJ_VALSTAT_VALUE_ARG_PASSING value_, const char *information, char const *file, long line)
 	{
-		static return_type info(value_type DBJ_VALSTAT_VALUE_ARG_PASSING value_, const char *information, char const *file, long line) return type::info(value_type, type::status(code, file, line));
+		return type::info(value_, type::status(information, file, line));
 	}
 
 	// no status and no value aka "empty return"
