@@ -106,7 +106,7 @@ struct valstat_trait final
 	constexpr static inline char const *category = category_name();
 
 	/* not info status is made from code */
-	static status_type make_status(code_type code, char const *file, long line)
+	static status_type status(code_type code, char const *file, long line)
 	{
 		auto buff = v_buffer::format(json_code_message_template,
 									 code_to_int(code),
@@ -117,7 +117,7 @@ struct valstat_trait final
 		return buff;
 	}
 	/* make info status from inside the trait */
-	static status_type make_status(char const *information, char const *file, long line)
+	static status_type status(char const *information, char const *file, long line)
 	{
 		return make_info_status(
 			information,
@@ -128,7 +128,7 @@ struct valstat_trait final
 
 	// just status present  means error
 	// --> { { } , { status } }
-	static return_type make_error(status_type status_)
+	static return_type error(status_type status_)
 	{
 		// return value_and_status::make(status_);
 		return return_type{{}, {status_}};
@@ -136,22 +136,21 @@ struct valstat_trait final
 
 	// just value no status is normal return
 	// status part is redundant --> { { value } , { } }
-	static return_type make_ok(value_type /*const&*/ value_)
+	static return_type ok(value_type /*const&*/ value_)
 	{
 		return {{value_}, {}};
 	}
 
 	// both status and value we cann "info return"
 	// --> { { value } , { status } }
-	static return_type make_full(value_type /*const&*/ value_, status_type status_)
+	static return_type info(value_type /*const&*/ value_, status_type status_)
 	{
 		return {{value_}, {status_}};
 	}
 }; // valstat_trait
    /*----------------------------------------------------------------------------------------------
 		And now the shamefull macros ;)
-	*/
-   /*
+
 	if static method inside the class depends on the nested type
 	of valstat_trait above
 	the said class will not be defined until the last };
@@ -159,25 +158,25 @@ struct valstat_trait final
 	ditto we can simply re-declare that return as local non nested type
 	and use it insted
 	*/
-#define DBJ_DECLARE_VALSTAT_TYPE(VT_) pair<optional<VT_>, optional<dbj::nanolib::v_buffer::buffer_type>>
+#define DBJ_DECLARE_VALSTAT_TYPE(VT_) \
+	pair<optional<VT_>, optional<dbj::nanolib::v_buffer::buffer_type>>
 
 // make_stauts inside a trait is overloaded
 // this is not good, CODE_ type can be char * or "something else"
 // using macros we do not have types
-#define DBJ_STATUS(SVC_, CODE_) SVC_::make_status(CODE_, __FILE__, __LINE__)
+#define DBJ_STATUS(TRT_, CODE_) TRT_::status(CODE_, __FILE__, __LINE__)
 
 // value part is redundant --> { {} , { status } }
-#define DBJ_VALSTAT_ERR(SVC_, CODE_) SVC_::make_error(DBJ_STATUS(SVC_, CODE_))
+#define DBJ_VALSTAT_ERR(TRT_, CODE_) TRT_::error(DBJ_STATUS(TRT_, CODE_))
 
 // status part is redundant --> { { value } , { } }
-#define DBJ_VALSTAT_OK(SVC_, VAL_) SVC_::make_ok(VAL_)
+#define DBJ_VALSTAT_OK(TRT_, VAL_) TRT_::ok(VAL_)
 
 /*
 some use cases do require both value and simple status message
-users should, if required, handle that separately
 here is just a simple macro to do this for example:
 */
-#define DBJ_VALSTAT_FULL(SVC_, VAL_, CODE_) SVC_::make_full(VAL_, DBJ_STATUS(SVC_, CODE_))
+#define DBJ_VALSTAT_FULL(TRT_, VAL_, CODE_) TRT_::info(VAL_, DBJ_STATUS(TRT_, CODE_))
 /*
 do not go overboard with macros
 */
