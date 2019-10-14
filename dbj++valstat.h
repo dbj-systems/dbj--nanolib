@@ -185,6 +185,14 @@ struct valstat_trait final
 	{
 		return {{}, {}};
 	}
+
+	// the quesion is do we need interrogators at all
+	// since structured return binding is the "party way" ?
+	// is_error
+	// is_ok
+	// is_empty
+	// is_info
+
 }; // valstat_trait
 /*----------------------------------------------------------------------------------------------
 		And now the shamefull macros ;)
