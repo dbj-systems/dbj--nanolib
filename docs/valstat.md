@@ -2,6 +2,8 @@
 ## Value & Status
 (c) 2019 by dbj.org -- [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)
 
+*"... An API is a defined by the code that calls it, not by the code that implements it ... " -- Tony Van Eerd*
+
 ## Return handling paradigm shift
 
 Three primary objectives
@@ -9,6 +11,7 @@ Three primary objectives
 1. Can not wait C++23 and [P0709 realization](https://herbsutter.com/2018/07/02/trip-report-summer-iso-c-standards-meeting-rapperswil/) 
 2. Produce a simple, universally applicable solution, now.
 3. Achieve maximum with minimum 
+   1. An concept & implementation for a common function result type with some tradeoffs. 
 
 They are always coming as trios. After spending much more time than expected, in experimenting and testing, this is my architecture of the solution. With reasoning behind.
 
