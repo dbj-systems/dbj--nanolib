@@ -158,7 +158,7 @@ First, if your whatever, is intended to operate with continuous uptime. It shoul
 - use ISO C++, which is C++17 as of 2019 Q4.
 - use ISO C++ std lib as much as possible
 - Do not lose your C experience. 
-  - C is simple and forces you to deliver things, instead of re-inventing things before delivering things. 
+  - C is simple and makes you deliver things, instead of re-inventing things before delivering things. 
    - take same time to learn about [modern ISO C](https://gforge.inria.fr/frs/?group_id=6881). It has advanced. A lot.
 
 **This is "nano" lib. Before adding anything into it, think.**
