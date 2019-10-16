@@ -2,11 +2,15 @@
 ## Value & Status
 (c) 2019 by dbj.org -- [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)
 
-*"... An API is a defined by the code that calls it, not by the code that implements it ... " -- Tony Van Eerd*
+*"... An API is defined by the code that calls it, not by the code that implements it ... " -- Tony Van Eerd*
 
 ## Return handling paradigm shift
 
-Three primary objectives
+Currently (2019 Q4) there is no usable, simple and resilient standard return type in tandard C++. And there is no consensus arround such thing. No thing no consensus.
+
+This concept and implementation have risen as the direct consequence of my [Reddit post](https://www.reddit.com/r/cpp/comments/ae60nb/decades_have_passed_standard_c_has_no_agreed_and/). Here, I am proposing this as a concept and core implementation around which consensus might be made. By which we mean ISO C++ comitte consensus.
+
+As evident from the that post and comments of many "fellow sufferers" there are three primary objectives:
 
 1. Can not wait C++23 and [P0709 realization](https://herbsutter.com/2018/07/02/trip-report-summer-iso-c-standards-meeting-rapperswil/) 
 2. Produce a simple, universally applicable solution, now.
