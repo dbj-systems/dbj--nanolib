@@ -6,7 +6,11 @@
 
 ## Return handling paradigm shift
 
-Three primary objectives
+Currently (2019 Q4) there is no usable, simple and resilient standard return type in standard C++. And there is no consensus around such thing. No thing no consensus.
+
+This concept and implementation have risen as the direct consequence of my [Reddit post](https://www.reddit.com/r/cpp/comments/ae60nb/decades_have_passed_standard_c_has_no_agreed_and/). Here, I am proposing this as a concept and core implementation around which consensus might be made. By which we mean ISO C++ committee consensus.
+
+As evident from the that post and comments of many "fellow sufferers" there are three primary objectives:
 
 1. Can not wait C++23 and [P0709 realization](https://herbsutter.com/2018/07/02/trip-report-summer-iso-c-standards-meeting-rapperswil/) 
 2. Produce a simple, universally applicable solution, now.
