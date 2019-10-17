@@ -214,19 +214,23 @@ I have actually implemented valstat to have this shape in my `dbj++nanolib`.
 ```
 Where `status type` is a special char buffer, aka "string". Not an `std::string` .
 
-**C Language**
+**C Language interoperability**
 
 I am not sure yet. How about
 
 ```cpp
-typedef valstat struct 
-{
+extern "C" { 
+typedef struct interop_valstat
+ {
   void * value ;
   void * status;
-} valstat ;
+ } interop_valstat ;
+}
 ```
 
 With a "Wall of Macros" around it. C community might have no problems with that. It is all in agreement being reached.
+
+For current interesting developments please refer to [N2429](http://www.open-std.org/jtc1/sc22/wg14/www/docs/n2429.pdf), for further rather interesting read.
 
 ## Appendix A
 
@@ -281,7 +285,7 @@ else {  auto value = *opti; }
 
 ## Appendix B
 
-#### Non movable and non copyable types
+#### Non movable and non copyable types as values returned
 
 As `std::optional` is used as holder of instance of actual type we are bounded by the requirements of that std:: type.
 
@@ -336,3 +340,45 @@ ref_int ir = forty_two ;
 // value of the type contained is nested in the ref_int type
 ref_int::type val = ir; 
 ```
+
+# Acknowledgments
+
+My thanks to the numerous people who have contributed feedback. Thanks are due to each and every one of you.
+
+# References
+
+- Lawrence Crowl, Chris Mysen
+
+A Class for Status and Optional Value
+
+http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0262r1.html
+
+- Herb Sutter,
+
+Zero-overhead deterministic exceptions
+
+https://wg21.link/P0709
+
+- Douglas, Niall
+
+SG14 status_code and standard error object for P0709 Zero-overhead deterministic exceptions
+
+https://wg21.link/P1028
+
+- Douglas, Niall
+
+Zero overhead deterministic failure – A unified mechanism for C and C++
+
+https://wg21.link/P1095
+
+- Gustedt, Jens
+
+Out-of-band bit for exceptional return and errno replacement
+
+http://www.open-std.org/jtc1/sc22/wg14/www/docs/n2361.pdf
+
+- Douglas, Niall / Gustedt, Jens
+
+Function failure annotation
+
+http://www.open-std.org/jtc1/sc22/wg14/www/docs/n2429.pdf
