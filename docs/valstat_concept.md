@@ -213,7 +213,7 @@ ISO C++ community, collective knowledge on the thorny subject of consistent erro
 As far as I know, all the similar solutions up till now are based on the "value OR error" concept, 
 most often implemented using the union type. Sometimes using the [discriminated union](https://pdfs.semanticscholar.org/0a8c/2e0f3a194b15970472dca07c37c2172b69fb.pdf) type, a.k.a variant. 
 
-I might be so bold to claim they are mostly [over-engineered](https://wandbox.org/permlink/sJoeKHXSyCU5Avft). Requiring somewhat bolder faith in implementations qualities. Thus raising the bar to adoption, even in the new code base.
+I might be so bold to claim they are mostly [over-engineered](https://wandbox.org/permlink/sJoeKHXSyCU5Avft). Requiring somewhat bolder faith in the concept and implementation quality. Thus raising the bar to adoption, even in the new code base.
 
 I might suggest please do 30 sec detour to the ["History" page](https://ned14.github.io/outcome/history/), on the "outcome" site. I think these experiences are very good reminder on what it takes to adopt new concept and its implementation. However critical and useful it might be.
 
