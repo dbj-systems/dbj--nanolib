@@ -150,9 +150,22 @@ inline const bool dbj_nanolib_initialized = ([]() -> bool {
 			enable_vt_100(); // enable VT100 ESC code for WIN10 console
 
 #endif // DBJ_NANO_WIN32
-			/* this might(!) slow down the ostreams but is much safer */
+
+#ifdef DBJ_TERMINATE_ON_BAD_ALLOC
+// do not throw bad_alloc
+// call default termination on heap memory exhausted
+            (std::set_new_handler([]{terminate();}););
+#endif
+
+#ifdef DBJ_SYNC_WITH_STDIO
+			/* 
+            this might(!) slow down the ostreams
+            but renders much safer interop with stdio.h
+             */
 			ios_base::sync_with_stdio(true);
+#endif
 			/*-----------------------------------------------------------------------------------------*/
+
 			return true; }());
 /*
 	terror == terminating error

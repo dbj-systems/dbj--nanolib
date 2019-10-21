@@ -46,7 +46,7 @@ Designs and diagrams are invaluable. First for explaining to yourself your solut
 
 ## What's inside
 
-I see no point of generating documentation form code, if code is available. I tend to write a lot of comments,if there is a need.
+I see no point of generating documentation from code, if code is available. I tend to write a lot of comments,if there is a need.
 
 Please just dive in and enjoy. At last this is made for you, not for someone needing a book to understand how to use the modern C++ library.
 
@@ -63,6 +63,19 @@ Do not forget code here should be simple and headers manageable.
 ## dbj++nanolib.h
 
 The library core header. Namespace `dbj::nanolib`.
+
+#### configuration
+
+`#define DBJ_TERMINATE_ON_BAD_ALLOC` in order not to throw bad_alloc, on heap memory exhausted. Instead, default termination will be called.
+```cpp
+  (std::set_new_handler([]{terminate();}););
+```
+For safe computing experiene, `#define DBJ_SYNC_WITH_STDIO` in case of mixing `stdio.h` and `iostreams`.
+```cpp
+			ios_base::sync_with_stdio(true);
+```
+
+#### Macros
 
 - usual macros
    - macros are named starting with `DBJ...` or `_DBJ...`
