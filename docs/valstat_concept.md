@@ -4,50 +4,58 @@
 
 *"There are two ways of constructing a software design: One way is to make it so simple that there are obviously no deficiencies, and the other way is to make it so complicated that there are no obvious deficiencies..." -- [C. A. R. Hoare](https://en.wikiquote.org/wiki/C._A._R._Hoare)*
 
-## Return handling paradigm shift
+## Returns paradigm shift
 
 Currently (2019 Q4) there is no usable, simple and resilient standard return type in standard C++. And there is no consensus around such thing. No thing no consensus.
 
 This concept and implementation have risen as the direct consequence of my [Reddit post](https://www.reddit.com/r/cpp/comments/ae60nb/decades_have_passed_standard_c_has_no_agreed_and/). Here, I am proposing this as a concept and core implementation around which consensus might be made. By which we mean ISO C++ committee consensus.
 
-As evident from the that post and comments of many "fellow sufferers" there are three primary objectives:
+As evident from the that post and comments of many "fellow sufferers" there are
 
-1. Modernize C++ error handling and move toward a mostly-noexcept world. We can not wait C++23 and [P0709 realization](https://herbsutter.com/2018/07/02/trip-report-summer-iso-c-standards-meeting-rapperswil/) 
-2. Produce a simple, universally applicable solution, now.
-3. Achieve maximum with minimum 
-   1. An concept & implementation for a common function result type with some tradeoffs. 
+## Three primary objectives
 
-They are always coming as trios. After spending much more time than expected, in experimenting and testing, this is my architecture of the solution. With reasoning behind.
+1. Modernize C++ error handling and move toward a mostly-noexcept world.
 
-And first part of the reasoning behind is to draw logical conclusions from the current state of affairs, around this issue.
+Alas, we can not wait C++23 and beyond, and [P0709 realization](https://herbsutter.com/2018/07/02/trip-report-summer-iso-c-standards-meeting-rapperswil/) 
+
+3. Produce a simple, universally applicable solution, now.
+4. Achieve maximum with minimum 
+   
+   As concept & implementation for a common function result type with some tradeoffs. 
+
+Primary objectives are always coming as triplets. After spending much more time than expected, in experimenting and testing, this paper is my architecture of the solution. With reasoning behind.
+
+And first part of the reasoning behind, is to draw logical conclusions from the current state of affairs, around this issue.
 
 #### What do we know so far
 
 C++ is going ([now officially](https://herbsutter.com/2018/07/02/trip-report-summer-iso-c-standards-meeting-rapperswil/)) into the following direction
 , without the [outcome](https://ned14.github.io/outcome/) and certainly without the completely unknown `valstat` :
 
-- No to `try`/`catch`/`throw` as we know them today
-     - Removal of the `try {}` block -- perhaps
+- `std::exception` and derivatives will stay for good.
 - No to `std::outcome`
 - Yes to contracts 
-- Yes to `std::error` and `throws` adornments
-- No to exceptions popping out of `std::` space
+- Yes to `std::error` throw by value, and `throws` adornments
+- No to std exceptions popping out of `std::` space
+  - `std::error`'s will instead
 
 #### What seems to be a common wisdom by now
 
-- return consuming situation is **not** binary, it is not error or no error
-   - there are possible outcomes in between these two
+- return consuming logic can not be  always binary: error or no error
+   - there are possible states in between these two
    - There are signs collective is moving in that direction. Please if you could, find some time to read [this paper](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p1677r1.pdf) aptly titled "Cancellation is not an Error" 
- - Every error **if** consumed as a such, should be treated as one 
+ - Every error event should be treated as one 
     - in that context fast exit is not a bad idea
-    - in the same context return might not be an error at all
-  - `if`/`else` code replacing `try`/`catch` blocks makes code smaller (Nial has informed that Herb has checked with a Xbox team, I have no source yet)
+- In the opposite context return might not be an error at all.
+- Consuming logic has to be done right.
+  - `if`/`else` code replacing `try`/`catch` blocks makes code smaller <!--NOTE: Niall has informed, Herb has checked with Xbox team, I have no source yet-->
      -  Why is that so? Because compilers are able to compile if/else cascades to zero bytes, surprisingly well.
 
+Armed with enough context of the problem domain, it is time for the solution.
 
-## The Proposal
+## The Concept
 
-In one sentence. I recommend each and every return consuming, site to follow this usage pattern:
+Each and every return consuming site, to follow this usage pattern:
 
 ```cpp
 using namespace std;
@@ -61,31 +69,28 @@ if (status)
    cout << endl << "Status: " << *status;
 ```
 
+Return producing site can make this return in various ways. This single templated type alias is the core of the working code:
+
+```cpp
+using namespace std;
+using valstat = pair < option<T>, option<T> > ;
+```
+`valstat` generality is pragmatically "toned down" in the following text.
 
 #### Light and Useful "Return Handling" 
 
-Error (handling) is a wrong name. Not every return denotes an error. In this architecture, both value and status are (potentially) returned. The **"and"** is the key word. Not the **"or"**.
+Error handling is a wrong phrase. Not every return denotes an error. In this architecture, both value and status are returned. The **"and"** is the key. Not the **"or"**.
 
-Here is the simple and standard C++ code, actually discovering it all.
-
+Here is that logic applied to the domain of `valstat` production and consuming.
 ```cpp
 using namespace std ;
 
-/* 
-the core, generic,  data structure 
-*/
-template <typename T1_, typename T2_>
-using pair_of_options = pair<optional<T1_>, optional<T2_>>;
-```
-Here is the solution domain for the above: 
- "Instant" type to return optional value and optional status.
-```cpp
 template<typename T>
 using valstat = pair_of_options<T, string > ;
 ```
-Added secret sauce is: ***status is a string.***
+(Added secret sauce is: *status is a string.*)
 
-Not much is developed here, it is all just about using the std:: lib. Not much can go wrong. The simple usage with the "structured binding" core usage idioms.
+Not much is developed here, it is all just about using the std:: lib types. Not much can go wrong. The simple usage with the "structured binding" applied.
 ```cpp
 valstat<int> my_fun ( int arg ) {
       if ( arg < 0 ) 
@@ -102,27 +107,34 @@ int main( int , char * [] )
 /* Structured binding is the way to consume value and status */
         auto [ val, stat ] = my_fun(arg_);
 /* No macros here */    
-    if ( ! val  ) 
-    { 
-    fprintf ( stderr, "\nError: %s ", stat->c_str() ) ; 
-    } else {
-    fprintf ( stdout, "\nValue: %d ", *val ) ; 
-        }
+     if ( ! val  ) 
+        fprintf ( stderr, "\nError") ; 
+      else 
+        fprintf ( stdout, "\nValue: %d ", *val ) ; 
+
+     if ( ! stat  ) 
+        fprintf ( stderr, "\nOK, no status") ; 
+      else 
+        fprintf ( stdout, "\nStatus: %s ", (*stat)->c_str() ) ; 
+
     };
     test(+ 42);
     test(- 42);
 }
 ```
-And that is it in essence. That is the fully functional code solving a lot (An distillation of many weeks of work). Very simple and logical. No macros. Just standard C++. Although this is just the concept, not the full implementation of it, but fully usable nevertheless.
+And that is the essence. That is the fully functional code solving all of the three key requirements. Very simple and logical. No macros. Just standard C++. Although this is just the concept, not the full implementation of it, but fully usable nevertheless.
 
-### Simplicity == ubiquity
+### Simplicity != ubiquity
 
-It might be that valstat and [outcome](https://github.com/ned14/outcome) are not to be compared. Or it might be people will use status code, [well defined in there](https://github.com/ned14/status-code) with valstat, time will tell.
+`valstat` simplicity is undeniable. Hardly anyone might be worried it will increase compilation times or measurably slow down executables.
 
+It might be that valstat and [outcome](https://github.com/ned14/outcome) are not to be compared. Or it might be people will use status code, [as defined in there](https://github.com/ned14/status-code) with valstat. Time will tell.
+
+Barriers to the ubiquity of `valstat`, as ever with new concepts, will be non-technical. 
 
 #### Transparent Architecture
 
-`pair_of_options` is the core data structure. It is generic but it imposes behavior through states of its instances.
+"pair_of_options" is the core data structure. It is generic but it imposes behavior through states of its instances.
 ```cpp
 using namespace std;
 template <typename T1_, typename T2_>
@@ -137,7 +149,7 @@ Four (4) possible states of "occupancy" of the instance of this type are (a and 
  | 3   | `{ {   } , { b } }` | second |
  | 4   | `{ {   } , {   } }` | empty  |
 
-Above are the four (4) possible states in which instance of the core structure can exist.
+Above are the four (4) possible states in which instance of the core generic structure can exist.
 
 #### Error is a state of return
 
@@ -173,12 +185,16 @@ There is a nice term we might use here: *"algorithms that consume returns" -- Ki
 
 As an example, consider the context of proverbial HTTP codes.
 ```cpp
+using namespace std ;
 // declaration
+template<typename T>
+using valstat = pair_of_options<T, string > ;
+// 
 valstat<http_code> http_get ( uri );
 // consuming site
 auto [ val, stat ] = http_get("localhost:42") ;
    // only in debug builds check for the EMPTY state
-   // both can't be empty in the same time
+   // both can not be empty in the same time
    // in this context
    assert( val || stat ) ;
    // no value means "hard" error
@@ -187,7 +203,7 @@ auto [ val, stat ] = http_get("localhost:42") ;
    // to the caller in an error state
    // return {{},{stat}};
 ```
-All the HTTP valstat results are made to be in the INFO state, both value and status are present as described by HTTP protocol. 
+All the HTTP valstat results are made to be in the INFO state, both value and status are present, as described by HTTP protocol. 
 
 At debug time we might check if the implementor of http_get() has done that right.
 ```cpp
@@ -206,24 +222,40 @@ if ( val == http_code(400)) { LOG(stat); /* bad request */ }
 // ... and so on ...
 ```
 I any of the cases above, both value and status returned are expected and used. (`LOG` is probably some macro using the `syslog()` behind)
-## Concept Conclusion
+## Conclusion
 
 ISO C++ community, collective knowledge on the thorny subject of consistent error handling has recently provoked significant developments.
 
-As far as I know, all the similar solutions up till now are based on the "value OR error" concept, 
+As far as I know, all the similar (usable right now) solutions, up till now, are based on the "value OR error" concept, 
 most often implemented using the union type. Sometimes using the [discriminated union](https://pdfs.semanticscholar.org/0a8c/2e0f3a194b15970472dca07c37c2172b69fb.pdf) type, a.k.a variant. 
 
-I might be so bold to claim they are mostly [over-engineered](https://wandbox.org/permlink/sJoeKHXSyCU5Avft). Requiring somewhat bolder faith in the concept and implementation quality. Thus raising the bar to adoption, even in the new code base.
+I might be so bold to claim they are mostly [over-engineered](https://wandbox.org/permlink/sJoeKHXSyCU5Avft). Requiring somewhat bolder faith in the concept and implementation. Thus raising the bar to adoption, even in the new code base.
 
-I might suggest please do 30 sec detour to the ["History" page](https://ned14.github.io/outcome/history/), on the "outcome" site. I think these experiences are very good reminder on what it takes to adopt new concept and its implementation. However critical and useful it might be.
+If I might suggest, please do 30 sec detour to the ["History" page](https://ned14.github.io/outcome/history/), on the "outcome" site. I think these experiences are very good reminder on what it takes to adopt new concept and its implementation. However critical and useful it might be.
 
-In that short text, outcome of the `outcome` V1, peer review, is the most telling part for me. The point 1 is: **Lightweight**. 
+In that short text, outcome of the `outcome` V1, peer review, is the most telling part for me. The point 1 says: **Lightweight**. 
 
 In the plausible summary of the valstat concept implementation, I do hardly implement anything. I mostly use the types from the std:: lib. This is "Almost a Zero Effort" concept and implementation. It is more of an agreement to use it ubiquitously.
 
-In here it is easy to spot a fine balance between tradeoffs and comfort.
+In this paper, it is easy to spot a fine balance between tradeoffs and comfort.
 
 I do hope the `valstat` is branded as a "solution" for consistently, resiliently and simply, managing c++ function returns. I do hope it is recognized as simple enough to be used and resilient enough to be trusted.
+
+### Yet another C++ dialect?
+
+*"...future of C++ is simplification." -- Herb Sutter*
+
+`valstat` is returns production and handling concept. I would not call, for example "factories instead of constructors" a language dialect. That is just a design pattern.
+
+Consequently, `valstat` is an return handling concept. It requires return consuming algorithms. But that is a good thing. It mandates better return handling. Using `valstat` concept, you see what you get.
+
+I acknowledge standard C++ requires constructors, exceptions from constructors and has no ability to pass additional arguments to operators. `valstat` is not applicable in those circumstances.
+
+There is no new keyword, attribute or mechanism proposed. Just a simple template type alias, as a working core. That is hardly a "new dialect". 
+
+Functions and authors can opt-in or opt-out of using the `valstat` concept. Thus `valstat` is not a breaking change.
+
+If anything, `valstat` is an immediate simplification.
 
 # Applicability
 ## C++23
@@ -242,9 +274,11 @@ double sqrt(double x)
 [[returns: int, status]]
 ;
 ```
-Above contract requires the valstat calling pattern
+Above contract mandates the valstat consuming logic.
 ```cpp
 // as per contract
+// types are int for val
+// and status for stat
 auto [val,stat] = sqrt(42);
 
 // cover all the four states
@@ -264,35 +298,34 @@ else
 
 ## C 2.x
 
-Today C functions can return structures. Those structures can be made in C code and consumed in C++ by structured binding, too.
+C functions can return structures. Those structures can be made in C code and consumed in C++ by structured binding mechanism.
 
 ```cpp
 /* valstat_sqrt.h */
 extern "C" {
 /* C 1.x */
-typedef struct sqrt_valstat {
-   int * value;
-   const char * status ;
-} sqrt_valstat ;
+typedef struct float_valstat {
+   const float * value;
+   const char  * status ;
+} float_valstat ;
 
-/* declaration */
-sqrt_valstat sqrt (int);
+    /* declaration */
+   float_valstat sqrt (int);
 }
 ```
 Usage is exactly the same as the previous `sqrt` C++ example.
 
-Author might be so (incredibly) bold to think, current C/C++ unified error handling proposals ( one example: 
-W21 N2429 ["function editions"](http://www.open-std.org/jtc1/sc22/wg14/www/docs/n2429.pdf) ) above code covers most, if not all, of the uses cases for both C++ 2.x and C 2.x.
+<!-- Author might be so (incredibly) bold to think, `valstat` above code covers most, if not all, of the uses cases for both C++ 2.x and C 2.x, as described in C/C++ unified error handling proposal (W21 N2429 ["function editions"](http://www.open-std.org/jtc1/sc22/wg14/www/docs/n2429.pdf) ) . -->
 
 ## Distributed Systems
 
-This architectural pattern is one domain where valstat might be useful and used with no much effort. Even in different languages, the same core principles can be preserved.
+This architectural pattern is one domain where valstat might be useful and used with no much effort or breaking changes. Even in different languages, the same core principles can be preserved.
 
-Think of micro services. Cluster of micro services are orchestrated to make applications. 
+Think of micro services. Clusters of micro services are orchestrated to make applications. 
 
 On the cluster level request sending and status feedback is reported usually (perhaps: always) through some messaging. 
 
-valstat status if made to be "just" a JSON formated string. De facto, lingua franca of interoperability. Universally acceptable and usable. Even between components developed in different languages.
+valstat status should be made to be "just" a JSON formated string. De facto, lingua franca of interoperability. Universally acceptable and usable. Even between components developed in different languages.
 
 [Dusan B. Jovanovic](https://dusanjovanovic.org) 
 
