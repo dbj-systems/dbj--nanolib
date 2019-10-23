@@ -257,6 +257,26 @@ struct v_buffer final
         return buf;
     }
 
+    // replace char with another char
+    static buffer_type replace(buffer_type buff_, char find, char replace)
+    {
+        char *str = buff_.data();
+        while (true)
+        {
+            if (char *current_pos = strchr(str, find); current_pos)
+            {
+                *current_pos = replace;
+                // shorten next search
+                str = current_pos;
+            }
+            else
+            {
+                break;
+            }
+        }
+        return buff_;
+    }
+
 #ifdef DBJ_NANO_WIN32
     /*
 		CP_ACP == ANSI
