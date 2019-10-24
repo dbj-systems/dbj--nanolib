@@ -7,10 +7,40 @@
 #define DBJ_NANO_WIN32
 #endif
 
+#ifdef _MSVC_LANG
+#if _MSVC_LANG < 201402L
+#error "C++17 required ..."
+#endif
+#endif
+
+#ifdef DBJ_ASSERT
+#error remove previous DBJ_ASSERT definition
+#endif
+
+#ifdef _ASSERTE
+#define DBJ_ASSERT _ASSERTE
+#else
+#include <cassert>
+#define DBJ_ASSERT assert
+#endif
+
+/*
+--------------------------------------------------------
+*/
+#define DBJ_TERMINATE_ON_BAD_ALLOC 1
+#define _DBJ_USING_STD_VECTOR 0
+
+#if _DBJ_USING_STD_VECTOR
+#include <vector>
+#define DBJ_VECTOR std::vector
+#else
+#include "dbj++vector.h"
+#define DBJ_VECTOR dbj::nanolib::vector
+#endif
+
 #include <stdint.h>
 #include <stdio.h>
 #include <array>
-#include <vector>
 #include <chrono>
 #include <cmath>
 #include <string_view>
@@ -29,23 +59,6 @@
 #include <windows.h>
 #include <system_error>
 #include "vt100win10.h"
-#endif
-
-#ifdef _MSVC_LANG
-#if _MSVC_LANG < 201402L
-#error "C++17 required ..."
-#endif
-#endif
-
-#ifdef DBJ_ASSERT
-#error remove previous DBJ_ASSERT definition
-#endif
-
-#ifdef ASSERTE_
-#define DBJ_ASSERT ASSERTE_
-#else
-#include <cassert>
-#define DBJ_ASSERT assert
 #endif
 
 /*
@@ -100,77 +113,77 @@ void enable_vt_100();
 inline const bool dbj_nanolib_initialized = ([]() -> bool {
 #ifdef DBJ_NANO_WIN32
 /*
-			WIN32 console is one notorious 30+ years old forever teenager
-			WIN32 UNICODE situation does not help at all
-            UCRT team started well then dispersed
-			https://www.goland.org/unicode_c_windows/
+					WIN32 console is one notorious 30+ years old forever teenager
+					WIN32 UNICODE situation does not help at all
+					UCRT team started well then dispersed
+					https://www.goland.org/unicode_c_windows/
 
-			To stay sane and healthy, the rules are:
+					To stay sane and healthy, the rules are:
 
-			0. stick to UTF8 as much as you can -- article above is good but sadly wrong about UTF16, see www.utf8.com
-			1. NEVER mix printf and wprintf
-			1.1 you can mix printf and std::cout but very carefully
-			1.2 UCRT and printf and _setmode() are not friends see the commenct bellow, just here
-			2. NEVER mix std::cout  and std::wcout
-			3. be (very_ aware that you need particular font to see *all* of your funky unicode glyphs is windows console
-            */
+					0. stick to UTF8 as much as you can -- article above is good but sadly wrong about UTF16, see www.utf8.com
+					1. NEVER mix printf and wprintf
+					1.1 you can mix printf and std::cout but very carefully
+					1.2 UCRT and printf and _setmode() are not friends see the commenct bellow, just here
+					2. NEVER mix std::cout  and std::wcout
+					3. be (very_ aware that you need particular font to see *all* of your funky unicode glyphs is windows console
+					*/
 #if 0
-            /*
-            Steve Wishnousky (MSFT) publicly has advised me personaly, against
-            using _setmode(), at all
-			https://developercommunity.visualstudio.com/solutions/411680/view.html
-            */
+					/*
+					Steve Wishnousky (MSFT) publicly has advised me personaly, against
+					using _setmode(), at all
+					https://developercommunity.visualstudio.com/solutions/411680/view.html
+					*/
 
-			//#define _O_TEXT        0x4000  // file mode is text (translated)
-			//#define _O_BINARY      0x8000  // file mode is binary (untranslated)
-			//#define _O_WTEXT       0x10000 // file mode is UTF16 (translated)
-			//#define _O_U16TEXT     0x20000 // file mode is UTF16 no BOM (translated)
-			//#define _O_U8TEXT      0x40000 // file mode is UTF8  no BOM (translated)
+					//#define _O_TEXT        0x4000  // file mode is text (translated)
+					//#define _O_BINARY      0x8000  // file mode is binary (untranslated)
+					//#define _O_WTEXT       0x10000 // file mode is UTF16 (translated)
+					//#define _O_U16TEXT     0x20000 // file mode is UTF16 no BOM (translated)
+					//#define _O_U8TEXT      0x40000 // file mode is UTF8  no BOM (translated)
 
-			if (-1 == _setmode(_fileno(stdin), _O_U8TEXT)) perror("Can not set mode");
-			if (-1 == _setmode(_fileno(stdout), _O_U8TEXT)) perror("Can not set mode");
-			if (-1 == _setmode(_fileno(stderr), _O_U8TEXT)) perror("Can not set mode");
+		if (-1 == _setmode(_fileno(stdin), _O_U8TEXT)) perror("Can not set mode");
+		if (-1 == _setmode(_fileno(stdout), _O_U8TEXT)) perror("Can not set mode");
+		if (-1 == _setmode(_fileno(stderr), _O_U8TEXT)) perror("Can not set mode");
 
-			// with _O_TEXT simply no output
-			// works with _O_WTEXT, _O_U16TEXT and _O_U8TEXT
-			wprintf(L"\x043a\x043e\x0448\x043a\x0430 \x65e5\x672c\x56fd\n");
+		// with _O_TEXT simply no output
+		// works with _O_WTEXT, _O_U16TEXT and _O_U8TEXT
+		wprintf(L"\x043a\x043e\x0448\x043a\x0430 \x65e5\x672c\x56fd\n");
 
-			// "kicks the bucket" with _O_WTEXT, _O_U16TEXT and _O_U8TEXT
-			// works with _O_TEXT and u8
+		// "kicks the bucket" with _O_WTEXT, _O_U16TEXT and _O_U8TEXT
+		// works with _O_TEXT and u8
 
-			// THIS IS THE ONLY WAY TO USE CHAR AND UTF8 AND HAVE THE UCRT CONSOLE UNICODE OUTPUT
-			printf(u8"\x043a\x043e\x0448\x043a\x0430 \x65e5\x672c\x56fd\n");
+		// THIS IS THE ONLY WAY TO USE CHAR AND UTF8 AND HAVE THE UCRT CONSOLE UNICODE OUTPUT
+		printf(u8"\x043a\x043e\x0448\x043a\x0430 \x65e5\x672c\x56fd\n");
 
-    // also see the /utf-8 compiler command line option
-    // https://docs.microsoft.com/en-us/cpp/build/reference/utf-8-set-source-and-executable-character-sets-to-utf-8?view=vs-2019&viewFallbackFrom=vs-2017)
+		// also see the /utf-8 compiler command line option
+		// https://docs.microsoft.com/en-us/cpp/build/reference/utf-8-set-source-and-executable-character-sets-to-utf-8?view=vs-2019&viewFallbackFrom=vs-2017)
 
-    // error C2022:  '1082': too big for character and so on  for every character
-    // printf(  "\x043a\x043e\x0448\x043a\x0430 \x65e5\x672c\x56fd\n");
+		// error C2022:  '1082': too big for character and so on  for every character
+		// printf(  "\x043a\x043e\x0448\x043a\x0430 \x65e5\x672c\x56fd\n");
 #endif
-			enable_vt_100(); // enable VT100 ESC code for WIN10 console
+		enable_vt_100(); // enable VT100 ESC code for WIN10 console
 
 #endif // DBJ_NANO_WIN32
 
-#ifdef DBJ_TERMINATE_ON_BAD_ALLOC
+#if DBJ_TERMINATE_ON_BAD_ALLOC
 // do not throw bad_alloc
 // call default termination on heap memory exhausted
-            (std::set_new_handler([]{terminate();}););
+		(std::set_new_handler([] { perror(__FILE__ " Terminating because of heap exhaustion");   terminate(); }));
 #endif
 
 #ifdef DBJ_SYNC_WITH_STDIO
-			/* 
-            this might(!) slow down the ostreams
-            but renders much safer interop with stdio.h
-             */
-			ios_base::sync_with_stdio(true);
+		/*
+		this might(!) slow down the ostreams
+		but renders much safer interop with stdio.h
+		 */
+		ios_base::sync_with_stdio(true);
 #endif
-			/*-----------------------------------------------------------------------------------------*/
+		/*-----------------------------------------------------------------------------------------*/
 
-			return true; }());
+		return true; }());
 /*
-	terror == terminating error
-	NOTE: std::exit *is* different to C API exit()
-	*/
+		terror == terminating error
+		NOTE: std::exit *is* different to C API exit()
+		*/
 [[noreturn]] inline void dbj_terror(const char *msg_, const char *file_, const int line_)
 {
     DBJ_ASSERT(msg_ && file_ && line_);
@@ -188,8 +201,8 @@ inline const bool dbj_nanolib_initialized = ([]() -> bool {
 #endif
 
 #pragma region synchronisation
-/* 
-usage:	void thread_safe_fun() {		lock_unlock autolock_ ;  	} 
+/*
+usage:	void thread_safe_fun() {		lock_unlock autolock_ ;  	}
 */
 struct lock_unlock final
 {
@@ -203,28 +216,27 @@ struct lock_unlock final
 #pragma region buffer type and helper
 
 /*
-in case you need more change this
-by default it is 64KB aka 65535 bytes, which is quite a lot perhaps?
-*/
+	in case you need more change this
+	by default it is 64KB aka 65535 bytes, which is quite a lot perhaps?
+	*/
 constexpr inline std::size_t DBJ_MAX_BUFER_SIZE = UINT16_MAX;
 /*
-	for runtime buffering the most comfortable and in the same time fast
-	solution is vector<char_type>
-	only unique_ptr<char[]> is faster than vector of  chars, by a margin
-	UNICODE does not mean 'char' is forbiden. We deliver 'char' based buffering
-	only.
-	Bellow is a helper, with function most frequently used to make buffer aka vector<char>
-	*/
+		for runtime buffering the most comfortable and in the same time fast
+		solution is vector<char_type>
+		only unique_ptr<char[]> is faster than vector of  chars, by a margin
+		UNICODE does not mean 'char' is forbiden. We deliver 'char' based buffering
+		only.
+		Bellow is a helper, with function most frequently used to make buffer aka vector<char>
+		*/
 struct v_buffer final
 {
 
-    using buffer_type = std::vector<char>;
+    using buffer_type = DBJ_VECTOR<char>;
 
     static buffer_type make(size_t count_)
     {
-        DBJ_ASSERT(count_ > 0);
-        DBJ_ASSERT(DBJ_MAX_BUFER_SIZE >= count_);
-        buffer_type retval_(count_ + 1, char(0));
+        DBJ_ASSERT(count_ < DBJ_MAX_BUFER_SIZE);
+        buffer_type retval_(count_ /*+ 1*/, char(0));
         return retval_;
     }
 
@@ -232,7 +244,7 @@ struct v_buffer final
     {
         DBJ_ASSERT(sview_.size() > 0);
         DBJ_ASSERT(DBJ_MAX_BUFER_SIZE >= sview_.size());
-        buffer_type retval_(sview_.begin(), sview_.end());
+        buffer_type retval_(sview_.data(), sview_.data() + sview_.size());
         // zero terminate?
         retval_.push_back(char(0));
         return retval_;
@@ -279,15 +291,15 @@ struct v_buffer final
 
 #ifdef DBJ_NANO_WIN32
     /*
-		CP_ACP == ANSI
-		CP_UTF8
-		*/
+			CP_ACP == ANSI
+			CP_UTF8
+			*/
     template <auto CODE_PAGE_T_P_ = CP_UTF8>
-    static std::vector<wchar_t> n2w(string_view s)
+    static DBJ_VECTOR<wchar_t> n2w(string_view s)
     {
         const int slength = (int)s.size() + 1;
         int len = MultiByteToWideChar(CODE_PAGE_T_P_, 0, s.data(), slength, 0, 0);
-        std::vector<wchar_t> rez(len, L'\0');
+        DBJ_VECTOR<wchar_t> rez(len, L'\0');
         MultiByteToWideChar(CODE_PAGE_T_P_, 0, s.data(), slength, rez.data(), len);
         return rez;
     }
@@ -351,20 +363,20 @@ associated with the offending expression
 #pragma region very core type traits
 
 /*
-	Check at compile time if value (of 'any' type) is inside given boundaries (inclusive)
+		Check at compile time if value (of 'any' type) is inside given boundaries (inclusive)
 
-	example usage:
+		example usage:
 
-	template<unsigned K>
-	using ascii_ordinal_compile_time = ::dbj::inside_t<unsigned, K, 0, 127>;
+		template<unsigned K>
+		using ascii_ordinal_compile_time = ::dbj::inside_t<unsigned, K, 0, 127>;
 
-	constexpr auto compile_time_ascii_index = ascii_ordinal_compile_time<164>() ;
+		constexpr auto compile_time_ascii_index = ascii_ordinal_compile_time<164>() ;
 
-	164 above is outide of [0..127), compiler fails:
+		164 above is outide of [0..127), compiler fails:
 
-	'std::enable_if_t<false,std::integral_constant<unsigned int,164>>' : Failed to specialize alias template
-	 constexpr auto compile_time__not_ascii_index = ascii_ordinal_compile_time<164>() ;
-	*/
+		'std::enable_if_t<false,std::integral_constant<unsigned int,164>>' : Failed to specialize alias template
+		 constexpr auto compile_time__not_ascii_index = ascii_ordinal_compile_time<164>() ;
+		*/
 template <typename T, T X, T L, T H>
 using inside_inclusive_t =
     ::std::enable_if_t<(X <= H) && (X >= L),
@@ -374,13 +386,13 @@ template <typename T, T X, T L, T H>
 inline constexpr bool inside_inclusive_v = inside_inclusive_t<T, X, L, H>();
 
 /*
-	Example usage of bellow:
+		Example usage of bellow:
 
-		static_assert(  dbj::is_any_same_as_first_v<float, float, float> ) ;
+			static_assert(  dbj::is_any_same_as_first_v<float, float, float> ) ;
 
-		fails, none is same as bool:
-			static_assert(  dbj::is_any_same_as_first_v<bool,  float, float>  );
-		*/
+			fails, none is same as bool:
+				static_assert(  dbj::is_any_same_as_first_v<bool,  float, float>  );
+			*/
 template <class _Ty,
           class... _Types>
 inline constexpr bool is_any_same_as_first_v = ::std::disjunction_v<::std::is_same<_Ty, _Types>...>;
@@ -401,9 +413,9 @@ constexpr inline auto DBJ_PI = 104348 / 33215;
 namespace dbj::nanolib
 {
 /*
-	strerror_s() is very strongly recommended instead of strerror()
-	this is using it with dbj nanolib buffer type
-	*/
+		strerror_s() is very strongly recommended instead of strerror()
+		this is using it with dbj nanolib buffer type
+		*/
 inline v_buffer::buffer_type safe_strerror(int errno_)
 {
     v_buffer::buffer_type buffy_ = v_buffer::make(BUFSIZ);
@@ -478,14 +490,14 @@ inline bool set_console_font(wstring_view font_name, SHORT font_height_ = SHORT(
 }
 
 /*
-	current machine may or may not  be on WIN10 where VT100 ESC codes are on by default
-	they are or have been off by default
+		current machine may or may not  be on WIN10 where VT100 ESC codes are on by default
+		they are or have been off by default
 
-	Reuired WIN10 build number is 10586 or greater
+		Reuired WIN10 build number is 10586 or greater
 
-	to dance with exact win version please proceed here:
-	https://docs.microsoft.com/en-us/windows/win32/sysinfo/verifying-the-system-version
-	*/
+		to dance with exact win version please proceed here:
+		https://docs.microsoft.com/en-us/windows/win32/sysinfo/verifying-the-system-version
+		*/
 
 #ifdef _WIN32_WINNT_WIN10
 
@@ -494,10 +506,10 @@ inline bool set_console_font(wstring_view font_name, SHORT font_height_ = SHORT(
 #endif
 
 /*
-will not exit the app *only* if app is started in WIN32 CONSOLE
-Example: if running from git bash on win this will exit the app
-if app output is redirected to file, this will also fail.
-*/
+		will not exit the app *only* if app is started in WIN32 CONSOLE
+		Example: if running from git bash on win this will exit the app
+		if app output is redirected to file, this will also fail.
+		*/
 inline void enable_vt_100()
 {
     static bool visited{false};

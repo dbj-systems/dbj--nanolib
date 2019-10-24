@@ -83,7 +83,7 @@ constexpr inline static auto MSCFULLVER = _MSC_FULL_VER; //192127702
 constexpr inline static auto MSCBUILD = _MSC_BUILD;      // 2
 
 using tu_function = void (*)();
-using units_ = vector<tu_function>;
+using units_ = DBJ_VECTOR<tu_function>;
 
 inline void line() noexcept { DBJ_PRINT("\n----------------------------------------------------------------------"); }
 
@@ -118,7 +118,8 @@ struct testing_system final
     {
         unsigned counter_{};
         start();
-        for (auto &tu_ : units)
+
+        for (tu_function tu_ : units)
         {
             DBJ_PRINT(DBJ_FG_CYAN);
             DBJ_PRINT("\n\nTest Unit: %d ", counter_++);
@@ -173,7 +174,7 @@ primary compile time buffer is array of a char_type
 thus I will put required operators in here
 */
 
-inline std::ostream &operator<<(std::ostream &os_, std::vector<char> buff_)
+inline std::ostream &operator<<(std::ostream &os_, DBJ_VECTOR<char> buff_)
 {
     if (os_.good())
     {
@@ -182,7 +183,7 @@ inline std::ostream &operator<<(std::ostream &os_, std::vector<char> buff_)
     return os_;
 }
 
-inline std::ostream &operator<<(std::ostream &os_, std::vector<wchar_t> buff_)
+inline std::ostream &operator<<(std::ostream &os_, DBJ_VECTOR<wchar_t> buff_)
 {
     if (os_.good())
     {
