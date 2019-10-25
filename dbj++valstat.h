@@ -2,6 +2,10 @@
 #define _DBJ_STATUS_INC_
 /* (c) 2019 by dbj.org   -- CC BY-SA 4.0 -- https://creativecommons.org/licenses/by-sa/4.0/ */
 
+#ifdef __clang__
+#pragma clang system_header
+#endif
+
 #include "dbj++nanolib.h"
 /* from dbj::nanolib we use mainly std::vector<char>  as a buffer */
 #define _VALSTAT_BUFFER_TYPE_ v_buffer::buffer_type

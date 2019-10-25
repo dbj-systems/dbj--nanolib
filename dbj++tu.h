@@ -5,6 +5,10 @@
 
 #include "dbj++nanolib.h"
 
+#ifdef __clang__
+#pragma clang system_header
+#endif
+
 /*
 testing nano-lib
 

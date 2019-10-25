@@ -3,6 +3,10 @@
 #ifndef DBJ_NANOLIB_INCLUDED
 #define DBJ_NANOLIB_INCLUDED
 
+#ifdef __clang__
+#pragma clang system_header
+#endif
+
 #ifdef _MSVC_LANG
 #define DBJ_NANO_WIN32
 #endif
