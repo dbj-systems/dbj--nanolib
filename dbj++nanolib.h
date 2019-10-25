@@ -42,6 +42,9 @@
 #else
 #include "dbj++vector.h"
 #define DBJ_VECTOR dbj::nanolib::vector
+#if ! DBJ_TERMINATE_ON_BAD_ALLOC
+#pragma message("\n\nWARNING!\n\nUsing non standard vector with bad_alloc throwing enabled.\n\n")
+#endif
 #endif
 
 #include <stdint.h>
@@ -580,9 +583,9 @@ inline bool system_call(const char *cmd_)
     return false;
 }
 
-#endif _WIN32_WINNT_WIN10
+#endif // _WIN32_WINNT_WIN10
 
 } // namespace dbj::nanolib
-#endif DBJ_NANO_WIN32
+#endif // DBJ_NANO_WIN32
 
 #endif // DBJ_NANOLIB_INCLUDED
