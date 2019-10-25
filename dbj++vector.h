@@ -2,7 +2,9 @@
 #define _DBJ_INC_DBJ_VECTOR_
 
 #ifdef __clang__
+#ifdef NDEBUG
 #pragma clang system_header
+#endif
 #endif
 
 /*

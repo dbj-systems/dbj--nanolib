@@ -4,7 +4,9 @@
 #define DBJ_NANOLIB_INCLUDED
 
 #ifdef __clang__
+#ifdef NDEBUG
 #pragma clang system_header
+#endif
 #endif
 
 #ifdef _MSVC_LANG

@@ -3,7 +3,9 @@
 /* (c) 2019 by dbj.org   -- CC BY-SA 4.0 -- https://creativecommons.org/licenses/by-sa/4.0/ */
 
 #ifdef __clang__
+#ifdef NDEBUG
 #pragma clang system_header
+#endif
 #endif
 
 #include "dbj++nanolib.h"

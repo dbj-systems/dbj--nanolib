@@ -6,7 +6,9 @@
 #include "dbj++nanolib.h"
 
 #ifdef __clang__
+#ifdef NDEBUG
 #pragma clang system_header
+#endif
 #endif
 
 /*
