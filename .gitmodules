@@ -2,3 +2,6 @@
 	path = dbj--nanolib
 	url = https://github.com/dbj-systems/dbj--nanolib.git
 	branch = master
+[submodule "pprintpp_msvc"]
+	path = pprintpp_msvc
+	url = https://github.com/dbj-systems/pprintpp_msvc.git
