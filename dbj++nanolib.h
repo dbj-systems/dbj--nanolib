@@ -36,13 +36,30 @@
 #define DBJ_TERMINATE_ON_BAD_ALLOC 1
 #define _DBJ_USING_STD_VECTOR 0
 
+/*
+its time to leave the naked printf behind
+and there are viable alternatives to iostream
+and there is C++20 std::format on the horizon
+
+currently dbj nanolib will be using https://github.com/dbj-systems/pprintpp_msvc
+simple and effective, compile time printf pre processor
+
+if and when time comes we might switch to std::format aka {fmt},
+but. it throws exceptions and it is runtime "jack of all trades".
+thus, at the time I will politely refuse,
+`pprintf` is exactly what dbj nanolib needs: small, 'zero bytes` and useful.
+*/
+#define _DBJ_USING_PPRINTPP 1
+// uses pprintf() macro
+#include "pprintpp_msvc/pprintpp/pprintpp.hpp"
+
 #if _DBJ_USING_STD_VECTOR
 #include <vector>
 #define DBJ_VECTOR std::vector
 #else
 #include "dbj++vector.h"
 #define DBJ_VECTOR dbj::nanolib::vector
-#if ! DBJ_TERMINATE_ON_BAD_ALLOC
+#if !DBJ_TERMINATE_ON_BAD_ALLOC
 #pragma message("\n\nWARNING!\n\nUsing non standard vector with bad_alloc throwing enabled.\n\n")
 #endif
 #endif
@@ -181,6 +198,7 @@ inline const bool dbj_nanolib_initialized = ([]() -> bool {
 
 #ifdef DBJ_SYNC_WITH_STDIO
 		/*
+        We use iostream but only and strictly for dbj++tu testing fwork
 		this might(!) slow down the ostreams
 		but renders much safer interop with stdio.h
 		 */
@@ -326,35 +344,40 @@ struct v_buffer final
 };     // v_buffer
 #pragma endregion
 
+#ifdef NDEBUG
+#define DBJ_FPRINTF(STRM, ...) std::fprintf(STRM, __VA_ARGS__)
+#else
 /*
 DO NOT USE "naked" printf() family !
 UCRT is still in a mess about CONSOLE output
 
-We use (x)fprintf through a macro to increase the resilience + the change-ability
+We use fprintf through a macro to increase the resilience + the change-ability
 of dbj nano lib
 
 first arg has to be stdout, stderr, etc ...
 */
-#ifdef NDEBUG
-#define DBJ_FPRINTF(...) std::fprintf(__VA_ARGS__)
-#else
-#define DBJ_FPRINTF(...)                                                                                   \
+#define DBJ_FPRINTF(STRM, ...)                                                                             \
     do                                                                                                     \
     {                                                                                                      \
-        if (errno_t result_ = std::fprintf(__VA_ARGS__); result_ < 0)                                      \
+        if (errno_t result_ = std::fprintf(STRM, __VA_ARGS__); result_ < 0)                                \
             ::dbj::nanolib::dbj_terror(::dbj::nanolib::safe_strerror(result_).data(), __FILE__, __LINE__); \
     } while (false)
-
 #endif
 
-#define DBJ_PRINT(...) DBJ_FPRINTF(stdout, __VA_ARGS__)
+#if _DBJ_USING_PPRINTPP
+#define DBJ_PRINT pprintf
+#else
+// the C++20 and beyond ... maybe
+#define DBJ_PRINT std::format
+#endif // _DBJ_USING_PPRINTPP
 
 #define DBJ_FILE_LINE __FILE__ "(" _CRT_STRINGIZE(__LINE__) ")"
+#define DBJ_FILE_LINE_TSTAMP __FILE__ "(" _CRT_STRINGIZE(__LINE__) ")(" __TIMESTAMP__ ")"
 /*
 we use the macro bellow to create ever needed location info always
 associated with the offending expression
 */
-#define DBJ_ERR_PROMPT(x) DBJ_FILE_LINE _CRT_STRINGIZE(x))
+#define DBJ_ERR_PROMPT(x) DBJ_FILE_LINE_TSTAMP _CRT_STRINGIZE(x))
 
 #define DBJ_CHK(x)    \
     if (false == (x)) \
