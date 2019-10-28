@@ -51,7 +51,7 @@ thus, at the time I will politely refuse,
 */
 #define _DBJ_USING_PPRINTPP 1
 // uses pprintf() macro
-#include "pprintpp_msvc/pprintpp/pprintpp.hpp"
+#include "pprintpp_msvc/pprintpp.hpp"
 
 #if _DBJ_USING_STD_VECTOR
 #include <vector>
