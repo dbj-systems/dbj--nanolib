@@ -49,9 +49,6 @@ but. it throws exceptions and it is runtime "jack of all trades".
 thus, at the time I will politely refuse,
 `pprintf` is exactly what dbj nanolib needs: small, 'zero bytes` and useful.
 */
-#define _DBJ_USING_PPRINTPP 1
-// uses pprintf() macro
-#include "pprintpp_msvc/pprintpp.hpp"
 
 #if _DBJ_USING_STD_VECTOR
 #include <vector>
@@ -366,20 +363,21 @@ first arg has to be stdout, stderr, etc ...
     } while (false)
 #endif
 
-#if _DBJ_USING_PPRINTPP
-#define DBJ_PRINT pprintf
+#ifdef NDEBUG
+	// unchecked in release builds
+#define DBJ_PRINT(...) (void)std::fprintf(stdout, __VA_ARGS__)
 #else
-// the C++20 and beyond ... maybe
-#define DBJ_PRINT std::format
+#define DBJ_PRINT(...) DBJ_FPRINTF(stdout, __VA_ARGS__)
 #endif // _DBJ_USING_PPRINTPP
 
 #define DBJ_FILE_LINE __FILE__ "(" _CRT_STRINGIZE(__LINE__) ")"
-#define DBJ_FILE_LINE_TSTAMP __FILE__ "(" _CRT_STRINGIZE(__LINE__) ")(" __TIMESTAMP__ ")"
+#define DBJ_FILE_LINE_TSTAMP __FILE__ "(" _CRT_STRINGIZE(__LINE__) ")[" __TIMESTAMP__ "] "
 /*
 we use the macro bellow to create ever needed location info always
 associated with the offending expression
+timestamp included
 */
-#define DBJ_ERR_PROMPT(x) DBJ_FILE_LINE_TSTAMP _CRT_STRINGIZE(x))
+#define DBJ_FLT_PROMPT(x) DBJ_FILE_LINE_TSTAMP _CRT_STRINGIZE(x)
 
 #define DBJ_CHK(x)    \
     if (false == (x)) \

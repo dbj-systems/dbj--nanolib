@@ -106,6 +106,11 @@ namespace dbj::tu
 		static auto append_test_function( tu_function const & fun_) noexcept
 		{
 #if DBJ_CHECKING_IS_TU_FP_UNIQUE
+			// CLANG 8.0.1 and above, 
+			// then 9.x to 10.x can not work on this design
+			// https://stackoverflow.com/q/58569773/10870835
+			// when CLANG 11 comes, leve this in to test
+			// after tests are passed ok, can remove it
 			{
 				using dbj::nanolib::v_buffer;
 				bool test_found_before_registration{ false };
@@ -124,7 +129,7 @@ namespace dbj::tu
 			return fun_;
 		}
 
-		void start() const
+		void start( int = 0, char ** = nullptr ) const
 		{
 			DBJ_PRINT(DBJ_FG_CYAN);
 			line();
@@ -134,9 +139,9 @@ namespace dbj::tu
 			//	__clang_minor__       // integer: minor marketing version number of clang
 			//	__clang_patchlevel__  // integer: marketing patch level of clang
 			//	__clang_version__     // string: full version number
-			DBJ_PRINT(DBJ_FG_CYAN  "\nCLANG: %s\t\t" DBJ_RESET, __clang_version__);
+			DBJ_PRINT(DBJ_FG_CYAN  "\nCLANG: %s" DBJ_RESET, __clang_version__);
 #else
-			DBJ_PRINT("\n _MSVC_LANG:\t\t %lu", _MSVC_LANG);
+			DBJ_PRINT("\n _MSVC_LANG: %lu", _MSVC_LANG);
 #endif
 #if DBJ_TERMINATE_ON_BAD_ALLOC
 			DBJ_PRINT(DBJ_FG_RED_BOLD "\nProgram is configured to terminate on heap memory exhaustion" DBJ_RESET);
