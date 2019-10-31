@@ -51,6 +51,8 @@ template <class T>
 class vector
 {
 public:
+	// DBJ -- added
+	using type = vector;
 	// types:
 	typedef T value_type;
 	typedef T &reference;
@@ -147,7 +149,7 @@ public:
 		delete[] arr;
 	}
 
-	vector<T> &operator=(const vector<T> &other)
+	type &operator=(const vector<T> &other)
 	{
 		size_type i;
 		if (rsrv_sz < other.vec_sz)
@@ -158,9 +160,10 @@ public:
 		for (i = 0; i < other.vec_sz; ++i)
 			arr[i] = other.arr[i];
 		vec_sz = other.vec_sz;
+		return *this;
 	}
 
-	vector<T> &operator=(vector<T> &&other)
+	type &operator=(vector<T> &&other)
 	{
 		size_type i;
 		if (rsrv_sz < other.vec_sz)
@@ -171,9 +174,11 @@ public:
 		for (i = 0; i < other.vec_sz; ++i)
 			arr[i] = std::move(other.arr[i]);
 		vec_sz = other.vec_sz;
+
+		return *this;
 	}
 
-	vector<T> &operator=(std::initializer_list<T> lst)
+	type &operator=(std::initializer_list<T> lst)
 	{
 		if (rsrv_sz < lst.size())
 		{
@@ -183,6 +188,7 @@ public:
 		vec_sz = 0;
 		for (auto &item : lst)
 			arr[vec_sz++] = item;
+		return *this;
 	}
 
 	void assign( size_type count, const T &value)
