@@ -125,10 +125,26 @@ DBJ_REPEAT(50){ std::printf("\n%d", _dbj_repeat_counter ); }
 namespace dbj::nanolib
 {
 	// constexpr auto RELEASE = "2.0.0";
-	// added usage of pprintpp_msvc
-	constexpr auto VERSION = "2.0.0";
+	constexpr auto VERSION = "2.1.0";
 
 	using namespace std;
+
+/* this can speed up things considerably. but test comprehensively first! */
+
+	inline void assume(bool cond) 
+	{
+#if defined(__clang__) // Must go first -- clang also defines __GNUC__
+			__builtin_assume(cond);
+#elif defined(__GNUC__)
+			if (!cond) {
+				__builtin_unreachable();
+			}
+#elif defined(_MSC_VER)
+			__assume(cond);
+#else
+			// Do nothing.
+#endif
+	}
 
 #ifdef DBJ_NANO_WIN32
 	void enable_vt_100();
