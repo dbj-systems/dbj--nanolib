@@ -36,20 +36,6 @@
 #define DBJ_TERMINATE_ON_BAD_ALLOC 1
 #define _DBJ_USING_STD_VECTOR 0
 
-/*
-its time to leave the naked printf behind
-and there are viable alternatives to iostream
-and there is C++20 std::format on the horizon
-
-currently dbj nanolib will be using https://github.com/dbj-systems/pprintpp_msvc
-simple and effective, compile time printf pre processor
-
-if and when time comes we might switch to std::format aka {fmt},
-but. it throws exceptions and it is runtime "jack of all trades".
-thus, at the time I will politely refuse,
-`pprintf` is exactly what dbj nanolib needs: small, 'zero bytes` and useful.
-*/
-
 #if _DBJ_USING_STD_VECTOR
 #include <vector>
 #define DBJ_VECTOR std::vector
@@ -110,9 +96,7 @@ from vcruntime.h
 
 this macro is actually superior solution to the repeat template function
 _dbj_repeat_counter is local for each macro expansion
-
-DBJ_REPEAT(50){ std::printf("\n%d", _dbj_repeat_counter ); }
-
+                      DBJ_REPEAT(50){ std::printf("\n%d", _dbj_repeat_counter ); }
 */
 #define DBJ_REPEAT(N) for (size_t _dbj_repeat_counter = 0; _dbj_repeat_counter < static_cast<size_t>(N); _dbj_repeat_counter++)
 
@@ -124,13 +108,12 @@ DBJ_REPEAT(50){ std::printf("\n%d", _dbj_repeat_counter ); }
 
 namespace dbj::nanolib
 {
-	// constexpr auto RELEASE = "2.0.0";
-	constexpr auto VERSION = "2.1.0";
+	// SIMVER + TIMESTAMP
+	constexpr auto VERSION = "2.5.0 " __TIME__ " " __DATE__;
 
 	using namespace std;
 
 /* this can speed up things considerably. but test comprehensively first! */
-
 	inline void assume(bool cond) 
 	{
 #if defined(__clang__) // Must go first -- clang also defines __GNUC__
@@ -150,88 +133,89 @@ namespace dbj::nanolib
 	void enable_vt_100();
 #endif
 
-	/* do this only once and do this as soon as possible */
+	/* happens once and as soon as possible */
 	inline const bool dbj_nanolib_initialized = ([]() -> bool {
 #ifdef DBJ_NANO_WIN32
-		/*
-							WIN32 console is one notorious 30+ years old forever teenager
-							WIN32 UNICODE situation does not help at all
-							UCRT team started well then dispersed
-							https://www.goland.org/unicode_c_windows/
+/*
+WIN32 console is one notorious 30+ years old forever teenager
+WIN32 UNICODE situation does not help at all
+UCRT team started well then dispersed
+https://www.goland.org/unicode_c_windows/
 
-							To stay sane and healthy, the rules are:
+To stay sane and healthy, the rules are:
 
-							0. stick to UTF8 as much as you can -- article above is good but sadly wrong about UTF16, see www.utf8.com
-							1. NEVER mix printf and wprintf
-							1.1 you can mix printf and std::cout but very carefully
-							1.2 UCRT and printf and _setmode() are not friends see the commenct bellow, just here
-							2. NEVER mix std::cout  and std::wcout
-							3. be (very_ aware that you need particular font to see *all* of your funky unicode glyphs is windows console
-							*/
+0. stick to UTF8 as much as you can -- article above is good but sadly wrong about UTF16, see www.utf8.com
+1. NEVER mix printf and wprintf
+1.1 you can mix printf and std::cout but very carefully
+1.2 UCRT and printf and _setmode() are not friends see the commenct bellow, just here
+2. NEVER mix std::cout  and std::wcout
+3. be (very_ aware that you need particular font to see *all* of your funky unicode glyphs is windows console
+
+Steve Wishnousky (MSFT) publicly has advised me personaly, against
+using _setmode(), at all
+https://developercommunity.visualstudio.com/solutions/411680/view.html
+*/
 #if 0
-							/*
-							Steve Wishnousky (MSFT) publicly has advised me personaly, against
-							using _setmode(), at all
-							https://developercommunity.visualstudio.com/solutions/411680/view.html
-							*/
+//#define _O_TEXT        0x4000  // file mode is text (translated)
+//#define _O_BINARY      0x8000  // file mode is binary (untranslated)
+//#define _O_WTEXT       0x10000 // file mode is UTF16 (translated)
+//#define _O_U16TEXT     0x20000 // file mode is UTF16 no BOM (translated)
+//#define _O_U8TEXT      0x40000 // file mode is UTF8  no BOM (translated)
 
-							//#define _O_TEXT        0x4000  // file mode is text (translated)
-							//#define _O_BINARY      0x8000  // file mode is binary (untranslated)
-							//#define _O_WTEXT       0x10000 // file mode is UTF16 (translated)
-							//#define _O_U16TEXT     0x20000 // file mode is UTF16 no BOM (translated)
-							//#define _O_U8TEXT      0x40000 // file mode is UTF8  no BOM (translated)
+ if (-1 == _setmode(_fileno(stdin), _O_U8TEXT)) perror("Can not set mode");
+ if (-1 == _setmode(_fileno(stdout), _O_U8TEXT)) perror("Can not set mode");
+ if (-1 == _setmode(_fileno(stderr), _O_U8TEXT)) perror("Can not set mode");
 
-		if (-1 == _setmode(_fileno(stdin), _O_U8TEXT)) perror("Can not set mode");
-		if (-1 == _setmode(_fileno(stdout), _O_U8TEXT)) perror("Can not set mode");
-		if (-1 == _setmode(_fileno(stderr), _O_U8TEXT)) perror("Can not set mode");
+ // with _O_TEXT simply no output
+ // works with _O_WTEXT, _O_U16TEXT and _O_U8TEXT
+ wprintf(L"\x043a\x043e\x0448\x043a\x0430 \x65e5\x672c\x56fd\n");
 
-		// with _O_TEXT simply no output
-		// works with _O_WTEXT, _O_U16TEXT and _O_U8TEXT
-		wprintf(L"\x043a\x043e\x0448\x043a\x0430 \x65e5\x672c\x56fd\n");
+ // "kicks the bucket" with _O_WTEXT, _O_U16TEXT and _O_U8TEXT
+ // works with _O_TEXT and u8
 
-		// "kicks the bucket" with _O_WTEXT, _O_U16TEXT and _O_U8TEXT
-		// works with _O_TEXT and u8
+ // THIS IS THE ONLY WAY TO USE CHAR AND UTF8 AND HAVE THE UCRT CONSOLE UNICODE OUTPUT
+ printf(u8"\x043a\x043e\x0448\x043a\x0430 \x65e5\x672c\x56fd\n");
 
-		// THIS IS THE ONLY WAY TO USE CHAR AND UTF8 AND HAVE THE UCRT CONSOLE UNICODE OUTPUT
-		printf(u8"\x043a\x043e\x0448\x043a\x0430 \x65e5\x672c\x56fd\n");
+ // also see the /utf-8 compiler command line option
+ // https://docs.microsoft.com/en-us/cpp/build/reference/utf-8-set-source-and-executable-character-sets-to-utf-8?view=vs-2019&viewFallbackFrom=vs-2017)
 
-		// also see the /utf-8 compiler command line option
-		// https://docs.microsoft.com/en-us/cpp/build/reference/utf-8-set-source-and-executable-character-sets-to-utf-8?view=vs-2019&viewFallbackFrom=vs-2017)
-
-		// error C2022:  '1082': too big for character and so on  for every character
-		// printf(  "\x043a\x043e\x0448\x043a\x0430 \x65e5\x672c\x56fd\n");
-#endif
-		enable_vt_100(); // enable VT100 ESC code for WIN10 console
+ // error C2022:  '1082': too big for character and so on  for every character
+ // printf(  "\x043a\x043e\x0448\x043a\x0430 \x65e5\x672c\x56fd\n");
+#endif // 0
+ // currently (2019Q4) WIN10 CONSOLE "appears" to need manual enabling the ability to
+ // interpret VT100 ESC codes
+ enable_vt_100(); // enable VT100 ESC code for WIN10 console
 
 #endif // DBJ_NANO_WIN32
 
 #if DBJ_TERMINATE_ON_BAD_ALLOC
 // do not throw bad_alloc
 // call default termination on heap memory exhausted
-		(std::set_new_handler([] { perror(__FILE__ " Terminating because of heap exhaustion");   terminate(); }));
+  (std::set_new_handler([] { perror(__FILE__ " Terminating because of heap exhaustion");   terminate(); }));
 #endif
 
 #ifdef DBJ_SYNC_WITH_STDIO
-		/*
-		We use iostream but only and strictly for dbj++tu testing fwork
-		this might(!) slow down the ostreams
-		but renders much safer interop with stdio.h
-		 */
-		ios_base::sync_with_stdio(true);
+ /*
+ We use iostream but only and strictly for dbj++tu testing fwork
+ this might(!) slow down the ostreams
+ but renders much safer interop with stdio.h
+ */
+ ios_base::sync_with_stdio(true);
 #endif
-		/*-----------------------------------------------------------------------------------------*/
-
-		return true; }());
-	/*
-			terror == terminating error
-			NOTE: std::exit *is* different to C API exit()
-			*/
-	[[noreturn]] inline void dbj_terror(const char* msg_, const char* file_, const int line_)
-	{
-		DBJ_ASSERT(msg_ && file_ && line_);
-		std::fprintf(stderr, "\n\ndbj++ Terminating error:%s\n%s (%d)", msg_, file_, line_);
-		std::exit(EXIT_FAILURE);
-	}
+ /*-----------------------------------------------------------------------------------------
+ immediately call the nano-lib initialization function, but ... do it only once
+ */
+ return true; }());
+/*
+ terror == terminating error
+ NOTE: std::exit *is* different to C API exit()
+*/
+ [[noreturn]] inline void dbj_terror(const char* msg_, const char* file_, const int line_)
+ {
+	DBJ_ASSERT(msg_ && file_ && line_);
+	std::fprintf(stderr, "\n\ndbj++ Terminating error:%s\n%s (%d)", msg_, file_, line_);
+	std::exit(EXIT_FAILURE);
+ }
 
 	// CAUTION! DBJ_VERIFY works in release builds too
 #ifndef DBJ_VERIFY
