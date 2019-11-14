@@ -129,7 +129,7 @@ namespace dbj::nanolib
 	}
 
 #ifdef DBJ_NANO_WIN32
-	void enable_vt_100();
+	void enable_vt_100_and_unicode();
 #endif
 
 	/* happens once and as soon as possible */
@@ -183,7 +183,7 @@ https://developercommunity.visualstudio.com/solutions/411680/view.html
 #endif // 0
  // currently (2019Q4) WIN10 CONSOLE "appears" to need manual enabling the ability to
  // interpret VT100 ESC codes
- enable_vt_100(); // enable VT100 ESC code for WIN10 console
+ enable_vt_100_and_unicode(); // enable VT100 ESC code for WIN10 console
 
 #endif // DBJ_NANO_WIN32
 
@@ -533,26 +533,34 @@ namespace dbj::nanolib
 #ifdef _WIN32_WINNT_WIN10
 
 #ifndef ENABLE_VIRTUAL_TERMINAL_PROCESSING
-#error ENABLE_VIRTUAL_TERMINAL_PROCESSING not found? Try retargeting to the latest SDK.
+#error ENABLE_VIRTUAL_TERMINAL_PROCESSING not found? Try re-targeting to the latest SDK.
 #endif
 
-			/*
-					will not exit the app *only* if app is started in WIN32 CONSOLE
-					Example: if running from git bash on win this will exit the app
-					if app output is redirected to file, this will also fail.
-					*/
-	inline void enable_vt_100()
+/*
+will not exit the app *only* if app is started in WIN32 CONSOLE
+Example: if running from git bash on win this will exit the app
+if app output is redirected to file, this will also fail.
+*/
+	inline void enable_vt_100_and_unicode()
 	{
 		static bool visited{ false };
 		if (visited)
 			return;
 
+		auto rez = ::SetConsoleOutputCP(CP_UTF8 /*65001*/);
+		{
+			if (rez == 0) {
+				last_perror();
+				fprintf(stderr, "\nFile: %s\nLine: %ul\nWhy: %s\n", __FILE__, __LINE__, ", SetConsoleOutputCP() failed");
+				return;
+			}
+		}
 		// Set output mode to handle virtual terminal sequences
 		HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
 		if (hOut == INVALID_HANDLE_VALUE)
 		{
 			last_perror();
-			fprintf(stderr, "\nFile: %s\nLine: %ul\nWhy: %s\n", __FILE__, __LINE__, "GetStdHandle() failed");
+			fprintf(stderr, "\nFile: %s\nLine: %ul\nWhy: %s\n", __FILE__, __LINE__, ", GetStdHandle() failed");
 			return;
 		}
 
@@ -560,7 +568,7 @@ namespace dbj::nanolib
 		if (!GetConsoleMode(hOut, &dwMode))
 		{
 			last_perror();
-			fprintf(stderr, "\nFile: %s\nLine: %ul\nWhy: %s\n", __FILE__, __LINE__, "GetConsoleMode() failed");
+			fprintf(stderr, "\nFile: %s\nLine: %ul\nWhy: %s\n", __FILE__, __LINE__, ", GetConsoleMode() failed");
 			fprintf(stderr, "\nPlease rerurn in either WIN console or powershell console\n");
 			return;
 		}
@@ -569,7 +577,7 @@ namespace dbj::nanolib
 		if (!SetConsoleMode(hOut, dwMode))
 		{
 			last_perror();
-			fprintf(stderr, "\nFile: %s\nLine: %ul\nWhy: %s\n", __FILE__, __LINE__, "SetConsoleMode() failed");
+			fprintf(stderr, "\nFile: %s\nLine: %ul\nWhy: %s\n", __FILE__, __LINE__, ", SetConsoleMode() failed");
 			return;
 		}
 		visited = true;
