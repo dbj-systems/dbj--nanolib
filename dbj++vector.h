@@ -22,6 +22,9 @@ based on `lni::vector` by Jasmine "lnishan" Chen, licensed under a [Creative Com
 #include <utility>
 #include <iterator>
 
+// use this simple macro ... do not open the whole namespace with the using statement
+#define DBJ_VECTOR ::dbj::nanolib::containers::vector
+
 #define DBJ_VECTOR_HAS_EXCEPTIONS 0
 
 #if _HAS_EXCEPTIONS || DBJ_VECTOR_HAS_EXCEPTIONS
@@ -34,7 +37,7 @@ based on `lni::vector` by Jasmine "lnishan" Chen, licensed under a [Creative Com
 // set to 1 to have insertion methods
 #define _DBJ_VEC_INSERTING 0
 
-namespace dbj::nanolib
+namespace dbj::nanolib::containers
 {
 
 inline constexpr auto _DBJ_INC_DBJ_VECTOR_MAX_SZ = 0xFFFF ;
@@ -1583,6 +1586,6 @@ void vector<long double>::clear() noexcept
 	vec_sz = 0;
 }
 
-} // namespace dbj::nanolib
+} // namespace dbj::nanolib::containers
 
 #endif // _DBJ_INC_DBJ_VECTOR_

@@ -4,6 +4,7 @@
 #define DBJ_TU_INCLUDED
 
 #include "dbj++nanolib.h"
+#include "dbj++array.h"
 
 // please see this if wondering why do we use dbj::tu::fp_storage_limited
 // #error https://stackoverflow.com/q/58569773/10870835
@@ -86,8 +87,6 @@ namespace dbj::tu
 	using tu_function = void (*)();
 #if (DBJ_USES_STATIC_STORAGE_FOR_TU == 1)
 
-	namespace inner {
-
 		/*
 		4095 test units is a lot of tet units for any kind of project
 		more than 4095 test units means something is wrong with 
@@ -95,58 +94,8 @@ namespace dbj::tu
 		*/
 		constexpr size_t fp_storage_size{ 0xFFF };
 
-		/*
-		this is an shamefull design that also tightly couples the implementation
-		to msvc std lib implementation
-		*/
-		struct fp_storage_limited : std::array< tu_function, fp_storage_size >
-		{
-			using base = std::array< tu_function, fp_storage_size >;
 
-			constexpr static size_t storage_capacity{ fp_storage_size };
-
-			size_t level_{ 0 };
-
-			bool is_empty() const { return level_ == 0; }
-			bool is_full() const { return level_ == storage_capacity; }
-
-			tu_function push_back(tu_function next_fp) {
-				if (is_full()) return nullptr;
-				(*this)[level_] = next_fp;
-				level_ += 1;
-				return next_fp;
-			}
-
-			[[nodiscard]] constexpr  tu_function /*base::const_iterator*/ end() const noexcept {
-				 // return base::const_iterator(_Elems, level_);
-				return (*this)[level_];
-			}
-
-			[[nodiscard]] constexpr tu_function  /*base::iterator*/ end() noexcept {
-				// return base::iterator(_Elems, level_);
-				return (*this)[level_];
-			}
-
-			constexpr base::value_type* _Unchecked_end() noexcept {
-				return _Elems + level_;
-			}
-
-			constexpr const base::value_type* _Unchecked_end() const noexcept {
-				return _Elems + level_;
-			}
-
-			[[nodiscard]] constexpr size_type size() const noexcept {
-				return level_;
-			}
-
-			[[nodiscard]] constexpr size_type max_size() const noexcept {
-				return storage_capacity;
-			}
-
-		}; // fp_storage_limited
-	} // inner ns
-
-	using units_ = inner::fp_storage_limited;
+	using units_ = DBJ_ARRAY_STORAGE< tu_function, fp_storage_size >;
 #else
 // CLANG 8.0.1, 9.x 10.x can not work on this design
 // https://stackoverflow.com/q/58569773/10870835

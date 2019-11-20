@@ -1,18 +1,31 @@
-
 // dbj++array
 #ifndef _DBJ_ARRAY_
 #define _DBJ_ARRAY_
 
-#define DBJ_ARRAY dbj::nanolib::array
+// not yet
+// #define DBJ_ARRAY_FULL_IMPLEMENTATION 
 
-namespace dbj::nanolib
+// avoid names clashes with std::array
+// use these simple macros
+#define DBJ_ARRAY ::dbj::nanolib::containers::array
+#define DBJ_ARRAY_STORAGE ::dbj::nanolib::containers::array_storage
+
+namespace dbj::nanolib::containers
 {
-template <class TYP_, size_t SZE_>
-class array
+	constexpr size_t MAX_ARRAY_SIZE = 0xFFFF; // 64K == plenty!
+
+template <class TYP_, size_t SZE_ >
+struct array
 {
+	static_assert(SZE_ > 0 ); 
+	static_assert(SZE_ < dbj::nanolib::containers::MAX_ARRAY_SIZE );
+
+	static_assert(std::is_nothrow_swappable_v<TYP_> );
+
 public:
-    using valuetype = TYP_;
-    using sizetype = size_t;
+	using type = array;
+    using value_type = TYP_;
+    using size_type = size_t;
     using differencetype = ptrdiff_t;
     using pointer = TYP_ *;
     using const_pointer = const TYP_ *;
@@ -20,454 +33,351 @@ public:
     using const_reference = const TYP_ &;
 
     using iterator = pointer;
-    using const_iterator = const pointer;
+    using const_iterator = const_pointer;
 
+#ifdef DBJ_ARRAY_FULL_IMPLEMENTATION 
     using reverse_iterator = reverse_iterator<iterator>;
     using const_reverse_iterator = reverse_iterator<const_iterator>;
+#endif // DBJ_ARRAY_FULL_IMPLEMENTATION 
 
-    void fill(const TYP_ &_Value)
+    void fill(const TYP_ &value_)
     {
-        fill_n(_Elems, SZE_, _Value);
+        std::fill_n(elements_, SZE_, value_);
     }
 
-    void swap(array &_Other) _NOEXCEPT_COND(_Is_nothrow_swappable<TYP_>::value)
+	/*
+	swap in place
+	*/
+    void swap(type & other_arr_) 
     {
-        _Swap_ranges_unchecked(_Elems, _Elems + SZE_, _Other._Elems);
+		auto swap_two(auto & left_, auto & right_) 
+		{
+			auto temp_ = right_;
+			left_ = right_;
+			right_ = temp_;
+		};
+
+		for (size_t idx_ = 0; idx_ < SZE_; idx_++)
+			swap_two( left_.at(idx_), right_.at(idx)  );
     }
 
-    _NODISCARD _CONSTEXPR17 iterator begin() noexcept
+    [[nodiscard]] constexpr iterator begin() noexcept
     {
-        return iterator(_Elems, 0);
+        return elements_ ;
     }
 
-    _NODISCARD _CONSTEXPR17 const_iterator begin() const noexcept
+    [[nodiscard]] constexpr const_iterator begin() const noexcept
     {
-        return const_iterator(_Elems, 0);
+        return elements_ ;
     }
 
-    _NODISCARD _CONSTEXPR17 iterator end() noexcept
+    [[nodiscard]] constexpr iterator end() noexcept
     {
-        return iterator(_Elems, SZE_);
+        return elements_ + SZE_ ;
     }
 
-    _NODISCARD _CONSTEXPR17 const_iterator end() const noexcept
+    [[nodiscard]] constexpr const_iterator end() const noexcept
     {
-        return const_iterator(_Elems, SZE_);
+        return elements_ + SZE_ ;
     }
 
-    _NODISCARD _CONSTEXPR17 reverse_iterator rbegin() noexcept
+#ifdef DBJ_ARRAY_FULL_IMPLEMENTATION 
+
+    [[nodiscard]] constexpr reverse_iterator rbegin() noexcept
     {
-        return reverse_iterator(end());
+        return (end());
     }
 
-    _NODISCARD _CONSTEXPR17 const_reverse_iterator rbegin() const noexcept
+    [[nodiscard]] constexpr const_reverse_iterator rbegin() const noexcept
     {
-        return const_reverse_iterator(end());
+        return (end());
     }
 
-    _NODISCARD _CONSTEXPR17 reverse_iterator rend() noexcept
+    [[nodiscard]] constexpr reverse_iterator rend() noexcept
     {
-        return reverse_iterator(begin());
+        return (begin());
     }
 
-    _NODISCARD _CONSTEXPR17 const_reverse_iterator rend() const noexcept
+    [[nodiscard]] constexpr const_reverse_iterator rend() const noexcept
     {
-        return const_reverse_iterator(begin());
+        return (begin());
     }
 
-    _NODISCARD _CONSTEXPR17 const_iterator cbegin() const noexcept
+#endif // DBJ_ARRAY_FULL_IMPLEMENTATION 
+
+
+    [[nodiscard]] constexpr const_iterator cbegin() const noexcept
     {
         return begin();
     }
 
-    _NODISCARD _CONSTEXPR17 const_iterator cend() const noexcept
+    [[nodiscard]] constexpr const_iterator cend() const noexcept
     {
         return end();
     }
 
-    _NODISCARD _CONSTEXPR17 const_reverse_iterator crbegin() const noexcept
+#ifdef DBJ_ARRAY_FULL_IMPLEMENTATION 
+    [[nodiscard]] constexpr const_reverse_iterator crbegin() const noexcept
     {
         return rbegin();
     }
 
-    _NODISCARD _CONSTEXPR17 const_reverse_iterator crend() const noexcept
+    [[nodiscard]] constexpr const_reverse_iterator crend() const noexcept
     {
         return rend();
     }
 
-    _CONSTEXPR17 TYP_ *_Unchecked_begin() noexcept
+    constexpr TYP_ *unchecked_begin() noexcept
     {
-        return _Elems;
+        return elements_[0];
     }
 
-    _CONSTEXPR17 const TYP_ *_Unchecked_begin() const noexcept
+    constexpr const TYP_ *unchecked_begin() const noexcept
     {
-        return _Elems;
+        return elements_[0];
     }
 
-    _CONSTEXPR17 TYP_ *_Unchecked_end() noexcept
+    constexpr TYP_ *unchecked_end() noexcept
     {
-        return _Elems + SZE_;
+        return elements_[SZE_];
     }
 
-    _CONSTEXPR17 const TYP_ *_Unchecked_end() const noexcept
+    constexpr const TYP_ *unchecked_end() const noexcept
     {
-        return _Elems + SZE_;
+        return elements_[SZE_];
     }
+#endif // DBJ_ARRAY_FULL_IMPLEMENTATION 
 
-    _NODISCARD constexpr sizeTYP_pe size() const noexcept
-    {
-        return SZE_;
-    }
-
-    _NODISCARD constexpr sizeTYP_pe maxSZE_() const noexcept
+    [[nodiscard]] constexpr size_type size() const noexcept
     {
         return SZE_;
     }
 
-    _NODISCARD constexpr bool empty() const noexcept
+    [[nodiscard]] constexpr size_type max_size() const noexcept
+    {
+        return SZE_;
+    }
+
+    [[nodiscard]] constexpr bool empty() const noexcept
     {
         return false;
     }
 
-    _NODISCARD _CONSTEXPR17 reference at(sizeTYP_pe _Pos)
+    [[nodiscard]] constexpr reference at(size_type idx_)
     {
-        if (SZE_ <= _Pos)
-        {
-            _Xran();
-        }
-
-        return _Elems[_Pos];
+		DBJ_ASSERT(idx_ < SZE_);
+		return elements_[idx_];
     }
 
-    _NODISCARD constexpr const_reference at(sizeTYP_pe _Pos) const
+    [[nodiscard]] constexpr const_reference at(size_type idx_) const
     {
-        if (SZE_ <= _Pos)
-        {
-            _Xran();
-        }
-
-        return _Elems[_Pos];
+		DBJ_ASSERT(idx_ < SZE_);
+        return elements_[idx_];
     }
 
-    _NODISCARD _CONSTEXPR17 reference operator[](_In_range_(0, SZE_ - 1) sizeTYP_pe _Pos) noexcept
-    { // strengthened
-#if _CONTAINER_DEBUG_LEVEL > 0
-        _STL_VERIFY(_Pos < SZE_, "array subscript out of range");
-#endif // _CONTAINER_DEBUG_LEVEL > 0
-
-        return _Elems[_Pos];
+    [[nodiscard]] constexpr reference operator[](size_type idx_) noexcept
+    { 
+		DBJ_ASSERT(idx_ < SZE_ );
+        return elements_[idx_];
     }
 
-    _NODISCARD constexpr const_reference operator[](_In_range_(0, SZE_ - 1) sizeTYP_pe _Pos) const
-        noexcept
-    { // strengthened
-#if _CONTAINER_DEBUG_LEVEL > 0
-        _STL_VERIFY(_Pos < SZE_, "array subscript out of range");
-#endif // _CONTAINER_DEBUG_LEVEL > 0
-
-        return _Elems[_Pos];
-    }
-
-    _NODISCARD _CONSTEXPR17 reference front() noexcept
-    { // strengthened
-
-        return _Elems[0];
-    }
-
-    _NODISCARD constexpr const_reference front() const noexcept
-    { // strengthened
-
-        return _Elems[0];
-    }
-
-    _NODISCARD _CONSTEXPR17 reference back() noexcept
-    { // strengthened
-        return _Elems[SZE_ - 1];
-    }
-
-    _NODISCARD constexpr const_reference back() const noexcept
-    { // strengthened
-        return _Elems[SZE_ - 1];
-    }
-
-    _NODISCARD _CONSTEXPR17 TYP_ *data() noexcept
+    [[nodiscard]] constexpr const_reference operator[](size_type idx_) const noexcept
     {
-        return _Elems;
+		DBJ_ASSERT(idx_ < SZE_);
+        return elements_[idx_];
     }
 
-    _NODISCARD _CONSTEXPR17 const TYP_ *data() const noexcept
+    [[nodiscard]] constexpr reference front() noexcept
+    { 
+        return elements_[0];
+    }
+
+    [[nodiscard]] constexpr const_reference front() const noexcept
+    { 
+        return elements_[0];
+    }
+
+    [[nodiscard]] constexpr reference back() noexcept
+    { 
+        return elements_ + SZE_ - 1;
+    }
+
+    [[nodiscard]] constexpr const_reference back() const noexcept
+    { // strengthened
+        return elements_ + SZE_ - 1;
+    }
+
+    [[nodiscard]] constexpr TYP_ *data() noexcept
     {
-        return _Elems;
+        return elements_;
     }
 
-    [[noreturn]] void _Xran() const {
-        _Xout_of_range("invalid array<T, N> subscript");
+    [[nodiscard]] constexpr const TYP_ *data() const noexcept
+    {
+        return elements_;
     }
+	// for aggregate init the data must be public too
+    TYP_ elements_[SZE_];
+}; // array
 
-    TYP_ _Elems[SZE_];
+template <class First_, class... Rest_>
+struct ensure_param_pack_same_type
+{
+    static_assert(conjunction_v<is_same<First_, Rest_>...>,
+      "dbj::nanolib::array, user defined template guide, requires all the types to be the same!");
+    using type = First_;
 };
 
-#if _HAS_CXX17
-template <class _First, class... _Rest>
-struct _Enforce_same
-{
-    static_assert(conjunction_v<is_same<_First, _Rest>...>,
-                  "N4687 26.3.7.2 [array.cons]/2: "
-                  "Requires: (is_same_v<T, U> && ...) is true. Otherwise the program is ill-formed.");
-    using type = _First;
-};
+template <class First_, class... Rest_>
+array(First_, Rest_...)->array<typename ensure_param_pack_same_type<First_, Rest_...>::type, 1 + sizeof...(Rest_)>;
 
-template <class _First, class... _Rest>
-array(_First, _Rest...)->array<typename _Enforce_same<_First, _Rest...>::type, 1 + sizeof...(_Rest)>;
-#endif // _HAS_CXX17
+// vs the std::array I can make more constexpr functions here
 
-template <class TYP_>
-class array<TYP_, 0>
-{
-public:
-    using valueTYP_pe = TYP_;
-    using sizeTYP_pe = size_t;
-    using differenceTYP_pe = ptrdiff_t;
-    using pointer = TYP_ *;
-    using const_pointer = const TYP_ *;
-    using reference = TYP_ &;
-    using const_reference = const TYP_ &;
-
-    using iterator = _Array_iterator<TYP_, 0>;
-    using const_iterator = _Array_const_iterator<TYP_, 0>;
-    using reverse_iterator = reverse_iterator<iterator>;
-    using const_reverse_iterator = reverse_iterator<const_iterator>;
-
-    void fill(const TYP_ &)
-    {
-    }
-
-    void swap(array &) noexcept {}
-
-    _NODISCARD _CONSTEXPR17 iterator begin() noexcept
-    {
-        return iterator{};
-    }
-
-    _NODISCARD _CONSTEXPR17 const_iterator begin() const noexcept
-    {
-        return const_iterator{};
-    }
-
-    _NODISCARD _CONSTEXPR17 iterator end() noexcept
-    {
-        return iterator{};
-    }
-
-    _NODISCARD _CONSTEXPR17 const_iterator end() const noexcept
-    {
-        return const_iterator{};
-    }
-
-    _NODISCARD _CONSTEXPR17 reverse_iterator rbegin() noexcept
-    {
-        return reverse_iterator(end());
-    }
-
-    _NODISCARD _CONSTEXPR17 const_reverse_iterator rbegin() const noexcept
-    {
-        return const_reverse_iterator(end());
-    }
-
-    _NODISCARD _CONSTEXPR17 reverse_iterator rend() noexcept
-    {
-        return reverse_iterator(begin());
-    }
-
-    _NODISCARD _CONSTEXPR17 const_reverse_iterator rend() const noexcept
-    {
-        return const_reverse_iterator(begin());
-    }
-
-    _NODISCARD _CONSTEXPR17 const_iterator cbegin() const noexcept
-    {
-        return begin();
-    }
-
-    _NODISCARD _CONSTEXPR17 const_iterator cend() const noexcept
-    {
-        return end();
-    }
-
-    _NODISCARD _CONSTEXPR17 const_reverse_iterator crbegin() const noexcept
-    {
-        return rbegin();
-    }
-
-    _NODISCARD _CONSTEXPR17 const_reverse_iterator crend() const noexcept
-    {
-        return rend();
-    }
-
-    _CONSTEXPR17 TYP_ *_Unchecked_begin() noexcept
-    {
-        return nullptr;
-    }
-
-    _CONSTEXPR17 const TYP_ *_Unchecked_begin() const noexcept
-    {
-        return nullptr;
-    }
-
-    _CONSTEXPR17 TYP_ *_Unchecked_end() noexcept
-    {
-        return nullptr;
-    }
-
-    _CONSTEXPR17 const TYP_ *_Unchecked_end() const noexcept
-    {
-        return nullptr;
-    }
-
-    _NODISCARD constexpr sizeTYP_pe size() const noexcept
-    {
-        return 0;
-    }
-
-    _NODISCARD constexpr sizeTYP_pe maxSZE_() const noexcept
-    {
-        return 0;
-    }
-
-    _NODISCARD constexpr bool empty() const noexcept
-    {
-        return true;
-    }
-
-    [[noreturn]] reference at(sizeTYP_pe) {
-        _Xran();
-    }
-
-        [[noreturn]] const_reference at(sizeTYP_pe) const
-    {
-        _Xran();
-    }
-
-    _NODISCARD reference operator[](sizeTYP_pe) noexcept
-    {
-        return _Elems[0];
-    }
-
-    _NODISCARD const_reference operator[](sizeTYP_pe) const noexcept
-    {
-        return _Elems[0];
-    }
-
-    _NODISCARD reference front() noexcept
-    {
-        return _Elems[0];
-    }
-
-    _NODISCARD const_reference front() const noexcept
-    {
-        return _Elems[0];
-    }
-
-    _NODISCARD reference back() noexcept
-    {
-        return _Elems[0];
-    }
-
-    _NODISCARD const_reference back() const noexcept
-    {
-        return _Elems[0];
-    }
-
-    _NODISCARD _CONSTEXPR17 TYP_ *data() noexcept
-    {
-        return nullptr;
-    }
-
-    _NODISCARD _CONSTEXPR17 const TYP_ *data() const noexcept
-    {
-        return nullptr;
-    }
-
-    [[noreturn]] void _Xran() const {
-        _Xout_of_range("invalid array<T, 0> subscript");
-    }
-
-    TYP_ _Elems[1];
-};
-
-template <class TYP_, size_t SZE_, class = enable_if_t<SZE_ == 0 || _Is_swappable<TYP_>::value>>
-void swap(array<TYP_, SZE_> &_Left, array<TYP_, SZE_> &_Right)
-    _NOEXCEPT_COND(noexcept(_Left.swap(_Right)))
-{ // swap arrays
-    return _Left.swap(_Right);
+template <class TYP_, size_t SZE_ >
+ DBJ_ARRAY<TYP_, SZE_> swap
+(
+	DBJ_ARRAY<TYP_, SZE_>& left_arr_, 
+	DBJ_ARRAY<TYP_, SZE_>& right_arr_
+)
+{ 
+    left_arr_.swap(right_arr_);
+	return left_arr_;
 }
 
-template <class TYP_, size_t SZE_>
-_NODISCARD bool operator==(const array<TYP_, SZE_> &_Left, const array<TYP_, SZE_> &_Right)
+ // this is expensive operation
+template <class TYP_, size_t SZE_ >
+[[nodiscard]] constexpr bool operator==
+(
+	const DBJ_ARRAY<TYP_, SZE_> &left_arr_, const DBJ_ARRAY<TYP_, SZE_> &right_arr_
+)
 {
-    return equal(_Left.begin(), _Left.end(), _Right.begin());
+	for (size_t idx_ = 0; idx_ < SZE_; idx_++)
+		if (left_arr_.at(idx_) != right_arr_.at(idx_)) return false;
+	return true;
 }
 
-template <class TYP_, size_t SZE_>
-_NODISCARD bool operator!=(const array<TYP_, SZE_> &_Left, const array<TYP_, SZE_> &_Right)
+template <class TYP_, size_t SZE_ >
+[[nodiscard]] constexpr  bool operator!=(const DBJ_ARRAY<TYP_, SZE_> &left_arr_, const DBJ_ARRAY<TYP_, SZE_> &right_arr_)
 {
-    return !(_Left == _Right);
+    return !(left_arr_ == right_arr_);
 }
 
-template <class TYP_, size_t SZE_>
-_NODISCARD bool operator<(const array<TYP_, SZE_> &_Left, const array<TYP_, SZE_> &_Right)
+template <class TYP_, size_t SZE_ >
+[[nodiscard]]  bool operator<(const DBJ_ARRAY<TYP_, SZE_> &left_arr_, const DBJ_ARRAY<TYP_, SZE_> &right_arr_)
 {
-    return lexicographical_compare(_Left.begin(), _Left.end(), _Right.begin(), _Right.end());
+    return std::lexicographical_compare(left_arr_.begin(), left_arr_.end(), right_arr_.begin(), right_arr_.end());
 }
 
-template <class TYP_, size_t SZE_>
-_NODISCARD bool operator>(const array<TYP_, SZE_> &_Left, const array<TYP_, SZE_> &_Right)
+template <class TYP_, size_t SZE_ >
+[[nodiscard]] bool operator>(const DBJ_ARRAY<TYP_, SZE_>&left_arr_, const DBJ_ARRAY<TYP_, SZE_> &right_arr_)
 {
-    return _Right < _Left;
+    return right_arr_ < left_arr_;
 }
 
-template <class TYP_, size_t SZE_>
-_NODISCARD bool operator<=(const array<TYP_, SZE_> &_Left, const array<TYP_, SZE_> &_Right)
+template <class TYP_, size_t SZE_ >
+[[nodiscard]] bool operator<=(const DBJ_ARRAY<TYP_, SZE_> &left_arr_, const DBJ_ARRAY<TYP_, SZE_> &right_arr_)
 {
-    return !(_Right < _Left);
+    return !(right_arr_ < left_arr_);
 }
 
-template <class TYP_, size_t SZE_>
-_NODISCARD bool operator>=(const array<TYP_, SZE_> &_Left, const array<TYP_, SZE_> &_Right)
+template <class TYP_, size_t SZE_ >
+[[nodiscard]] bool operator>=(const DBJ_ARRAY<TYP_, SZE_> &left_arr_, const DBJ_ARRAY<TYP_, SZE_> &right_arr_)
 {
-    return !(_Left < _Right);
+    return !(left_arr_ < right_arr_);
 }
 
-// TUPLE INTERFACE TO array
-template <size_t _Idx, class TYP_, size_t SZE_>
-_NODISCARD constexpr TYP_ &get(array<TYP_, SZE_> &_Arr) noexcept
+// TUPLE INTERFACE -------------------------------------------------------------
+
+template <size_t idx_, class TYP_, size_t SZE_ >
+[[nodiscard]] constexpr TYP_ &get( DBJ_ARRAY<TYP_, SZE_>& arr_) noexcept
 {
-    static_assert(_Idx < SZE_, "array index out of bounds");
-    return _Arr._Elems[_Idx];
+    static_assert( idx_  < SZE_, "array index out of bounds");
+    return  arr_.elements_[idx_ ];
 }
 
-template <size_t _Idx, class TYP_, size_t SZE_>
-_NODISCARD constexpr const TYP_ &get(const array<TYP_, SZE_> &_Arr) noexcept
+template <size_t idx_ , class TYP_, size_t SZE_ >
+[[nodiscard]] constexpr const TYP_ &get(const DBJ_ARRAY<TYP_, SZE_>& arr_) noexcept
 {
-    static_assert(_Idx < SZE_, "array index out of bounds");
-    return _Arr._Elems[_Idx];
+    static_assert(idx_  < SZE_, "array index out of bounds");
+    return  arr_.elements_[idx_ ];
 }
 
-template <size_t _Idx, class TYP_, size_t SZE_>
-_NODISCARD constexpr TYP_ &&get(array<TYP_, SZE_> &&_Arr) noexcept
+template <size_t idx_ , class TYP_, size_t SZE_ >
+[[nodiscard]] constexpr TYP_ &&get(DBJ_ARRAY<TYP_, SZE_>&& arr_) noexcept
 {
-    static_assert(_Idx < SZE_, "array index out of bounds");
-    return move(_Arr._Elems[_Idx]);
+    static_assert(idx_  < SZE_, "array index out of bounds");
+    return std::move( arr_.elements_[idx_ ]);
 }
 
-template <size_t _Idx, class TYP_, size_t SZE_>
-_NODISCARD constexpr const TYP_ &&get(const array<TYP_, SZE_> &&_Arr) noexcept
+template <size_t idx_ , class TYP_, size_t SZE_ >
+[[nodiscard]] constexpr const TYP_ &&get(const DBJ_ARRAY<TYP_, SZE_> && arr_) noexcept
 {
-    static_assert(_Idx < SZE_, "array index out of bounds");
-    return move(_Arr._Elems[_Idx]);
+    static_assert(idx_  < SZE_, "array index out of bounds");
+    return std::move( arr_.elements_[idx_ ]);
 }
 
-} // namespace dbj::nanolib
+/*
+-----------------------------------------------------------------------------------------------
+What is the purpose of this type? kind of a array with the 'push_back' method
+and end() methods which return, one after the latest stored element , not the end of the 
+internal native array
+
+Thus one can use this as very fast  storage with max capacity + all the array methods
+for traversal and usage
+-----------------------------------------------------------------------------------------------
+*/
+
+template<typename T_, size_t S_>
+struct array_storage : DBJ_ARRAY< T_, S_ >
+{
+	using base = DBJ_ARRAY< T_, S_ >;
+
+	constexpr static size_t storage_capacity{ S_ };
+
+	size_t level_{ 0 };
+
+	bool is_empty() const { return level_ == 0; }
+	bool is_full() const { return level_ == storage_capacity; }
+
+	T_ push_back(T_ next_fp) {
+		if (is_full()) return nullptr;
+		(*this)[level_] = next_fp;
+		level_ += 1;
+		return next_fp;
+	}
+
+	[[nodiscard]] constexpr typename base::const_iterator end() const noexcept {
+		return typename base::const_iterator( this->elements_ + level_);
+	}
+
+	[[nodiscard]] constexpr typename  base::iterator end() noexcept {
+		return typename base::iterator( this->elements_ + level_);
+	}
+
+	[[nodiscard]] constexpr typename base::size_type size() const noexcept {
+		return level_;
+	}
+
+	[[nodiscard]] constexpr typename base::size_type max_size() const noexcept {
+		return storage_capacity;
+	}
+
+}; // array_storage
+
+namespace always_repeated_compile_time_tests {
+
+	constexpr DBJ_ARRAY abc = { 'A', 'B', 'C' };
+	constexpr DBJ_ARRAY def = { 'D', 'E', 'F' };
+
+	constexpr decltype(abc)::value_type A = get<0>(abc);
+	constexpr decltype(def)::value_type D = get<0>(def);
+
+	static_assert( A != D ); 
+
+	static_assert( abc != def );
+
+} // always_repeated_compile_time_tests
+
+} // namespace dbj::nanolib::containers
 
 #endif // _DBJ_ARRAY_

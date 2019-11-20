@@ -39,11 +39,13 @@
 #include <vector>
 #define DBJ_VECTOR std::vector
 #else
+
 #include "dbj++vector.h"
-#define DBJ_VECTOR dbj::nanolib::vector
+
 #if !DBJ_TERMINATE_ON_BAD_ALLOC
 #pragma message("\n\nWARNING!\n\nUsing non standard vector with bad_alloc throwing enabled.\n\n")
 #endif
+
 #endif
 
 #include <stdint.h>
