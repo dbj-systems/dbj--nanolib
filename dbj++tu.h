@@ -5,10 +5,9 @@
 
 #include "dbj++nanolib.h"
 
-#ifdef __clang__
-#error https://stackoverflow.com/q/58569773/10870835
-#error Therefore please use MSVC or G++ or CLANG 11 or better
-#endif
+// please see this if wondering why do we use dbj::tu::fp_storage_limited
+// #error https://stackoverflow.com/q/58569773/10870835
+#define  DBJ_USES_STATIC_STORAGE_FOR_TU 1
 
 #ifdef __clang__
 #ifdef NDEBUG
@@ -32,7 +31,6 @@ void main() {
 }
 
 */
-
 #define TU_REGISTER inline auto	\
 _DBJ_CONCATENATE(dbj_unused_tu_function_pointer_, __LINE__ ) \
  = ::dbj::tu::testing_system::append_test_function
@@ -86,7 +84,77 @@ namespace dbj::tu
 	}; // timer
 
 	using tu_function = void (*)();
+#if (DBJ_USES_STATIC_STORAGE_FOR_TU == 1)
+
+	namespace inner {
+
+		/*
+		4095 test units is a lot of tet units for any kind of project
+		more than 4095 test units means something is wrong with 
+		a project logic
+		*/
+		constexpr size_t fp_storage_size{ 0xFFF };
+
+		/*
+		this is an shamefull design that also tightly couples the implementation
+		to msvc std lib implementation
+		*/
+		struct fp_storage_limited : std::array< tu_function, fp_storage_size >
+		{
+			using base = std::array< tu_function, fp_storage_size >;
+
+			constexpr static size_t storage_capacity{ fp_storage_size };
+
+			size_t level_{ 0 };
+
+			bool is_empty() const { return level_ == 0; }
+			bool is_full() const { return level_ == storage_capacity; }
+
+			tu_function push_back(tu_function next_fp) {
+				if (is_full()) return nullptr;
+				(*this)[level_] = next_fp;
+				level_ += 1;
+				return next_fp;
+			}
+
+			[[nodiscard]] constexpr  tu_function /*base::const_iterator*/ end() const noexcept {
+				 // return base::const_iterator(_Elems, level_);
+				return (*this)[level_];
+			}
+
+			[[nodiscard]] constexpr tu_function  /*base::iterator*/ end() noexcept {
+				// return base::iterator(_Elems, level_);
+				return (*this)[level_];
+			}
+
+			constexpr base::value_type* _Unchecked_end() noexcept {
+				return _Elems + level_;
+			}
+
+			constexpr const base::value_type* _Unchecked_end() const noexcept {
+				return _Elems + level_;
+			}
+
+			[[nodiscard]] constexpr size_type size() const noexcept {
+				return level_;
+			}
+
+			[[nodiscard]] constexpr size_type max_size() const noexcept {
+				return storage_capacity;
+			}
+
+		}; // fp_storage_limited
+	} // inner ns
+
+	using units_ = inner::fp_storage_limited;
+#else
+// CLANG 8.0.1, 9.x 10.x can not work on this design
+// https://stackoverflow.com/q/58569773/10870835
+// when CLANG 11 comes, leve this in to test
+// after tests are passed ok, then remove it
+// non vector design
 	using units_ = DBJ_VECTOR<tu_function>;
+#endif // DBJ_USES_STATIC_STORAGE_FOR_TU
 
 	inline void line() noexcept {
 		DBJ_PRINT("\n----------------------------------------------------------------------");
@@ -106,26 +174,22 @@ namespace dbj::tu
 		static auto append_test_function( tu_function const & fun_) noexcept
 		{
 #if DBJ_CHECKING_IS_TU_FP_UNIQUE
-			// CLANG 8.0.1 and above, 
-			// then 9.x to 10.x can not work on this design
-			// https://stackoverflow.com/q/58569773/10870835
-			// when CLANG 11 comes, leve this in to test
-			// after tests are passed ok, can remove it
 			{
-				using dbj::nanolib::v_buffer;
 				bool test_found_before_registration{ false };
 				for (auto& elem : units)
 				{
 					if (elem == fun_) { test_found_before_registration = true; break; }
 				}
 				if (test_found_before_registration) {
-					v_buffer::buffer_type report = v_buffer::format("Test Unit %s [%p], found before registration", typeid(fun_).name(), fun_);
+					using dbj::nanolib::v_buffer;
+						v_buffer::buffer_type report = v_buffer::format("Test Unit %s [%p], found before registration", typeid(fun_).name(), fun_);
 					wstring final(report.begin(), report.end());
 					_ASSERT_EXPR(false == test_found_before_registration, final.data());
 				}
 			}
 #endif
-			units.push_back(fun_);
+			auto rezult = units.push_back(fun_);
+			DBJ_ASSERT(rezult != nullptr);
 			return fun_;
 		}
 
@@ -165,6 +229,7 @@ namespace dbj::tu
 
 			for (tu_function tu_ : units)
 			{
+				DBJ_ASSERT ( tu_ );
 				DBJ_PRINT(DBJ_FG_CYAN "\n\nTest Unit:  " DBJ_FG_RED_BOLD  "%d [%p]\n" DBJ_RESET, counter_++, tu_);
 				if (listing_) continue;
 
