@@ -3,6 +3,8 @@
 #ifndef _DBJ_ARRAY_
 #define _DBJ_ARRAY_
 
+#define DBJ_ARRAY dbj::nanolib::array
+
 namespace dbj::nanolib
 {
 template <class TYP_, size_t SZE_>
