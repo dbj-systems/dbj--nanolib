@@ -50,7 +50,7 @@ public:
 	*/
     void swap(type & other_arr_) 
     {
-		auto swap_two(auto & left_, auto & right_) 
+		auto swap_two = [] (auto & left_, auto & right_) 
 		{
 			auto temp_ = right_;
 			left_ = right_;
@@ -58,7 +58,7 @@ public:
 		};
 
 		for (size_t idx_ = 0; idx_ < SZE_; idx_++)
-			swap_two( left_.at(idx_), right_.at(idx)  );
+			swap_two( (*this).at(idx_), other_arr_.at(idx_)  );
     }
 
     [[nodiscard]] constexpr iterator begin() noexcept
