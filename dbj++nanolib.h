@@ -394,7 +394,6 @@ timestamp included
 #define DBJ_MAYBE(x) x[[maybe_unused]]
 
 #pragma region very core type traits
-
 	/*
 Check at compile time if value (of 'any' type) is inside given boundaries (inclusive)
 example usage:
