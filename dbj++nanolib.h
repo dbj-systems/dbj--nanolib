@@ -396,20 +396,21 @@ timestamp included
 #pragma region very core type traits
 
 	/*
-			Check at compile time if value (of 'any' type) is inside given boundaries (inclusive)
+Check at compile time if value (of 'any' type) is inside given boundaries (inclusive)
+example usage:
 
-			example usage:
+constexpr unsigned sixty_four = inside_inclusive_v<unsigned, 64, 0, 127> ;
 
-			template<unsigned K>
-			using ascii_ordinal_compile_time = ::dbj::inside_t<unsigned, K, 0, 127>;
+template<int K>
+using ascii_index_t = ::inside_inclusive_t<unsigned, K, 0, 127>;
 
-			constexpr auto compile_time_ascii_index = ascii_ordinal_compile_time<164>() ;
+constexpr auto ascii_index = ascii_index_t<127>() ;
 
-			164 above is outide of [0..127), compiler fails:
+template<int N>
+char i2c () {    return char(ascii_index_t<N>()) ; }
 
-			'std::enable_if_t<false,std::integral_constant<unsigned int,164>>' : Failed to specialize alias template
-			 constexpr auto compile_time__not_ascii_index = ascii_ordinal_compile_time<164>() ;
-			*/
+int main () {    char C = i2c<32>(); }
+*/
 	template <typename T, T X, T L, T H>
 	using inside_inclusive_t =
 		::std::enable_if_t<(X <= H) && (X >= L),
@@ -418,17 +419,14 @@ timestamp included
 	template <typename T, T X, T L, T H>
 	inline constexpr bool inside_inclusive_v = inside_inclusive_t<T, X, L, H>();
 
-	/*
-			Example usage of bellow:
-
-				static_assert(  dbj::is_any_same_as_first_v<float, float, float> ) ;
-
-				fails, none is same as bool:
-					static_assert(  dbj::is_any_same_as_first_v<bool,  float, float>  );
-				*/
+/*
+Example usage of bellow:
+ok: static_assert(  all_same_type_v<float, float, float> ) ;
+fails:	static_assert(  dbj::is_any_same_as_first_v<bool,  float, float>  );
+*/
 	template <class _Ty,
 		class... _Types>
-		inline constexpr bool is_any_same_as_first_v = ::std::disjunction_v<::std::is_same<_Ty, _Types>...>;
+		inline constexpr bool all_same_type_v = ::std::disjunction_v<::std::is_same<_Ty, _Types>...>;
 #pragma endregion
 
 #pragma region numerics

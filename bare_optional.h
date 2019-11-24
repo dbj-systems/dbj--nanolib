@@ -79,15 +79,10 @@
 
 #include <cassert>
 
-#if ! optional_CONFIG_NO_EXCEPTIONS
-# include <stdexcept>
-#endif
-
 namespace nonstd {
 	namespace optional_bare {
 
 		// type for nullopt
-
 		struct nullopt_t
 		{
 			struct init {};
@@ -97,8 +92,6 @@ namespace nonstd {
 		// extra parenthesis to prevent the most vexing parse:
 
 		const nullopt_t nullopt((nullopt_t::init()));
-
-		// optional access error.
 
 		// Simplistic optional: requires T to be default constructible, copyable.
 
