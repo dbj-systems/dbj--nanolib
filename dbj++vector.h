@@ -684,7 +684,7 @@ private:
 	optimization -- specialized methods for arythmetic types
 	*/
 
-template <>
+template <> inline 
 void vector<bool>::resize( vector<bool>::size_type sz)
 {
 	if (sz > rsrv_sz)
@@ -695,7 +695,7 @@ void vector<bool>::resize( vector<bool>::size_type sz)
 	vec_sz = sz;
 }
 
-template <>
+template <> inline
 void vector<signed char>::resize( vector<signed char>::size_type sz)
 {
 	if (sz > rsrv_sz)
@@ -706,7 +706,7 @@ void vector<signed char>::resize( vector<signed char>::size_type sz)
 	vec_sz = sz;
 }
 
-template <>
+template <> inline
 void vector<unsigned char>::resize( vector<unsigned char>::size_type sz)
 {
 	if (sz > rsrv_sz)
@@ -717,7 +717,7 @@ void vector<unsigned char>::resize( vector<unsigned char>::size_type sz)
 	vec_sz = sz;
 }
 
-template <>
+template <> inline
 void vector<char>::resize( vector<char>::size_type sz)
 {
 	if (sz > rsrv_sz)
@@ -728,7 +728,7 @@ void vector<char>::resize( vector<char>::size_type sz)
 	vec_sz = sz;
 }
 
-template <>
+template <> inline
 void vector<short int>::resize( vector<short int>::size_type sz)
 {
 	if (sz > rsrv_sz)
@@ -739,7 +739,7 @@ void vector<short int>::resize( vector<short int>::size_type sz)
 	vec_sz = sz;
 }
 
-template <>
+template <> inline
 void vector<unsigned short int>::resize( vector<unsigned short int>::size_type sz)
 {
 	if (sz > rsrv_sz)
@@ -750,7 +750,7 @@ void vector<unsigned short int>::resize( vector<unsigned short int>::size_type s
 	vec_sz = sz;
 }
 
-template <>
+template <> inline
 void vector<int>::resize( vector<int>::size_type sz)
 {
 	if (sz > rsrv_sz)
@@ -761,7 +761,7 @@ void vector<int>::resize( vector<int>::size_type sz)
 	vec_sz = sz;
 }
 
-template <>
+template <> inline
 void vector<unsigned int>::resize( vector<unsigned int>::size_type sz)
 {
 	if (sz > rsrv_sz)
@@ -772,7 +772,7 @@ void vector<unsigned int>::resize( vector<unsigned int>::size_type sz)
 	vec_sz = sz;
 }
 
-template <>
+template <> inline
 void vector<long int>::resize( vector<long int>::size_type sz)
 {
 	if (sz > rsrv_sz)
@@ -783,7 +783,7 @@ void vector<long int>::resize( vector<long int>::size_type sz)
 	vec_sz = sz;
 }
 
-template <>
+template <> inline
 void vector<unsigned long int>::resize( vector<unsigned long int>::size_type sz)
 {
 	if (sz > rsrv_sz)
@@ -794,7 +794,7 @@ void vector<unsigned long int>::resize( vector<unsigned long int>::size_type sz)
 	vec_sz = sz;
 }
 
-template <>
+template <> inline
 void vector<long long int>::resize( vector<long long int>::size_type sz)
 {
 	if (sz > rsrv_sz)
@@ -805,7 +805,7 @@ void vector<long long int>::resize( vector<long long int>::size_type sz)
 	vec_sz = sz;
 }
 
-template <>
+template <> inline
 void vector<unsigned long long int>::resize( vector<unsigned long long int>::size_type sz)
 {
 	if (sz > rsrv_sz)
@@ -816,7 +816,7 @@ void vector<unsigned long long int>::resize( vector<unsigned long long int>::siz
 	vec_sz = sz;
 }
 
-template <>
+template <> inline
 void vector<float>::resize( vector<float>::size_type sz)
 {
 	if (sz > rsrv_sz)
@@ -827,7 +827,7 @@ void vector<float>::resize( vector<float>::size_type sz)
 	vec_sz = sz;
 }
 
-template <>
+template <> inline
 void vector<double>::resize( vector<double>::size_type sz)
 {
 	if (sz > rsrv_sz)
@@ -838,7 +838,7 @@ void vector<double>::resize( vector<double>::size_type sz)
 	vec_sz = sz;
 }
 
-template <>
+template <> inline
 void vector<long double>::resize( vector<long double>::size_type sz)
 {
 	if (sz > rsrv_sz)
@@ -849,7 +849,7 @@ void vector<long double>::resize( vector<long double>::size_type sz)
 	vec_sz = sz;
 }
 
-template <>
+template <> inline
 void vector<bool>::resize( vector<bool>::size_type sz, const bool &c)
 {
 	if (sz > vec_sz)
@@ -866,7 +866,7 @@ void vector<bool>::resize( vector<bool>::size_type sz, const bool &c)
 	vec_sz = sz;
 }
 
-template <>
+template <> inline
 void vector<signed char>::resize( vector<signed char>::size_type sz, const signed char &c)
 {
 	if (sz > vec_sz)
@@ -883,7 +883,7 @@ void vector<signed char>::resize( vector<signed char>::size_type sz, const signe
 	vec_sz = sz;
 }
 
-template <>
+template <> inline
 void vector<unsigned char>::resize( vector<unsigned char>::size_type sz, const unsigned char &c)
 {
 	if (sz > vec_sz)
@@ -900,7 +900,7 @@ void vector<unsigned char>::resize( vector<unsigned char>::size_type sz, const u
 	vec_sz = sz;
 }
 
-template <>
+template <> inline
 void vector<char>::resize( vector<char>::size_type sz, const char &c)
 {
 	if (sz > vec_sz)
@@ -917,7 +917,7 @@ void vector<char>::resize( vector<char>::size_type sz, const char &c)
 	vec_sz = sz;
 }
 
-template <>
+template <> inline
 void vector<short int>::resize( vector<short int>::size_type sz, const short int &c)
 {
 	if (sz > vec_sz)
@@ -934,7 +934,7 @@ void vector<short int>::resize( vector<short int>::size_type sz, const short int
 	vec_sz = sz;
 }
 
-template <>
+template <> inline
 void vector<unsigned short int>::resize( vector<unsigned short int>::size_type sz, const unsigned short int &c)
 {
 	if (sz > vec_sz)
@@ -951,7 +951,7 @@ void vector<unsigned short int>::resize( vector<unsigned short int>::size_type s
 	vec_sz = sz;
 }
 
-template <>
+template <> inline
 void vector<int>::resize( vector<int>::size_type sz, const int &c)
 {
 	if (sz > vec_sz)
@@ -968,7 +968,7 @@ void vector<int>::resize( vector<int>::size_type sz, const int &c)
 	vec_sz = sz;
 }
 
-template <>
+template <> inline
 void vector<unsigned int>::resize( vector<unsigned int>::size_type sz, const unsigned int &c)
 {
 	if (sz > vec_sz)
@@ -985,7 +985,7 @@ void vector<unsigned int>::resize( vector<unsigned int>::size_type sz, const uns
 	vec_sz = sz;
 }
 
-template <>
+template <> inline
 void vector<long int>::resize( vector<long int>::size_type sz, const long int &c)
 {
 	if (sz > vec_sz)
@@ -1002,7 +1002,7 @@ void vector<long int>::resize( vector<long int>::size_type sz, const long int &c
 	vec_sz = sz;
 }
 
-template <>
+template <> inline
 void vector<unsigned long int>::resize( vector<unsigned long int>::size_type sz, const unsigned long int &c)
 {
 	if (sz > vec_sz)
@@ -1019,7 +1019,7 @@ void vector<unsigned long int>::resize( vector<unsigned long int>::size_type sz,
 	vec_sz = sz;
 }
 
-template <>
+template <> inline
 void vector<long long int>::resize( vector<long long int>::size_type sz, const long long int &c)
 {
 	if (sz > vec_sz)
@@ -1036,7 +1036,7 @@ void vector<long long int>::resize( vector<long long int>::size_type sz, const l
 	vec_sz = sz;
 }
 
-template <>
+template <> inline
 void vector<unsigned long long int>::resize( vector<unsigned long long int>::size_type sz, const unsigned long long int &c)
 {
 	if (sz > vec_sz)
@@ -1053,7 +1053,7 @@ void vector<unsigned long long int>::resize( vector<unsigned long long int>::siz
 	vec_sz = sz;
 }
 
-template <>
+template <> inline
 void vector<float>::resize( vector<float>::size_type sz, const float &c)
 {
 	if (sz > vec_sz)
@@ -1070,7 +1070,7 @@ void vector<float>::resize( vector<float>::size_type sz, const float &c)
 	vec_sz = sz;
 }
 
-template <>
+template <> inline
 void vector<double>::resize( vector<double>::size_type sz, const double &c)
 {
 	if (sz > vec_sz)
@@ -1087,7 +1087,7 @@ void vector<double>::resize( vector<double>::size_type sz, const double &c)
 	vec_sz = sz;
 }
 
-template <>
+template <> inline
 void vector<long double>::resize( vector<long double>::size_type sz, const long double &c)
 {
 	if (sz > vec_sz)
@@ -1104,97 +1104,97 @@ void vector<long double>::resize( vector<long double>::size_type sz, const long 
 	vec_sz = sz;
 }
 
-template <>
+template <> inline 
 void vector<bool>::pop_back()
 {
 	--vec_sz;
 }
 
-template <>
+template <> inline 
 void vector<signed char>::pop_back()
 {
 	--vec_sz;
 }
 
-template <>
+template <> inline 
 void vector<unsigned char>::pop_back()
 {
 	--vec_sz;
 }
 
-template <>
+template <> inline 
 void vector<char>::pop_back()
 {
 	--vec_sz;
 }
 
-template <>
+template <> inline 
 void vector<short int>::pop_back()
 {
 	--vec_sz;
 }
 
-template <>
+template <> inline 
 void vector<unsigned short int>::pop_back()
 {
 	--vec_sz;
 }
 
-template <>
+template <> inline 
 void vector<int>::pop_back()
 {
 	--vec_sz;
 }
 
-template <>
+template <> inline 
 void vector<unsigned int>::pop_back()
 {
 	--vec_sz;
 }
 
-template <>
+template <> inline 
 void vector<long int>::pop_back()
 {
 	--vec_sz;
 }
 
-template <>
+template <> inline 
 void vector<unsigned long int>::pop_back()
 {
 	--vec_sz;
 }
 
-template <>
+template <> inline 
 void vector<long long int>::pop_back()
 {
 	--vec_sz;
 }
 
-template <>
+template <> inline 
 void vector<unsigned long long int>::pop_back()
 {
 	--vec_sz;
 }
 
-template <>
+template <> inline 
 void vector<float>::pop_back()
 {
 	--vec_sz;
 }
 
-template <>
+template <> inline 
 void vector<double>::pop_back()
 {
 	--vec_sz;
 }
 
-template <>
+template <> inline 
 void vector<long double>::pop_back()
 {
 	--vec_sz;
 }
 
-template <>
+template <> inline 
  vector<bool>::iterator vector<bool>::erase( vector<bool>::const_iterator it)
 {
 	iterator iit = &arr[it - arr];
@@ -1203,7 +1203,7 @@ template <>
 	return iit;
 }
 
-template <>
+template <> inline 
  vector<signed char>::iterator vector<signed char>::erase( vector<signed char>::const_iterator it)
 {
 	iterator iit = &arr[it - arr];
@@ -1212,7 +1212,7 @@ template <>
 	return iit;
 }
 
-template <>
+template <> inline 
  vector<unsigned char>::iterator vector<unsigned char>::erase( vector<unsigned char>::const_iterator it)
 {
 	iterator iit = &arr[it - arr];
@@ -1221,7 +1221,7 @@ template <>
 	return iit;
 }
 
-template <>
+template <> inline 
  vector<char>::iterator vector<char>::erase( vector<char>::const_iterator it)
 {
 	iterator iit = &arr[it - arr];
@@ -1230,7 +1230,7 @@ template <>
 	return iit;
 }
  
-template <>
+template <> inline 
  vector<wchar_t>::iterator vector<wchar_t>::erase( vector<wchar_t>::const_iterator it)
 {
 	iterator iit = &arr[it - arr];
@@ -1239,7 +1239,7 @@ template <>
 	return iit;
 }
 
-template <>
+template <> inline 
  vector<short int>::iterator vector<short int>::erase( vector<short int>::const_iterator it)
 {
 	iterator iit = &arr[it - arr];
@@ -1248,7 +1248,7 @@ template <>
 	return iit;
 }
 
-template <>
+template <> inline 
  vector<unsigned short int>::iterator vector<unsigned short int>::erase( vector<unsigned short int>::const_iterator it)
 {
 	iterator iit = &arr[it - arr];
@@ -1257,7 +1257,7 @@ template <>
 	return iit;
 }
 
-template <>
+template <> inline 
  vector<int>::iterator vector<int>::erase( vector<int>::const_iterator it)
 {
 	iterator iit = &arr[it - arr];
@@ -1266,7 +1266,7 @@ template <>
 	return iit;
 }
 
-template <>
+template <> inline 
  vector<unsigned int>::iterator vector<unsigned int>::erase( vector<unsigned int>::const_iterator it)
 {
 	iterator iit = &arr[it - arr];
@@ -1275,7 +1275,7 @@ template <>
 	return iit;
 }
 
-template <>
+template <> inline 
  vector<long int>::iterator vector<long int>::erase( vector<long int>::const_iterator it)
 {
 	iterator iit = &arr[it - arr];
@@ -1284,7 +1284,7 @@ template <>
 	return iit;
 }
 
-template <>
+template <> inline 
  vector<unsigned long int>::iterator vector<unsigned long int>::erase( vector<unsigned long int>::const_iterator it)
 {
 	iterator iit = &arr[it - arr];
@@ -1293,7 +1293,7 @@ template <>
 	return iit;
 }
 
-template <>
+template <> inline 
  vector<long long int>::iterator vector<long long int>::erase( vector<long long int>::const_iterator it)
 {
 	iterator iit = &arr[it - arr];
@@ -1302,7 +1302,7 @@ template <>
 	return iit;
 }
 
-template <>
+template <> inline 
  vector<unsigned long long int>::iterator vector<unsigned long long int>::erase( vector<unsigned long long int>::const_iterator it)
 {
 	iterator iit = &arr[it - arr];
@@ -1311,7 +1311,7 @@ template <>
 	return iit;
 }
 
-template <>
+template <> inline 
  vector<float>::iterator vector<float>::erase( vector<float>::const_iterator it)
 {
 	iterator iit = &arr[it - arr];
@@ -1320,7 +1320,7 @@ template <>
 	return iit;
 }
 
-template <>
+template <> inline 
  vector<double>::iterator vector<double>::erase( vector<double>::const_iterator it)
 {
 	iterator iit = &arr[it - arr];
@@ -1329,7 +1329,7 @@ template <>
 	return iit;
 }
 
-template <>
+template <> inline 
  vector<long double>::iterator vector<long double>::erase( vector<long double>::const_iterator it)
 {
 	iterator iit = &arr[it - arr];
@@ -1338,7 +1338,7 @@ template <>
 	return iit;
 }
 
-template <>
+template <> inline 
  vector<bool>::iterator vector<bool>::erase( vector<bool>::const_iterator first,  vector<bool>::const_iterator last)
 {
 	iterator f = &arr[first - arr];
@@ -1349,7 +1349,7 @@ template <>
 	return f;
 }
 
-template <>
+template <> inline 
  vector<signed char>::iterator vector<signed char>::erase( vector<signed char>::const_iterator first,  vector<signed char>::const_iterator last)
 {
 	iterator f = &arr[first - arr];
@@ -1360,7 +1360,7 @@ template <>
 	return f;
 }
 
-template <>
+template <> inline 
  vector<unsigned char>::iterator vector<unsigned char>::erase( vector<unsigned char>::const_iterator first,  vector<unsigned char>::const_iterator last)
 {
 	iterator f = &arr[first - arr];
@@ -1371,7 +1371,7 @@ template <>
 	return f;
 }
 
-template <>
+template <> inline 
  vector<char>::iterator vector<char>::erase( vector<char>::const_iterator first,  vector<char>::const_iterator last)
 {
 	iterator f = &arr[first - arr];
@@ -1382,7 +1382,7 @@ template <>
 	return f;
 }
 
-template <>
+template <> inline 
  vector<wchar_t>::iterator vector<wchar_t>::erase( vector<wchar_t>::const_iterator first,  vector<wchar_t>::const_iterator last)
 {
 	iterator f = &arr[first - arr];
@@ -1393,7 +1393,7 @@ template <>
 	return f;
 }
 
-template <>
+template <> inline 
  vector<short int>::iterator vector<short int>::erase( vector<short int>::const_iterator first,  vector<short int>::const_iterator last)
 {
 	iterator f = &arr[first - arr];
@@ -1404,7 +1404,7 @@ template <>
 	return f;
 }
 
-template <>
+template <> inline 
  vector<unsigned short int>::iterator vector<unsigned short int>::erase( vector<unsigned short int>::const_iterator first,  vector<unsigned short int>::const_iterator last)
 {
 	iterator f = &arr[first - arr];
@@ -1415,7 +1415,7 @@ template <>
 	return f;
 }
 
-template <>
+template <> inline 
  vector<int>::iterator vector<int>::erase( vector<int>::const_iterator first,  vector<int>::const_iterator last)
 {
 	iterator f = &arr[first - arr];
@@ -1426,7 +1426,7 @@ template <>
 	return f;
 }
 
-template <>
+template <> inline 
  vector<unsigned int>::iterator vector<unsigned int>::erase( vector<unsigned int>::const_iterator first,  vector<unsigned int>::const_iterator last)
 {
 	iterator f = &arr[first - arr];
@@ -1437,7 +1437,7 @@ template <>
 	return f;
 }
 
-template <>
+template <> inline 
  vector<long long int>::iterator vector<long long int>::erase( vector<long long int>::const_iterator first,  vector<long long int>::const_iterator last)
 {
 	iterator f = &arr[first - arr];
@@ -1448,7 +1448,7 @@ template <>
 	return f;
 }
 
-template <>
+template <> inline 
  vector<unsigned long long int>::iterator vector<unsigned long long int>::erase( vector<unsigned long long int>::const_iterator first,  vector<unsigned long long int>::const_iterator last)
 {
 	iterator f = &arr[first - arr];
@@ -1459,7 +1459,7 @@ template <>
 	return f;
 }
 
-template <>
+template <> inline 
  vector<float>::iterator vector<float>::erase( vector<float>::const_iterator first,  vector<float>::const_iterator last)
 {
 	iterator f = &arr[first - arr];
@@ -1470,7 +1470,7 @@ template <>
 	return f;
 }
 
-template <>
+template <> inline 
  vector<double>::iterator vector<double>::erase( vector<double>::const_iterator first,  vector<double>::const_iterator last)
 {
 	iterator f = &arr[first - arr];
@@ -1481,7 +1481,7 @@ template <>
 	return f;
 }
 
-template <>
+template <> inline 
  vector<long double>::iterator vector<long double>::erase( vector<long double>::const_iterator first,  vector<long double>::const_iterator last)
 {
 	iterator f = &arr[first - arr];
@@ -1492,95 +1492,95 @@ template <>
 	return f;
 }
 
-template <>
+template <> inline 
 void vector<bool>::clear() noexcept
 {
 	vec_sz = 0;
 }
 
-template <>
+template <> inline 
 void vector<signed char>::clear() noexcept
 {
 	vec_sz = 0;
 }
 
-template <>
+template <> inline 
 void vector<unsigned char>::clear() noexcept
 {
 	vec_sz = 0;
 }
 
-template <> void vector<char>::clear() noexcept
+template <> inline  void vector<char>::clear() noexcept
 {
 	vec_sz = 0;
 }
 
-template <> void vector<wchar_t>::clear() noexcept
+template <> inline  void vector<wchar_t>::clear() noexcept
 {
 	vec_sz = 0;
 }
 
-template <>
+template <> inline 
 void vector<short int>::clear() noexcept
 {
 	vec_sz = 0;
 }
 
-template <>
+template <> inline 
 void vector<unsigned short int>::clear() noexcept
 {
 	vec_sz = 0;
 }
 
-template <>
+template <> inline 
 void vector<int>::clear() noexcept
 {
 	vec_sz = 0;
 }
 
-template <>
+template <> inline 
 void vector<unsigned int>::clear() noexcept
 {
 	vec_sz = 0;
 }
 
-template <>
+template <> inline 
 void vector<long int>::clear() noexcept
 {
 	vec_sz = 0;
 }
 
-template <>
+template <> inline 
 void vector<unsigned long int>::clear() noexcept
 {
 	vec_sz = 0;
 }
 
-template <>
+template <> inline 
 void vector<long long int>::clear() noexcept
 {
 	vec_sz = 0;
 }
 
-template <>
+template <> inline 
 void vector<unsigned long long int>::clear() noexcept
 {
 	vec_sz = 0;
 }
 
-template <>
+template <> inline 
 void vector<float>::clear() noexcept
 {
 	vec_sz = 0;
 }
 
-template <>
+template <> inline 
 void vector<double>::clear() noexcept
 {
 	vec_sz = 0;
 }
 
-template <>
+template <> inline 
 void vector<long double>::clear() noexcept
 {
 	vec_sz = 0;
