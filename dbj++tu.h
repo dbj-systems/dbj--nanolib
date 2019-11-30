@@ -198,6 +198,17 @@ namespace dbj::tu
 	constexpr /*inline*/ testing_system catalog;
 
 #pragma region test macros
+
+#define TU_CHECK(x)                                                            \
+    do                                                                         \
+    {                                                                          \
+        if ( false == (x) ){                                                   \
+           std::cout << std::boolalpha ;                                       \
+           std::cout << DBJ_FG_YELLOW << #x << DBJ_RESET ;                     \
+	       std::cout << DBJ_FG_RED_BOLD << "'\nFailed! " << DBJ_RESET ;        \
+		}                                                                      \
+    } while (0)
+
 	/*
 	TX stands for Test eXpression
 	I know my core principle is not to use iostreams, but I am not a zealot
