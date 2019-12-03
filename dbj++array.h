@@ -47,14 +47,20 @@ public:
 
 	/*
 	swap in place
+
+	template <typename T> void swap(T& t1, T& t2) {
+	T temp = std::move(t1);
+	t1 = std::move(t2);
+	t2 = std::move(temp);
+}
 	*/
     void swap(type & other_arr_) 
     {
 		auto swap_two = [] (auto & left_, auto & right_) 
 		{
-			auto temp_ = right_;
-			left_ = right_;
-			right_ = temp_;
+			auto temp_ = std::move( right_ );
+			left_ = std::move(right_);
+			right_ = std::move(temp_);
 		};
 
 		for (size_t idx_ = 0; idx_ < SZE_; idx_++)

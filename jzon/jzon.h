@@ -546,5 +546,9 @@ public:
 
     error error_code() const { return _data.error; }
     size_t error_offset() const { return _data.is_error() ? _data.payload : 0; }
-};
+
+	// DBJ added
+	bool in_error_state() const noexcept { return this->_data.is_error(); }
+}; // document
+
 } // namespace jzon

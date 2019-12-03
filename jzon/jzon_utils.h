@@ -181,7 +181,7 @@ struct util  {
         char buffer[256];
         int n = format_error(buffer, sizeof(buffer), filename, json, doc);
         if (n > 0)
-            return fwrite(buffer, 1, n, stderr);
+            return (int)fwrite(buffer, 1, n, stderr);
         return n;
     }
 }; // util
