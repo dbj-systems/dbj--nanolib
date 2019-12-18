@@ -152,7 +152,7 @@ struct util  {
                 ++lineno;
             }
 
-        int column = endptr - left;
+        int64_t column = endptr - left;
         if (column > 80)
             left = endptr - 40;
         if (right - left > 80)
@@ -174,7 +174,7 @@ struct util  {
         }
         // clang-format on
 
-        return snprintf(str, n, "%s:%d:%d: error: %s\n%.*s\n%*s\n", filename, lineno, column, desc, int(right - left), left, int(endptr - left), "^");
+        return snprintf(str, n, "%s:%d:%I64d: error: %s\n%.*s\n%*s\n", filename, lineno, column, desc, int(right - left), left, int(endptr - left), "^");
     }
 
     static int print_error(const char *filename, const char *json, const document &doc) {
