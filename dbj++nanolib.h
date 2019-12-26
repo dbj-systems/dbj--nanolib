@@ -1,6 +1,31 @@
-/* (c) 2019 by dbj.org   -- CC BY-SA 4.0 -- https://creativecommons.org/licenses/by-sa/4.0/ */
+/* (c) 2019, 2020 by dbj.org   -- CC BY-SA 4.0 -- https://creativecommons.org/licenses/by-sa/4.0/ */
 #ifndef DBJ_NANOLIB_INCLUDED
 #define DBJ_NANOLIB_INCLUDED
+
+// source: github.com/martinmoene
+// C++ language version detection (C++20 is speculative):
+// Note: VC14.0/1900 (VS2015) lacks too much from C++14.
+
+#ifndef DBJ_CPLUSPLUS
+#if defined(_MSVC_LANG) && !defined(__clang__)
+#define DBJ_CPLUSPLUS (_MSC_VER == 1900 ? 201103L : _MSVC_LANG)
+#else
+#define DBJ_CPLUSPLUS __cplusplus
+#endif
+#endif
+
+#define DBJ_CPP98_OR_GREATER (DBJ_CPLUSPLUS >= 199711L)
+#define DBJ_CPP11_OR_GREATER (DBJ_CPLUSPLUS >= 201103L)
+#define DBJ_CPP14_OR_GREATER (DBJ_CPLUSPLUS >= 201402L)
+#define DBJ_CPP17_OR_GREATER (DBJ_CPLUSPLUS >= 201703L)
+#define DBJ_CPP20_OR_GREATER (DBJ_CPLUSPLUS >= 202000L)
+
+#if ! DBJ_CPP17_OR_GREATER
+#error "C++17 required ..."
+#endif
+
+// new failure will provoke fast exit
+#define DBJ_TERMINATE_ON_BAD_ALLOC 1
 
 #ifdef __clang__
 #ifdef NDEBUG
@@ -10,12 +35,6 @@
 
 #ifdef _MSVC_LANG
 #define DBJ_NANO_WIN32
-#endif
-
-#ifdef _MSVC_LANG
-#if _MSVC_LANG < 201402L
-#error "C++17 required ..."
-#endif
 #endif
 
 #ifdef DBJ_ASSERT
@@ -32,7 +51,6 @@
 /*
 --------------------------------------------------------
 */
-#define DBJ_TERMINATE_ON_BAD_ALLOC 1
 #define _DBJ_USING_STD_VECTOR 0
 
 #if _DBJ_USING_STD_VECTOR
@@ -40,7 +58,7 @@
 #define DBJ_VECTOR std::vector
 #else
 
-#include "dbj++vector.h"
+#include "nonstd/dbj++vector.h"
 
 #if !DBJ_TERMINATE_ON_BAD_ALLOC
 #pragma message("\n\nWARNING!\n\nUsing non standard vector with bad_alloc throwing enabled.\n\n")
@@ -99,7 +117,7 @@ this macro is actually superior solution to the repeat template function
 _dbj_repeat_counter is local for each macro expansion
                       DBJ_REPEAT(50){ std::printf("\n%d", _dbj_repeat_counter ); }
 */
-#define DBJ_REPEAT(N) for (size_t _dbj_repeat_counter = 0; _dbj_repeat_counter < static_cast<size_t>(N); _dbj_repeat_counter++)
+#define DBJ_REPEAT(N) for (size_t _dbj_repeat_counter = 0; _dbj_repeat_counter != static_cast<size_t>(N); ++_dbj_repeat_counter)
 
 #ifdef _unused
 #error _unused is already defined somewhere ...
@@ -109,8 +127,11 @@ _dbj_repeat_counter is local for each macro expansion
 
 namespace dbj::nanolib
 {
-	// SIMVER + TIMESTAMP
-	constexpr auto VERSION = "2.5.0 " __TIME__ " " __DATE__;
+	enum class SEMVER {
+		major = 2, minor = 7, patch = 0
+	};
+	// SEMVER + TIMESTAMP
+	constexpr auto VERSION = "2.7.0 " __TIME__ " " __DATE__;
 
 	using namespace std;
 
@@ -207,6 +228,29 @@ https://developercommunity.visualstudio.com/solutions/411680/view.html
  immediately call the nano-lib initialization function, but ... do it only once
  */
  return true; }());
+/*
+-----------------------------------------------------------------------------------------
+*/
+
+	using void_void_function_ptr = void (*)(void);
+	// yes I am aware of: https://ricab.github.io/scope_guard/
+	// but I do not see the point ;)
+	template <typename Function_PTR = dbj::nanolib::void_void_function_ptr>
+	struct on_scope_exit final
+	{
+		static Function_PTR null_call() {}
+		// much faster + cleaner vs giving nullptr
+		// no if in destructor required
+		const Function_PTR callable_{ null_call };
+
+		explicit on_scope_exit(Function_PTR fun_) noexcept : callable_(fun_) {}
+
+		~on_scope_exit()
+		{
+			// no if in destructor required
+			callable_();
+		}
+	}; // eof on_scope_exit
 /*
  terror == terminating error
  NOTE: std::exit *is* different to C API exit()

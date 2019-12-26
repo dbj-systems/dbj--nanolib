@@ -169,7 +169,7 @@ First, if your executable, is intended to operate under continuous uptime requir
      - Although, I am personally puzzled how is `fmt` better than `cstdio` functions
 
 ### Standards
-- use ISO C++, which is C++17 as of 2019 Q4.
+- use ISO C++, which is C++17.
 - use ISO C++ std lib as much as possible
 - Do not lose your C experience. 
   - C is simple and makes you deliver things, instead of re-inventing things before delivering things. 

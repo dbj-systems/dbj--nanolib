@@ -14,7 +14,8 @@ TODO -- specialize for wchar_t
 
 /*
 vector minus std::allocator
-based on `lni::vector` by Jasmine "lnishan" Chen, licensed under a [Creative Commons Attribution 4.0 International License](http://creativecommons.org/licenses/by/4.0/).
+based on `lni::vector` by Jasmine "lnishan" Chen, licensed under a 
+[Creative Commons Attribution 4.0 International License](http://creativecommons.org/licenses/by/4.0/).
 */
 
 #include <cstddef>
@@ -42,11 +43,6 @@ namespace dbj::nanolib::containers
 
 inline constexpr auto _DBJ_INC_DBJ_VECTOR_MAX_SZ = 0xFFFF ;
 
-/*
-	not yet renamed from vector to light_vector
-	so that both dbj: and std: namespaces can be used with both
-	std::vector and dbj::light_vector
-	*/
 template <class T>
 class vector;
 
