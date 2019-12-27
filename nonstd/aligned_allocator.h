@@ -32,6 +32,12 @@
 	 */
 	template <typename T, std::size_t Alignment>
 	class aligned_allocator
+#ifndef __GNUC__
+		final
+#else
+		// DBJ -- G++ will not work id not inheriting from 
+		: std::allocator<T>
+#endif // __GNUC__
 	{
 	public:
 
