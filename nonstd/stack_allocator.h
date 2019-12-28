@@ -48,13 +48,15 @@
 #error C++17 or greater is required ...
 #endif
 
-// MSVC WARNING! 
+// MSVC STD LIB aka STL
 // _ITERATOR_DEBUG_LEVEL 2 is the DEBUG build default
-// for containers using iterators
 // and that will produce segv with dbj stack alocator 
-// MSVC STD was not tested with stack allocator I suppose?
+// that was not tested with stack allocator I suppose?
 // https://docs.microsoft.com/en-us/cpp/standard-library/iterator-debug-level?view=vs-2019
+
+#if (_ITERATOR_DEBUG_LEVEL != 0)
 #define _ITERATOR_DEBUG_LEVEL  0
+#endif
 
 // https://codereview.stackexchange.com/a/31575
 
@@ -96,6 +98,7 @@ namespace dbj::nanolib::alloc
 				return (n + (alignment - 1)) & ~(alignment - 1);
 			}
 
+			// probably redundant?
 			bool pointer_in_buffer(buf_element_type* p) const noexcept
 			{
 				if (buf_ <= p)
@@ -112,10 +115,6 @@ namespace dbj::nanolib::alloc
 
 			buf_element_type* allocate(std::size_t n)
 			{
-				//if (!pointer_in_buffer(ptr_)) {
-				//    perror("stack_allocator has outlived stack_arena");
-				//        exit(EXIT_FAILURE);
-				//}
 				n = align_up(n);
 				if (size_t(one_beyond_last_ - ptr_) >= n)
 				{
