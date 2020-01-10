@@ -5,28 +5,13 @@
 #ifndef __cplusplus
 #error DBJ NANOLIB requires C++ compiler
 #endif
-// source: github.com/martinmoene
-// C++ language version detection (C++20 is speculative):
-// Note: VC14.0/1900 (VS2015) lacks too much from C++14.
 
-#ifndef DBJ_CPLUSPLUS
-#if defined(_MSVC_LANG) && !defined(__clang__)
-#define DBJ_CPLUSPLUS (_MSC_VER == 1900 ? 201103L : _MSVC_LANG)
-#else
-#define DBJ_CPLUSPLUS __cplusplus
-#endif
-#endif
+#include "dbj++platform.h"
 
-#define DBJ_CPP98_OR_GREATER (DBJ_CPLUSPLUS >= 199711L)
-#define DBJ_CPP11_OR_GREATER (DBJ_CPLUSPLUS >= 201103L)
-#define DBJ_CPP14_OR_GREATER (DBJ_CPLUSPLUS >= 201402L)
-#define DBJ_CPP17_OR_GREATER (DBJ_CPLUSPLUS >= 201703L)
-#define DBJ_CPP20_OR_GREATER (DBJ_CPLUSPLUS >= 202000L)
-
-#if (DBJ_CPLUSPLUS < 201703L)
+#if (DBJ__STL_LANG < 201703L)
 #error DBJ NANOLIB requires the standard C++17 compiler
 #endif
-#if (DBJ_CPLUSPLUS > 201703L)
+#if (DBJ__STL_LANG > 201703L)
 #error DBJ NANOLIBis not ready yet for the standard C++20 (or higher)
 #endif
 

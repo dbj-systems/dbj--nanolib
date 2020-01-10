@@ -55,6 +55,7 @@
 // https://docs.microsoft.com/en-us/cpp/standard-library/iterator-debug-level?view=vs-2019
 
 #if (_ITERATOR_DEBUG_LEVEL != 0)
+#undef _ITERATOR_DEBUG_LEVEL
 #define _ITERATOR_DEBUG_LEVEL  0
 #endif
 
