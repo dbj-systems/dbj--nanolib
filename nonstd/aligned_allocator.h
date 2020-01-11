@@ -19,28 +19,27 @@
 #error C++17 or greater is required ...
 #endif
 
-// https://gist.github.com/donny-dont/1471329
+// redefine this to return instead of exit() if required
+#define DBJ_ALLIGNED_ALLOCATOR_FAIL_POLICY( MSG_) \
+perror( " (" __FILE__ ") " MSG_ ); \
+exit(EXIT_FAILURE);
 
- namespace dbj::nanolib::alloc
+namespace dbj::nanolib::alloc
 {
 
 	/**
 	 * Allocator for aligned data.
-	 *
-	 * Modified from the Mallocator from Stephan T. Lavavej.
-	 * <http://blogs.msdn.com/b/vcblog/archive/2008/08/28/the-mallocator.aspx>
+	*  https://gist.github.com/donny-dont/1471329
 	 */
 	template <typename T, std::size_t Alignment>
-	class aligned_allocator
-#ifndef __GNUC__
+	struct aligned_allocator
 		final
-#else
-		// DBJ -- G++ will not work id not inheriting from 
+		// DBJ -- G++ will not work if not inheriting from 
 		: std::allocator<T>
-#endif // __GNUC__
 	{
 	public:
 
+#if 0
 		// The following will be the same for virtually all allocators.
 		typedef T* pointer;
 		typedef const T* const_pointer;
@@ -49,8 +48,9 @@
 		typedef T value_type;
 		typedef std::size_t size_type;
 		typedef ptrdiff_t difference_type;
-
-		std::size_t max_size() const
+#endif // 0
+		// this is not part of standard allocator requirements
+		static std::size_t max_size()
 		{
 			// The following has been carefully written to be independent of
 			// the definition of size_t and to avoid signed/unsigned warnings.
@@ -66,54 +66,9 @@
 			typedef aligned_allocator<U, Alignment> other;
 		};
 
-#if (DBJ_CPLUSPLUS < 201703L)
-		T* address(T& r) const
-		{
-			return &r;
-		}
-
-		const T* address(const T& s) const
-		{
-			return &s;
-		}
-
-		bool operator!=(const aligned_allocator& other) const
-		{
-			return !(*this == other);
-		}
-
-		void construct(T* const p, const T& t) const
-		{
-			void* const pv = static_cast<void*>(p);
-
-			new (pv) T(t);
-		}
-
-		void destroy(T* const p) const
-		{
-			p->~T();
-		}
-
-		// Returns true if and only if storage allocated from *this
-		// can be deallocated from other, and vice versa.
-		// Always returns true for stateless allocators.
-		bool operator==(const aligned_allocator& other) const
-		{
-			return true;
-		}
-#endif // (DBJ_CPLUSPLUS < 201703L)
-
-#if (DBJ_CPLUSPLUS < 201703L)
-		// Default constructor, copy constructor, rebinding constructor, and destructor.
-		// Empty for stateless allocators.
-		aligned_allocator(const aligned_allocator&) { }
-
-		~aligned_allocator() { }
-#endif // (DBJ_CPLUSPLUS < 201703L)
-
-// DBJ NOTE: as of 2019 DEC 26, VStudio 2019 fully updated
-// err's with compilation message: default ctor not found
-// if it is not defined as bellow
+		// DBJ NOTE: as of 2019 DEC 26, VStudio 2019 fully updated
+		// err's with compilation message: default ctor not found
+		// if it is not defined as bellow
 		aligned_allocator() { }
 
 		// DBJ NOTE: as of 2019 DEC 26, VStudio 2019 fully updated
@@ -125,7 +80,7 @@
 		T* allocate(const std::size_t n) const
 		{
 			// The return value of allocate(0) is unspecified.
-			// Mallocator returns NULL in order to avoid depending
+			// We return NULL in order to avoid depending
 			// on malloc(0)'s implementation-defined behavior
 			// (the implementation can define malloc(0) to return NULL,
 			// in which case the bad_alloc check below would fire).
@@ -137,22 +92,23 @@
 			// All allocators should contain an integer overflow check.
 			// The Standardization Committee recommends that std::length_error
 			// be thrown in the case of integer overflow.
-			// alas DBJDBJ does not throw, so he will just calmly exit the app
+			// Alas we do not throw; we will just calmly exit the app
 			if (n > max_size())
 			{
-				perror("aligned_allocator<T>::allocate() - Integer overflow.");
-				exit(EXIT_FAILURE);
+				DBJ_ALLIGNED_ALLOCATOR_FAIL_POLICY("aligned_allocator<T>::allocate() - Integer overflow.");
 			}
 
-			// Mallocator wraps malloc().
+			// should be defined universaly, across C and C++ compilers/libs
+#ifndef _mm_malloc
+#error  _mm_malloc undefined?
+#endif
 			void* const pv = _mm_malloc(n * sizeof(T), Alignment);
 
 			// Allocators should throw std::bad_alloc in the case of memory allocation failure.
 			// alas DBJDBJ does not throw, so he will just calmly exit the app
 			if (pv == NULL)
 			{
-				perror("aligned_allocator<T>::allocate() - memory allocation failure");
-				exit(EXIT_FAILURE);
+				DBJ_ALLIGNED_ALLOCATOR_FAIL_POLICY("aligned_allocator<T>::allocate() - memory allocation failure");
 			}
 
 			return static_cast<T*>(pv);
@@ -160,21 +116,15 @@
 
 		void deallocate(T* const p, const std::size_t n) const
 		{
+			// should be defined universaly, across C and C++ compilers/libs
+#ifndef _mm_free
+#error  _mm_free undefined?
+#endif
 			_mm_free(p);
 		}
 
 
-#if (DBJ_CPLUSPLUS < 201703L)
-
-		// The following will be the same for all allocators that ignore hints.
-		template <typename U>
-		T* allocate(const std::size_t n, const U* /* const hint */) const
-		{
-			return allocate(n);
-		}
-#endif // (DBJ_CPLUSPLUS < 201703L)
-
-
+	private:
 		// Allocators are not required to be assignable, so
 		// all allocators should have a private unimplemented
 		// assignment operator. Note that this will trigger the
@@ -182,12 +132,12 @@
 		// "assignment operator could not be generated because a
 		// base class assignment operator is inaccessible" within
 		// the STL headers, but that warning is useless.
-	private:
-#if (DBJ_CPLUSPLUS < 201703L)
-		aligned_allocator& operator=(const aligned_allocator&);
-#endif
+		aligned_allocator& operator=(const aligned_allocator&) = delete ;
+
 	}; // aligned_allocator
 
 } // namespace dbj::nanolib::alloc 
+
+#undef DBJ_ALLIGNED_ALLOCATOR_FAIL_POLICY
 
 #endif // DBJ_ALIGNED_ALLOCATOR_INC_

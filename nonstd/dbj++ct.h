@@ -3,6 +3,12 @@
 #define DBJ_COMPILE_TIME_H_
 
 /*
+TODO: wherever there is a cast from void *  to object * 
+function can not be compile time
+this makes all mem*  functions here redundant
+*/
+
+/*
 It is easy to get lost and start believeing anything can be compile time in C++
 
 It can not
@@ -29,6 +35,7 @@ NOTE: arguments to ct functions have to be ct themselves, that means: literals
 namespace dbj::nanolib::ct
 {
 
+// https://docs.microsoft.com/en-us/previous-versions/windows/desktop/legacy/aa366877(v=vs.85)?redirectedfrom=MSDN
 // https://opensource.apple.com/source/sudo/sudo-83/sudo/lib/util/memset_s.c.auto.html
 
 #ifndef RSIZE_MAX
@@ -41,12 +48,13 @@ namespace dbj::nanolib::ct
 #endif
 #endif
 
-/*errno_t*/ constexpr int
-mem_set_s(void *v, rsize_t smax, int c, rsize_t n)
+    errno_t
+mem_set_s(volatile void *v, rsize_t smax, int c, rsize_t n)
 {
-    using vuc_ptr = volatile unsigned char *;
     errno_t ret = 0;
-    volatile unsigned char *s = vuc_ptr(v);
+    /* Updating through a volatile pointer should not be optimized away. */
+    using vuc_ptr = volatile unsigned char*;
+    volatile unsigned char* s = static_cast<vuc_ptr>(v);
 
     /* Fatal runtime-constraint violations. */
     if (s == NULL || smax > RSIZE_MAX)
@@ -59,7 +67,7 @@ mem_set_s(void *v, rsize_t smax, int c, rsize_t n)
         n = smax;
         return ret = errno = EINVAL;
     }
-    /* Updating through a volatile pointer should not be optimized away. */
+
     while (n--)
         *s++ = (unsigned char)c;
 

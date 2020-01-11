@@ -235,6 +235,34 @@ namespace dbj::tu
 #ifdef DBJ_TX
 #include <iostream>
 
+// https://stackoverflow.com/a/54383242/10870835
+
+#pragma region tuple print
+
+#include <tuple>
+
+namespace detail {
+	template<class TupType, size_t... I>
+	inline
+		std::ostream& tuple_print(std::ostream& os,
+			const TupType& _tup, std::index_sequence<I...>)
+	{
+		os << "(";
+		(..., (os << (I == 0 ? "" : ", ") << std::get<I>(_tup)));
+		os << ")";
+		return os;
+	}
+}
+
+template<class... T>
+inline
+std::ostream& operator<< (std::ostream& os, const std::tuple<T...>& _tup)
+{
+	return detail::tuple_print(os, _tup, std::make_index_sequence<sizeof...(T)>());
+}
+
+#pragma endregion tuple print
+
 /*
 primary runtime buffer is vector of a char_type
 primary compile time buffer is array of a char_type
@@ -307,7 +335,7 @@ inline std::ostream& operator<<(std::ostream& os_, std::optional<T1> const& opt_
 }
 
 /*
-std::pair pair was the core of valstat_1
+std::pair pair **was** the core of valstat_1
 */
 template <typename T1, typename T2>
 inline std::ostream& operator<<(std::ostream& os_, std::pair<T1, T2> pair_)

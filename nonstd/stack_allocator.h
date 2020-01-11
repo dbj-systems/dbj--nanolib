@@ -2,13 +2,13 @@
 #define DBJ_STACK_ALLOCATOR_INC_
 
 /*
- NOTE: 
- 
+ NOTE:
+
  stack allocator is very fast and very dangerous and has very limited
  number of uses cases where it can be used.
 
  Basically it is fast because it does not use heap at all. It will exit() if
- some container uysing it asks beyond avaialbe internal array. 
+ some container uysing it asks beyond avaialbe internal array.
 
  It does not throw exceptions.
 
@@ -25,7 +25,7 @@
  using namespace dbj::nanolib::alloc ;
  std::vector<char, stack_allocator< char, 2048> > my_buffer( 1024, '+') ;
 
- Above is very fast anyway, but with stack allocator it is instant. 
+ Above is very fast anyway, but with stack allocator it is instant.
  Ok, says you, but why not just using:
 
  char my_buffer[2048] { 0 };
@@ -130,7 +130,7 @@ namespace dbj::nanolib::alloc
 				return nullptr;
 			}
 
-			void deallocate(buf_element_type* , std::size_t ) noexcept
+			void deallocate(buf_element_type*, std::size_t) noexcept
 			{
 				return;
 			}
@@ -142,9 +142,9 @@ namespace dbj::nanolib::alloc
 #define DBJ_ALLOCATOR_INHERITS_FROM_STD_ALLOCATOR
 
 	template <class T, size_t size_template_arg >
-	struct stack_allocator 
+	struct stack_allocator
 #ifndef DBJ_ALLOCATOR_INHERITS_FROM_STD_ALLOCATOR
-		final 
+		final
 #else
 		// DBJ -- G++ will not work id not inheriting from 
 		: std::allocator<T>
@@ -169,9 +169,9 @@ namespace dbj::nanolib::alloc
 		typedef ptrdiff_t difference_type;
 #endif // DBJ_ALLOCATOR_INHERITS_FROM_STD_ALLOCATOR
 
-// DBJ NOTE: as of 2019 DEC 26, VStudio 2019 fully updated
-// err's wit compilation message: vector end of file not found
-// if rebind is not defined as bellow
+		// DBJ NOTE: as of 2019 DEC 26, VStudio 2019 fully updated
+		// err's wit compilation message: vector end of file not found
+		// if rebind is not defined as bellow
 		template <typename U>
 		struct rebind
 		{
@@ -185,9 +185,9 @@ namespace dbj::nanolib::alloc
 			return (static_cast<std::size_t>(0) - static_cast<std::size_t>(1)) / sizeof(T);
 		}
 
-// DBJ NOTE: as of 2019 DEC 26, VStudio 2019 fully updated
-// err's with compilation message: default ctor not found
-// if it is not defined as bellow
+		// DBJ NOTE: as of 2019 DEC 26, VStudio 2019 fully updated
+		// err's with compilation message: default ctor not found
+		// if it is not defined as bellow
 		stack_allocator() { }
 
 		// DBJ NOTE: as of 2019 DEC 26, VStudio 2019 fully updated
