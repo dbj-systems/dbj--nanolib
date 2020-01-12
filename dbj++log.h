@@ -5,6 +5,7 @@
 //
 #include <iostream>
 #include <array>
+#include <tuple>
 #include <string_view>
 #include <type_traits>
 #include <ctime>
@@ -13,26 +14,6 @@ namespace dbj::nanolib::logging
 {
 
 using namespace std;
-
-// simplicity == resilience
-using timestamp_buffer_type = std::array<char, 0xFF>;
-// note! depeneds on the current app wide locale
-inline timestamp_buffer_type high_precision_timestamp( )
-{
-    // available from C++17 onwards
-    std::timespec ts;
-    std::timespec_get(&ts, TIME_UTC);
-    char hours_mins_secs[100];
-
-    std::strftime(hours_mins_secs, sizeof hours_mins_secs, "%F %T %z", std::gmtime(&ts.tv_sec));
-    
-    timestamp_buffer_type time_stamp_{ {} }; // value initalization of native array inside std::array aggregate
-
-    // nano seconds --> (void)std::snprintf( &time_stamp_[0], time_stamp_.size() , "\n[%s.%09ld]", hours_mins_secs, ts.tv_nsec);
-    (void)std::snprintf( &time_stamp_[0], time_stamp_.size() , "\n[%s]", hours_mins_secs);
-
-    return time_stamp_;
-}
 
 namespace detail {
     // here we decouple from the fact we 
@@ -43,14 +24,60 @@ namespace detail {
     }
 }
 
+// simplicity == resilience
+using timestamp_buffer_type = std::array<char, 0xFF>;
+// note! depeneds on the current app wide locale
+
+template< bool add_nano_seconds = false >
+inline timestamp_buffer_type high_precision_timestamp()
+{
+    // available from C++17 onwards
+    std::timespec ts;
+    std::timespec_get(&ts, TIME_UTC);
+    char hours_mins_secs[100];
+
+    std::strftime(hours_mins_secs, sizeof hours_mins_secs, "%F %T %z", std::gmtime(&ts.tv_sec));
+
+    timestamp_buffer_type time_stamp_{ {} }; // value initalization of native array inside std::array aggregate
+
+    if constexpr ( add_nano_seconds )
+    {
+        (void)std::snprintf( &time_stamp_[0], time_stamp_.size() , "\n[%s.%09ld]", hours_mins_secs, ts.tv_nsec);
+    }
+    else {
+        (void)std::snprintf(&time_stamp_[0], time_stamp_.size(), "\n[%s]", hours_mins_secs);
+    }
+
+    return time_stamp_;
+}
+
+
+// ----------------------------------------------------------------------------------------------------
+namespace config {
+    
+    using namespace std;
+
+    array timestamp_functions { high_precision_timestamp<false>, high_precision_timestamp<true> };
+
+    enum class timestamp_type : int { normal = 0, nanoseconds = 1};
+
+    timestamp_type current_timestamp_idx{ timestamp_type::normal  };
+
+    inline void normal_timestamp() { current_timestamp_idx = timestamp_type::normal;  }
+    inline void nanosecond_timestamp() { current_timestamp_idx = timestamp_type::nanoseconds; }
+
+};
+// ----------------------------------------------------------------------------------------------------
 // general logging function
 template<
     bool timestamp_prefix = true,
     typename T1, typename ... T2  >
     inline void log(const T1& first_param, const T2& ... params)
 {
+    using namespace std;
+
     if constexpr ( timestamp_prefix ) {
-        detail::out( high_precision_timestamp().data() );
+        detail::out(  config::timestamp_functions[ int(config::current_timestamp_idx) ]().data() );
         detail::out(first_param);
         (..., detail::out(params)); // the rest
     }
