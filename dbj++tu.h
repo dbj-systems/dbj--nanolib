@@ -111,7 +111,7 @@ namespace dbj::tu
 #endif // DBJ_USES_STATIC_STORAGE_FOR_TU
 
 	inline void line() noexcept {
-		DBJ_PRINT("\n----------------------------------------------------------------------");
+		DBJ_PRINT("----------------------------------------------------------------------");
 	}
 
 	struct testing_system final
@@ -159,21 +159,21 @@ namespace dbj::tu
 			//	__clang_version__     // string: full version number
 			DBJ_PRINT(DBJ_FG_CYAN  "\nCLANG: %s" DBJ_RESET, __clang_version__);
 #else
-			DBJ_PRINT("\n _MSVC_LANG: %lu", _MSVC_LANG);
+			DBJ_PRINT("_MSVC_LANG: %lu", _MSVC_LANG);
 #endif
 #if DBJ_TERMINATE_ON_BAD_ALLOC
-			DBJ_PRINT(DBJ_FG_RED_BOLD "\nProgram is configured to terminate on heap memory exhaustion" DBJ_RESET);
+			DBJ_PRINT(DBJ_FG_RED_BOLD "Program is configured to terminate on heap memory exhaustion" DBJ_RESET);
 #else
 			DBJ_PRINT(DBJ_FG_RED_BOLD "\nProgram is configured to throw std::bad_alloc on heap memory exhaustion" DBJ_RESET);
 #endif
-			DBJ_PRINT("\nCatalogue has %zd test units", units.size());
+			DBJ_PRINT("Catalogue has %zd test units", units.size());
 			line();
 			DBJ_PRINT(DBJ_RESET);
 		}
 
 		void end() const
 		{
-			DBJ_PRINT(DBJ_FG_CYAN "\n\n All tests done.\n\n" DBJ_RESET);
+			DBJ_PRINT(DBJ_FG_CYAN "All tests done." DBJ_RESET);
 		}
 
 		void execute(bool listing_ = false) const
@@ -184,7 +184,7 @@ namespace dbj::tu
 			for (tu_function tu_ : units)
 			{
 				DBJ_ASSERT ( tu_ );
-				DBJ_PRINT(DBJ_FG_CYAN "\n\nTest Unit:  " DBJ_FG_RED_BOLD  "%d [%p]\n" DBJ_RESET, counter_++, tu_);
+				DBJ_PRINT(DBJ_FG_CYAN "Test Unit:  " DBJ_FG_RED_BOLD  "%d [%p]" DBJ_RESET, counter_++, tu_);
 				if (listing_) continue;
 
 				timer timer_{};
@@ -192,7 +192,7 @@ namespace dbj::tu
 				tu_();
 				// line();
 				DBJ_PRINT(DBJ_FG_CYAN);
-				DBJ_PRINT("\nDone in: %s", as_buffer(timer_).data());
+				DBJ_PRINT("Done in: %s", as_buffer(timer_).data());
 				line();
 				DBJ_PRINT(DBJ_RESET);
 			}
@@ -205,19 +205,14 @@ namespace dbj::tu
 #pragma region test macros
 
 #define TU_CHECK(x)                                                            \
-    do                                                                         \
-    {                                                                          \
-        if ( false == (x) ){                                                   \
-           std::cout << std::boolalpha ;                                       \
-           std::cout << DBJ_FG_YELLOW << #x << DBJ_RESET ;                     \
-	       std::cout << DBJ_FG_RED_BOLD << "'\nFailed! " << DBJ_RESET ;        \
-		}                                                                      \
-    } while (0)
+    do   { if ( false == (x) ){                                                   \
+           dbj::nanolib::logging::log( DBJ_FG_YELLOW , #x , DBJ_RESET, DBJ_FG_RED_BOLD , " -- Failed! " , DBJ_RESET );        \
+		}  } while (0)
 
 	/*
 	TX stands for Test eXpression
-	I know my core principle is not to use iostreams, but I am not a zealot
-	I am an pragmatist. For simple and usefull test displays one can use iostreams,
+	I know my core principle is not to use iostringstreams, but I am not a zealot
+	I am an pragmatist. For simple and usefull test displays one can use iostringstreams,
 	like in this macro bellow.
 
 	Usage:
@@ -225,20 +220,14 @@ namespace dbj::tu
 	DBJ_TX( 4 + 2 );
 	*/
 #define DBJ_TX(x)                                                              \
-    do                                                                         \
-    {                                                                          \
-        std::cout << std::boolalpha << "\n\nExpression: '"                     \
-                  << DBJ_FG_YELLOW << #x << DBJ_RESET                          \
-                  << "'\nResult: " << DBJ_FG_YELLOW_BOLD << (x) << DBJ_RESET   \
-                  << "\nType: " << typeid(x).name() << "\n";                   \
+    do  { \
+ dbj::nanolib::logging::log( "\n\nExpression: '", DBJ_FG_YELLOW , #x , DBJ_RESET, "'\nResult: " ,  DBJ_FG_YELLOW_BOLD , (x) , DBJ_RESET , " -- Type: " , typeid(x).name() ); \
     } while (0)
 
 #pragma endregion
 
 } // namespace dbj::tu
 
-#ifdef DBJ_TX
-#include <iostream>
 
 // https://stackoverflow.com/a/54383242/10870835
 
@@ -246,10 +235,15 @@ namespace dbj::tu
 
 #include <tuple>
 
+// currently (2020 Q1) we base output processing
+// on ostringstream
+// when C++20 compilkers stabilize we will switch to std::format
+#include <sstream>
+
 namespace detail {
 	template<class TupType, size_t... I>
 	inline
-		std::ostream& tuple_print(std::ostream& os,
+		std::ostringstream& tuple_print(std::ostringstream& os,
 			const TupType& _tup, std::index_sequence<I...>)
 	{
 		os << "(";
@@ -261,7 +255,7 @@ namespace detail {
 
 template<class... T>
 inline
-std::ostream& operator<< (std::ostream& os, const std::tuple<T...>& _tup)
+std::ostringstream& operator<< (std::ostringstream& os, const std::tuple<T...>& _tup)
 {
 	return detail::tuple_print(os, _tup, std::make_index_sequence<sizeof...(T)>());
 }
@@ -275,7 +269,7 @@ thus I will put required operators in here
 to print them as strings
 */
 
-inline std::ostream& operator<<(std::ostream& os_, DBJ_VECTOR<char> buff_)
+inline std::ostringstream& operator<<(std::ostringstream& os_, DBJ_VECTOR<char> buff_)
 {
 	if (os_.good())
 	{
@@ -284,17 +278,7 @@ inline std::ostream& operator<<(std::ostream& os_, DBJ_VECTOR<char> buff_)
 	return os_;
 }
 
-inline std::ostream& operator<<(std::ostream& os_, DBJ_VECTOR<wchar_t> buff_)
-{
-	if (os_.good())
-	{
-		os_ << buff_.data();
-	}
-	return os_;
-}
-
-template <size_t N>
-inline std::ostream& operator<<(std::ostream& os_, std::array<char, N> buff_)
+inline std::ostringstream& operator<<(std::ostringstream& os_, DBJ_VECTOR<wchar_t> buff_)
 {
 	if (os_.good())
 	{
@@ -304,7 +288,7 @@ inline std::ostream& operator<<(std::ostream& os_, std::array<char, N> buff_)
 }
 
 template <size_t N>
-inline std::ostream& operator<<(std::ostream& os_, std::array<wchar_t, N> buff_)
+inline std::ostringstream& operator<<(std::ostringstream& os_, std::array<char, N> buff_)
 {
 	if (os_.good())
 	{
@@ -313,7 +297,17 @@ inline std::ostream& operator<<(std::ostream& os_, std::array<wchar_t, N> buff_)
 	return os_;
 }
 
-inline std::ostream& operator<<(std::ostream& os_, std::nullopt_t const&)
+template <size_t N>
+inline std::ostringstream& operator<<(std::ostringstream& os_, std::array<wchar_t, N> buff_)
+{
+	if (os_.good())
+	{
+		os_ << buff_.data();
+	}
+	return os_;
+}
+
+inline std::ostringstream& operator<<(std::ostringstream& os_, std::nullopt_t const&)
 {
 	if (os_.good())
 	{
@@ -327,7 +321,7 @@ no this does not help
 https://www.boost.org/doc/libs/1_34_0/boost/optional/optional_io.hpp
 */
 template <typename T1>
-inline std::ostream& operator<<(std::ostream& os_, std::optional<T1> const& opt_)
+inline std::ostringstream& operator<<(std::ostringstream& os_, std::optional<T1> const& opt_)
 {
 	if (os_.good())
 	{
@@ -343,7 +337,7 @@ inline std::ostream& operator<<(std::ostream& os_, std::optional<T1> const& opt_
 std::pair pair **was** the core of valstat_1
 */
 template <typename T1, typename T2>
-inline std::ostream& operator<<(std::ostream& os_, std::pair<T1, T2> pair_)
+inline std::ostringstream& operator<<(std::ostringstream& os_, std::pair<T1, T2> pair_)
 {
 	if (os_.good())
 	{
@@ -351,6 +345,5 @@ inline std::ostream& operator<<(std::ostream& os_, std::pair<T1, T2> pair_)
 	}
 	return os_;
 }
-#endif
 
 #endif // DBJ_TU_INCLUDED

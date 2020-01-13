@@ -65,26 +65,33 @@ inline timestamp_buffer_type high_precision_timestamp()
     return time_stamp_;
 }
 
+// for when we want no time stamp
+inline timestamp_buffer_type null_timestamp()
+{
+    timestamp_buffer_type time_stamp_{ {} }; // value initalization of native array inside std::array aggregate
+    return time_stamp_;
+}
 
 // ----------------------------------------------------------------------------------------------------
 namespace config {
     
     using namespace std;
 
-    inline array timestamp_functions { high_precision_timestamp<false>, high_precision_timestamp<true> };
+    inline array timestamp_functions { high_precision_timestamp<false>, high_precision_timestamp<true>, null_timestamp };
 
-    enum class timestamp_type : int { normal = 0, nanoseconds = 1};
+    enum class timestamp_type : int { normal = 0, nanoseconds = 1, nots = 2 };
 
     inline timestamp_type current_timestamp_idx{ timestamp_type::normal  };
 
-    inline void normal_timestamp() { current_timestamp_idx = timestamp_type::normal;  }
+    inline void default_timestamp() { current_timestamp_idx = timestamp_type::normal;  }
     inline void nanosecond_timestamp() { current_timestamp_idx = timestamp_type::nanoseconds; }
+    inline void no_timestamp() { current_timestamp_idx = timestamp_type::nots; }
 
     inline void set_sink_function( sink_function_p new_sfp  ) {
         detail::current_sink_function = new_sfp ;
     }
 
-    inline void restore_default_sink_function ( ) {
+    inline void default_sink_function ( ) {
         detail::current_sink_function = detail::default_sink_function ;
     }
     
@@ -92,41 +99,26 @@ namespace config {
 // ----------------------------------------------------------------------------------------------------
 // general logging function
 template<
-    bool timestamp_prefix = true,
     typename T1, typename ... T2  >
     inline void log(const T1& first_param, const T2& ... params)
 {
     using namespace std;
 
-    char buff_[DBJ_LOG_MAX_LINE_LEN]{ /*zerto it the buff_*/ };
+    char buff_[DBJ_LOG_MAX_LINE_LEN]{ /*zero it the buff_*/ };
     ostringstream os_(buff_);
 
     auto out = [&]( auto const & obj_) {
         os_ << obj_;
     };
 
-    if constexpr ( timestamp_prefix ) {
         out( DBJ_FG_GREEN  );
         out(  config::timestamp_functions[ int(config::current_timestamp_idx) ]().data() );
         out( DBJ_RESET );
         out(first_param);
         (..., (out(params)) ); // the rest
-    }
-    else {
-        out(first_param);
-        (..., out(params)); // the rest
-    }
     
     os_.flush();
     detail::current_sink_function( os_.str() ) ;
-}
-
-// print is log with no prefix
-template<
-    typename T1, typename ... T2  >
-    inline void print(const T1& first_param, const T2& ... params)
-{
-    log<false>(first_param, params ... );
 }
 
 // formatted log
@@ -138,17 +130,6 @@ inline void logf(T const* format_, Args ... args) noexcept
     std::snprintf(&buffer_[0], buffer_.size(), format_, args ...);
 
     log(buffer_.data());
-}
-
-// prinf is logf with no prefix
-template <typename T, typename ... Args>
-inline void prinf(T const* format_, Args ... args) noexcept
-{
-    size_t sz = std::snprintf(nullptr, 0, format_, args ...);
-    std::vector<char> buffer_(sz + 1); // +1 for null terminator
-    std::snprintf(&buffer_[0], buffer_.size(), format_, args ...);
-
-    log<false>(buffer_.data());
 }
 
 } //namepsace dbj::nanolib::log

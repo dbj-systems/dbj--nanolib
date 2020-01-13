@@ -261,7 +261,7 @@ namespace dbj::nanolib
 	[[noreturn]] inline void dbj_terror(const char* msg_, const char* file_, const int line_)
 	{
 		DBJ_ASSERT(msg_ && file_ && line_);
-		std::fprintf(stderr, "\n\ndbj++ Terminating error:%s\n%s (%d)", msg_, file_, line_);
+		dbj::nanolib::logging::logf("dbj++ Terminating error:%s -- %s (%d)", msg_, file_, line_);
 		std::exit(EXIT_FAILURE);
 	}
 
@@ -391,32 +391,7 @@ usage:	void thread_safe_fun() {		lock_unlock autolock_ ;  	}
 	};     // v_buffer
 #pragma endregion
 
-#ifdef NDEBUG
-#define DBJ_FPRINTF(STRM, ...) std::fprintf(STRM, __VA_ARGS__)
-#else
-/*
-DO NOT USE "naked" printf() family !
-UCRT is still in a mess about CONSOLE output
-
-We use fprintf through a macro to increase the resilience + the change-ability
-of dbj nano lib
-
-first arg has to be stdout, stderr, etc ...
-*/
-#define DBJ_FPRINTF(STRM, ...)                                                                             \
-    do                                                                                                     \
-    {                                                                                                      \
-        if (errno_t result_ = std::fprintf(STRM, __VA_ARGS__); result_ < 0)                                \
-            ::dbj::nanolib::dbj_terror(::dbj::nanolib::safe_strerror(result_).data(), __FILE__, __LINE__); \
-    } while (false)
-#endif
-
-#ifdef NDEBUG
-// unchecked in release builds
-#define DBJ_PRINT(...) (void)std::fprintf(stdout, __VA_ARGS__)
-#else
-#define DBJ_PRINT(...) DBJ_FPRINTF(stdout, __VA_ARGS__)
-#endif // _DBJ_USING_PPRINTPP
+#define DBJ_PRINT(...) (void)dbj::nanolib::logging::logf( __VA_ARGS__)
 
 #define DBJ_FILE_LINE __FILE__ "(" _CRT_STRINGIZE(__LINE__) ")"
 #define DBJ_FILE_LINE_TSTAMP __FILE__ "(" _CRT_STRINGIZE(__LINE__) ")[" __TIMESTAMP__ "] "
@@ -427,9 +402,7 @@ timestamp included
 */
 #define DBJ_FLT_PROMPT(x) DBJ_FILE_LINE_TSTAMP _CRT_STRINGIZE(x)
 
-#define DBJ_CHK(x)    \
-    if (false == (x)) \
-    DBJ_FPRINTF(stderr, "Evaluated to false! ", DBJ_ERR_PROMPT(x))
+#define DBJ_CHK(x) if (false == (x)) DBJ_PRINT("Evaluated to false! ", DBJ_FLT_PROMPT(x))
 
 /*
 	this is for variables only
@@ -560,7 +533,7 @@ namespace dbj::nanolib
 	inline void last_perror(char const* prompt = nullptr)
 	{
 		std::error_code ec(::GetLastError(), std::system_category());
-		DBJ_FPRINTF(stderr, "\n\n%s\nLast WIN32 Error message: %s\n\n", (prompt ? prompt : ""), ec.message().c_str());
+		DBJ_PRINT("\n\n%s\nLast WIN32 Error message: %s\n\n", (prompt ? prompt : ""), ec.message().c_str());
 		::SetLastError(0);
 	}
 
@@ -642,7 +615,7 @@ namespace dbj::nanolib
 		{
 			if (rez == 0) {
 				last_perror();
-				fprintf(stderr, "\nFile: %s\nLine: %ul\nWhy: %s\n", __FILE__, __LINE__, ", SetConsoleOutputCP() failed");
+				DBJ_PRINT( "\nFile: %s\nLine: %ul\nWhy: %s\n", __FILE__, __LINE__, ", SetConsoleOutputCP() failed");
 				return;
 			}
 		}
@@ -651,7 +624,7 @@ namespace dbj::nanolib
 		if (hOut == INVALID_HANDLE_VALUE)
 		{
 			last_perror();
-			fprintf(stderr, "\nFile: %s\nLine: %ul\nWhy: %s\n", __FILE__, __LINE__, ", GetStdHandle() failed");
+			DBJ_PRINT( "\nFile: %s\nLine: %ul\nWhy: %s\n", __FILE__, __LINE__, ", GetStdHandle() failed");
 			return;
 		}
 
@@ -659,8 +632,8 @@ namespace dbj::nanolib
 		if (!GetConsoleMode(hOut, &dwMode))
 		{
 			last_perror();
-			fprintf(stderr, "\nFile: %s\nLine: %ul\nWhy: %s\n", __FILE__, __LINE__, ", GetConsoleMode() failed");
-			fprintf(stderr, "\nPlease rerurn in either WIN console or powershell console\n");
+			DBJ_PRINT("\nFile: %s\nLine: %ul\nWhy: %s\n", __FILE__, __LINE__, ", GetConsoleMode() failed");
+			DBJ_PRINT("\nPlease rerurn in either WIN console or powershell console\n");
 			return;
 		}
 
@@ -668,7 +641,7 @@ namespace dbj::nanolib
 		if (!SetConsoleMode(hOut, dwMode))
 		{
 			last_perror();
-			fprintf(stderr, "\nFile: %s\nLine: %ul\nWhy: %s\n", __FILE__, __LINE__, ", SetConsoleMode() failed");
+			DBJ_PRINT("\nFile: %s\nLine: %ul\nWhy: %s\n", __FILE__, __LINE__, ", SetConsoleMode() failed");
 			return;
 		}
 		visited = true;
@@ -685,16 +658,16 @@ namespace dbj::nanolib
 				switch (errno)
 				{
 				case E2BIG:
-					perror("The argument list(which is system - dependent) is too big");
+					last_perror("The argument list(which is system - dependent) is too big");
 					break;
 				case ENOENT:
-					perror("The command interpreter cannot be found.");
+					last_perror("The command interpreter cannot be found.");
 					break;
 				case ENOEXEC:
-					perror("The command - interpreter file cannot be executed because the format is not valid.");
+					last_perror("The command - interpreter file cannot be executed because the format is not valid.");
 					break;
 				case ENOMEM:
-					perror("Not enough memory is available to execute command; or available memory has been corrupted; or a non - valid block exists, which indicates that the process that's making the call was not allocated correctly.");
+					last_perror("Not enough memory is available to execute command; or available memory has been corrupted; or a non - valid block exists, which indicates that the process that's making the call was not allocated correctly.");
 					break;
 				}
 				return false;
