@@ -1,6 +1,6 @@
 // dbj++array
-#ifndef _DBJ_ARRAY_
-#define _DBJ_ARRAY_
+#ifndef DBJ_ARRAY_INCLUDED_
+#define DBJ_ARRAY_INCLUDED_
 
 // not yet
 // #define DBJ_ARRAY_FULL_IMPLEMENTATION 

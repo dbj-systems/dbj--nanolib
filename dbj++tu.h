@@ -3,8 +3,13 @@
 #ifndef DBJ_TU_INCLUDED
 #define DBJ_TU_INCLUDED
 
+#ifndef DBJ_NANOLIB_INCLUDED
 #include "dbj++nanolib.h"
+#endif
+
+#ifndef DBJ_ARRAY_INCLUDED_
 #include "nonstd/dbj++array.h"
+#endif
 
 // please see this if wondering why do we use dbj::tu::fp_storage_limited
 // #error https://stackoverflow.com/q/58569773/10870835

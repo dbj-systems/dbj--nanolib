@@ -6,7 +6,12 @@
 #error DBJ NANOLIB requires C++ compiler
 #endif
 
+#ifdef _MSVC_LANG
+#define DBJ_NANO_WIN32
+#endif
+
 #include "dbj++platform.h"
+#include "dbj++log.h"
 
 #if (DBJ__STL_LANG < 201703L)
 #error DBJ NANOLIB requires the standard C++17 compiler
@@ -22,10 +27,6 @@
 #ifdef NDEBUG
 #pragma clang system_header
 #endif
-#endif
-
-#ifdef _MSVC_LANG
-#define DBJ_NANO_WIN32
 #endif
 
 #ifdef DBJ_ASSERT

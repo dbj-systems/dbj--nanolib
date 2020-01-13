@@ -1,27 +1,40 @@
+#pragma once
 #ifndef DBJ_LOG_INC_
 #define DBJ_LOG_INC_
 // 
 #define _CRT_SECURE_NO_WARNINGS 1
 //
-#include <iostream>
+// here is a lot of virtual tables
+// not fast
+// TODO: change to std::format usage when time comes
+#include <sstream>
+//
 #include <array>
-#include <tuple>
 #include <string_view>
-#include <type_traits>
+// #include <type_traits>
 #include <ctime>
+
+#ifndef DBJ_VT100WIN10_INCLUDED
+    // VT100 escape codes 
+    // and macros
+    // for coloured output
+    #include "vt100win10.h"
+#endif // DBJ_VT100WIN10_INCLUDED
 
 namespace dbj::nanolib::logging
 {
 
 using namespace std;
 
+#ifndef DBJ_LOG_MAX_LINE_LEN
+#define DBJ_LOG_MAX_LINE_LEN 1024U
+#endif // DBJ_LOG_MAX_LINE_LEN
+
+using sink_function_p = void (*)(std::string_view);
+
 namespace detail {
-    // here we decouple from the fact we 
-    // are using std::cout as default log sink
-    template <typename T>
-    inline void out(T const& obj_) {
-        std::cout << obj_;
-    }
+    inline void default_sink_function(std::string_view log_line_) { fprintf(stdout, "\n%s" , log_line_.data() ); }
+    inline sink_function_p current_sink_function = default_sink_function;
 }
 
 // simplicity == resilience
@@ -36,16 +49,17 @@ inline timestamp_buffer_type high_precision_timestamp()
     std::timespec_get(&ts, TIME_UTC);
     char hours_mins_secs[100];
 
+    // CL err's on using std::gmtime but offers no std::gmtime_s ?
     std::strftime(hours_mins_secs, sizeof hours_mins_secs, "%F %T %z", std::gmtime(&ts.tv_sec));
 
     timestamp_buffer_type time_stamp_{ {} }; // value initalization of native array inside std::array aggregate
 
     if constexpr ( add_nano_seconds )
     {
-        (void)std::snprintf( &time_stamp_[0], time_stamp_.size() , "\n[%s.%09ld]", hours_mins_secs, ts.tv_nsec);
+        (void)std::snprintf( &time_stamp_[0], time_stamp_.size() , "[%s (%09ld)]", hours_mins_secs, ts.tv_nsec);
     }
     else {
-        (void)std::snprintf(&time_stamp_[0], time_stamp_.size(), "\n[%s]", hours_mins_secs);
+        (void)std::snprintf(&time_stamp_[0], time_stamp_.size(), "[%s]", hours_mins_secs);
     }
 
     return time_stamp_;
@@ -57,15 +71,23 @@ namespace config {
     
     using namespace std;
 
-    array timestamp_functions { high_precision_timestamp<false>, high_precision_timestamp<true> };
+    inline array timestamp_functions { high_precision_timestamp<false>, high_precision_timestamp<true> };
 
     enum class timestamp_type : int { normal = 0, nanoseconds = 1};
 
-    timestamp_type current_timestamp_idx{ timestamp_type::normal  };
+    inline timestamp_type current_timestamp_idx{ timestamp_type::normal  };
 
     inline void normal_timestamp() { current_timestamp_idx = timestamp_type::normal;  }
     inline void nanosecond_timestamp() { current_timestamp_idx = timestamp_type::nanoseconds; }
 
+    inline void set_sink_function( sink_function_p new_sfp  ) {
+        detail::current_sink_function = new_sfp ;
+    }
+
+    inline void restore_default_sink_function ( ) {
+        detail::current_sink_function = detail::default_sink_function ;
+    }
+    
 };
 // ----------------------------------------------------------------------------------------------------
 // general logging function
@@ -76,15 +98,27 @@ template<
 {
     using namespace std;
 
+    char buff_[DBJ_LOG_MAX_LINE_LEN]{ /*zerto it the buff_*/ };
+    ostringstream os_(buff_);
+
+    auto out = [&]( auto const & obj_) {
+        os_ << obj_;
+    };
+
     if constexpr ( timestamp_prefix ) {
-        detail::out(  config::timestamp_functions[ int(config::current_timestamp_idx) ]().data() );
-        detail::out(first_param);
-        (..., detail::out(params)); // the rest
+        out( DBJ_FG_GREEN  );
+        out(  config::timestamp_functions[ int(config::current_timestamp_idx) ]().data() );
+        out( DBJ_RESET );
+        out(first_param);
+        (..., (out(params)) ); // the rest
     }
     else {
-        detail::out(first_param);
-        (..., detail::out(params)); // the rest
+        out(first_param);
+        (..., out(params)); // the rest
     }
+    
+    os_.flush();
+    detail::current_sink_function( os_.str() ) ;
 }
 
 // print is log with no prefix
