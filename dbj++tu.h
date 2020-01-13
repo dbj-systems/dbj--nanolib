@@ -229,38 +229,6 @@ namespace dbj::tu
 } // namespace dbj::tu
 
 
-// https://stackoverflow.com/a/54383242/10870835
-
-#pragma region tuple print
-
-#include <tuple>
-
-// currently (2020 Q1) we base output processing
-// on ostringstream
-// when C++20 compilkers stabilize we will switch to std::format
-#include <sstream>
-
-namespace detail {
-	template<class TupType, size_t... I>
-	inline
-		std::ostringstream& tuple_print(std::ostringstream& os,
-			const TupType& _tup, std::index_sequence<I...>)
-	{
-		os << "(";
-		(..., (os << (I == 0 ? "" : ", ") << std::get<I>(_tup)));
-		os << ")";
-		return os;
-	}
-}
-
-template<class... T>
-inline
-std::ostringstream& operator<< (std::ostringstream& os, const std::tuple<T...>& _tup)
-{
-	return detail::tuple_print(os, _tup, std::make_index_sequence<sizeof...(T)>());
-}
-
-#pragma endregion tuple print
 
 /*
 primary runtime buffer is vector of a char_type

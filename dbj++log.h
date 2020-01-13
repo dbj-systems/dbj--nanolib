@@ -21,6 +21,49 @@
     #include "vt100win10.h"
 #endif // DBJ_VT100WIN10_INCLUDED
 
+#pragma  region ostream operators for types
+#include <sstream>
+
+#pragma region tuple print
+namespace dbj::nanolib::logging
+{
+    // for ADL to work (https://en.cppreference.com/w/cpp/language/adl)
+    // this operator has to be in the same namespace as log() anf logf()
+
+#include <tuple>
+
+    // https://stackoverflow.com/a/54383242/10870835
+    // currently (2020 Q1) we base output processing
+    // on ostringstream
+    // when C++20 compilkers stabilize we will switch to std::format
+
+
+    namespace detail {
+        template<class TupType, size_t... I>
+        inline
+            std::ostream& tuple_print(std::ostream& os,
+                const TupType& _tup, std::index_sequence<I...>)
+        {
+            os << "(";
+            (..., (os << (I == 0 ? "" : ", ") << std::get<I>(_tup)));
+            os << ")";
+            return os;
+        }
+    }
+
+    template<class... T>
+    inline
+        std::ostream& operator<< (std::ostream& os, const std::tuple<T...>& _tup)
+    {
+        return detail::tuple_print(os, _tup, std::make_index_sequence<sizeof...(T)>());
+    }
+
+#pragma endregion tuple print
+} // namespace dbj::nanolib::logging
+
+#pragma  endregion
+
+
 namespace dbj::nanolib::logging
 {
 

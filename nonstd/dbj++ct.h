@@ -48,7 +48,7 @@ namespace dbj::nanolib::ct
 #endif
 #endif
 
-    errno_t
+   inline errno_t
 mem_set_s(volatile void *v, rsize_t smax, int c, rsize_t n)
 {
     errno_t ret = 0;
