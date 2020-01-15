@@ -391,7 +391,7 @@ usage:	void thread_safe_fun() {		lock_unlock autolock_ ;  	}
 	};     // v_buffer
 #pragma endregion
 
-#define DBJ_PRINT(...) (void)dbj::nanolib::logging::logf( __VA_ARGS__)
+#define DBJ_PRINT(FMT_, ...) (void)dbj::nanolib::logging::logf( FMT_, __VA_ARGS__)
 
 #define DBJ_FILE_LINE __FILE__ "(" _CRT_STRINGIZE(__LINE__) ")"
 #define DBJ_FILE_LINE_TSTAMP __FILE__ "(" _CRT_STRINGIZE(__LINE__) ")[" __TIMESTAMP__ "] "
@@ -633,7 +633,7 @@ namespace dbj::nanolib
 		{
 			last_perror();
 			DBJ_PRINT("\nFile: %s\nLine: %ul\nWhy: %s\n", __FILE__, __LINE__, ", GetConsoleMode() failed");
-			DBJ_PRINT("\nPlease rerurn in either WIN console or powershell console\n");
+			DBJ_PRINT("\nPlease re-run in either WIN console %s", " or powershell console\n");
 			return;
 		}
 

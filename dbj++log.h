@@ -165,8 +165,8 @@ template<
 }
 
 // formatted log
-template <typename T, typename ... Args>
-inline void logf(T const* format_, Args ... args) noexcept
+template < typename ... Args>
+inline void logf( const char * format_, Args ... args) noexcept
 {
     size_t sz = std::snprintf(nullptr, 0, format_, args ...);
     std::vector<char> buffer_(sz + 1); // +1 for null terminator
