@@ -34,9 +34,28 @@ NOTE: arguments to ct functions have to be ct themselves, that means: literals
 
 namespace dbj::nanolib::ct
 {
+	constexpr char* str_ncpy(char* destination, const char* source, size_t num);
+
+	// this is peculiar?
+	// basically making char array on the stack
+	// copying a string to it
+	// and then carying it arround ... Hmm
+	// and it can work at compile time too ... Hmm
+	template<size_t N>
+	constexpr auto assign( std::array<char,N> & mpa_, std::string_view sv_) noexcept
+	{
+		mpa_.fill(0);
+		_ASSERTE(sv_.size() < mpa_.size());
+		str_ncpy(&mpa_[0], sv_.data(), mpa_.size());
+		return mpa_;
+	}
+
+	/*
+	----------------------------------------------------------------------------------------------------------------
+	*/
 	// are all these things equal?
 	template<typename ... T>
-	constexpr bool equal(const T& ... args_)
+	constexpr inline bool equal(const T& ... args_)
 	{
 		if ((sizeof...(args_)) < 2) return true;
 		// for non recursive version
@@ -56,11 +75,14 @@ namespace dbj::nanolib::ct
 
 
 	// are these three things equal?
-	auto eq3 = [](auto v1, auto v2, auto v3) constexpr -> bool
+	inline auto eq3 = [](auto v1, auto v2, auto v3) constexpr -> bool
 	{
 		return (v1 == v2) && (v2 == v3);
 	};
 
+	/*
+	----------------------------------------------------------------------------------------------------------------
+	*/
 	// https://docs.microsoft.com/en-us/previous-versions/windows/desktop/legacy/aa366877(v=vs.85)?redirectedfrom=MSDN
 	// https://opensource.apple.com/source/sudo/sudo-83/sudo/lib/util/memset_s.c.auto.html
 
@@ -280,6 +302,32 @@ namespace dbj::nanolib::ct
 			};
 		}
 		return rezult_;
+	}
+
+
+	constexpr char* str_ncpy(char* destination, const char* source, size_t num)
+	{
+		// return if no memory is allocated to the destination
+		if (destination == nullptr)
+			return nullptr;
+
+		// take a pointer pointing to the beginning of destination string
+		char* ptr = destination;
+
+		// copy first num characters of C-string pointed by source
+		// into the array pointed by destination
+		while (*source && num--)
+		{
+			*destination = *source;
+			destination++;
+			source++;
+		}
+
+		// null terminate destination string
+		*destination = '\0';
+
+		// destination is returned by standard strncpy()
+		return ptr;
 	}
 
 } // namespace dbj::nanolib::ct
