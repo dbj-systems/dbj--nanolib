@@ -90,7 +90,7 @@ inline timestamp_buffer_type high_precision_timestamp()
     // available from C++17 onwards
     std::timespec ts;
     std::timespec_get(&ts, TIME_UTC);
-    char hours_mins_secs[100];
+    char hours_mins_secs[100]{};
 
     // CL err's on using std::gmtime but offers no std::gmtime_s ?
     std::strftime(hours_mins_secs, sizeof hours_mins_secs, "%F %T %z", std::gmtime(&ts.tv_sec));
