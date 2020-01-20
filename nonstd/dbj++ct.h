@@ -36,12 +36,12 @@ namespace dbj::nanolib::ct
 {
 	// are all these things equal?
 	template<typename ... T>
-	constexpr bool equal(const T& ... args_)
+	constexpr inline bool all_equal(const T& ... args_)
 	{
 		if ((sizeof...(args_)) < 2) return true;
-		// for non recursive version
+		// non recursive version
 		const auto il_ = { args_ ... };
-		// compoare them all to the first
+		// compare them all to the first
 		auto first_ = *(il_.begin());
 		// assumption
 		bool rezult_{ true };
@@ -56,7 +56,7 @@ namespace dbj::nanolib::ct
 
 
 	// are these three things equal?
-	auto eq3 = [](auto v1, auto v2, auto v3) constexpr -> bool
+	inline auto eq3 = [](auto v1, auto v2, auto v3) constexpr -> bool
 	{
 		return (v1 == v2) && (v2 == v3);
 	};
