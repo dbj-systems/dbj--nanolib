@@ -31,6 +31,7 @@
 #pragma region tuple print
 namespace dbj::nanolib::logging
 {
+
 // for ADL to work (https://en.cppreference.com/w/cpp/language/adl)
 // this operator has to be in the same namespace as log() and logf()
 
@@ -136,9 +137,11 @@ inline timestamp_buffer_type null_timestamp()
 // ----------------------------------------------------------------------------------------------------
 namespace config
 {
-
 using namespace std;
 
+/*
+-----------------------------------------------------------------------------------------------------
+*/
 inline array timestamp_functions{high_precision_timestamp<false>, high_precision_timestamp<true>, null_timestamp};
 
 enum class timestamp_type : int
@@ -152,8 +155,55 @@ inline timestamp_type current_timestamp_idx{timestamp_type::normal};
 
 inline void default_timestamp() { current_timestamp_idx = timestamp_type::normal; }
 inline void nanosecond_timestamp() { current_timestamp_idx = timestamp_type::nanoseconds; }
-inline void no_timestamp() { current_timestamp_idx = timestamp_type::nots; }
 
+// singularity in a design
+// we know if no time stamp then do not color the empty space for the no time stamp 
+void nocolor_timestamp_output();
+inline void no_timestamp() {
+    current_timestamp_idx = timestamp_type::nots; 
+    nocolor_timestamp_output();
+}
+
+// ----------------------------------------------------------------------------------------------------
+enum class timestamp_output_type : int
+{
+    color = 0,
+    nocolor = 1
+};
+
+inline timestamp_output_type current_timestamp_output_type{ timestamp_output_type::color };
+
+template< timestamp_output_type  output_type  >
+void timestamp_output_function(  std::ostream & os_  )
+{
+    auto out = [&](auto const& obj_) {
+        os_ << obj_;
+    };
+
+    if constexpr (output_type == timestamp_output_type::color) {
+        out(DBJ_FG_GREEN);
+        out(config::timestamp_functions[int(config::current_timestamp_idx)]().data());
+        out(DBJ_RESET);
+    }
+    else
+    {
+        out(config::timestamp_functions[int(config::current_timestamp_idx)]().data());
+    }
+}
+inline array timestamp_output_functions{
+    timestamp_output_function<timestamp_output_type::color>,   /* 0  == timestamp_output_type::color  */
+    timestamp_output_function<timestamp_output_type::nocolor>  /* 1 == timestamp_output_type::nocolor */
+};
+
+auto current_timestamp_output_fp(timestamp_output_type which_ = current_timestamp_output_type) {
+    return timestamp_output_functions[ int(which_) ];
+}
+
+inline void default_timestamp_output () { current_timestamp_output_type = timestamp_output_type::color; }
+inline void color_timestamp_output () { current_timestamp_output_type = timestamp_output_type::color; }
+inline void nocolor_timestamp_output() { current_timestamp_output_type = timestamp_output_type::nocolor; }
+
+// ----------------------------------------------------------------------------------------------------
 inline void set_sink_function(sink_function_p new_sfp)
 {
     detail::current_sink_function = new_sfp;
@@ -172,17 +222,16 @@ template <
 inline void log(const T1 &first_param, const T2 &... params)
 {
     using namespace std;
+    using namespace config;
 
     char buff_[DBJ_LOG_MAX_LINE_LEN]{/*zero it the buff_*/};
     ostringstream os_(buff_);
 
-    auto out = [&](auto const &obj_) {
+    auto out = [&](auto const& obj_) {
         os_ << obj_;
     };
 
-    // out(DBJ_FG_GREEN);
-    out(config::timestamp_functions[int(config::current_timestamp_idx)]().data());
-    // out(DBJ_RESET);
+    current_timestamp_output_fp()( os_ );
 
     out(first_param);
     (..., (out(params))); // the rest
