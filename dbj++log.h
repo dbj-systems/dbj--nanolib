@@ -195,7 +195,7 @@ inline array timestamp_output_functions{
     timestamp_output_function<timestamp_output_type::nocolor>  /* 1 == timestamp_output_type::nocolor */
 };
 
-auto current_timestamp_output_fp(timestamp_output_type which_ = current_timestamp_output_type) {
+inline auto current_timestamp_output_fp(timestamp_output_type which_ = current_timestamp_output_type) {
     return timestamp_output_functions[ int(which_) ];
 }
 
