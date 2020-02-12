@@ -68,106 +68,16 @@
 
 namespace dbj::nanolib::alloc
 {
-	constexpr static const size_t MAX_STACK_ARENA{ 0xFFFF };
 
-	namespace detail {
-		/// <summary>
-		/// stack memory arena
-		/// adapted by dbjdbj from Howard Hinant
-		/// </summary>
-		template <std::size_t SIZE_>
-		class stack_arena final
-		{
-		public:
+/// G++ REQUIRES allocators to inherit from std::allocator
 
-			// constexpr std::size_t alignment = alignof(std::max_align_t);
-			// same as
-			using buf_element_type = unsigned char;
-			constexpr static std::size_t alignment = alignof(buf_element_type);
-			using type = stack_arena;
-
-			static_assert(SIZE_ < MAX_STACK_ARENA, "max stack_arena size is 64kb");
-		private:
-
-			alignas(stack_arena::alignment) buf_element_type buf_[SIZE_]{ 0 };
-			const buf_element_type* one_beyond_last_{ buf_ + SIZE_ };
-
-			buf_element_type* ptr_{ buf_ };
-
-			std::size_t align_up(std::size_t n) const noexcept
-			{
-				return (n + (alignment - 1)) & ~(alignment - 1);
-			}
-
-			// probably redundant?
-			bool pointer_in_buffer(buf_element_type* p) const noexcept
-			{
-				if (buf_ <= p)
-					if (p < one_beyond_last_)
-						return true;
-				return false;
-			}
-
-		public:
-
-			static std::size_t size() noexcept { return SIZE_; }
-			std::size_t used() const noexcept { return static_cast<std::size_t>(ptr_ - buf_); }
-			void reset() { ptr_ = buf_; }
-
-			buf_element_type* allocate(std::size_t n)
-			{
-				n = align_up(n);
-				if (size_t(one_beyond_last_ - ptr_) >= n)
-				{
-					// buf_element_type* r = ptr_;
-					ptr_ += n;
-					return ptr_;
-				}
-
-				// dbj::nanolib::dbj_terror("stack_allocator arrena has no enough memory", __FILE__, __LINE__);
-				perror("stack_allocator arrena has no enough memory: ");
-				exit(EXIT_FAILURE);
-				return nullptr;
-			}
-
-			void deallocate(buf_element_type*, std::size_t) noexcept
-			{
-				return;
-			}
-		}; // stack_arena
-
-	} // detail ns
-
-// WARNING! G++ REQUIRES allocators to inherit from std::allocator
-#define DBJ_ALLOCATOR_INHERITS_FROM_STD_ALLOCATOR
-
-	template <class T, size_t size_template_arg >
+	template <class T>
 	struct stack_allocator
-#ifndef DBJ_ALLOCATOR_INHERITS_FROM_STD_ALLOCATOR
 		final
-#else
-		// DBJ -- G++ will not work id not inheriting from 
 		: std::allocator<T>
-#endif // DBJ_ALLOCATOR_INHERITS_FROM_STD_ALLOCATOR
 	{
 
 		using type = stack_allocator;
-		using arena_type = detail::stack_arena<size_template_arg>;
-
-		constexpr static size_t capacity_{ size_template_arg };
-
-#ifndef DBJ_ALLOCATOR_INHERITS_FROM_STD_ALLOCATOR
-		// The following is the same for all allocators.
-		// most STL implementations will require this 
-		// full complement
-		typedef T* pointer;
-		typedef const T* const_pointer;
-		typedef T& reference;
-		typedef const T& const_reference;
-		typedef T value_type;
-		typedef std::size_t size_type;
-		typedef ptrdiff_t difference_type;
-#endif // DBJ_ALLOCATOR_INHERITS_FROM_STD_ALLOCATOR
 
 		// DBJ NOTE: as of 2019 DEC 26, VStudio 2019 fully updated
 		// err's with compilation message: vector end of file not found
@@ -175,13 +85,13 @@ namespace dbj::nanolib::alloc
 		template <typename U>
 		struct rebind
 		{
-			typedef stack_allocator<U, size_template_arg> other;
+			typedef stack_allocator<U> other;
 		};
 
+		// The following has been carefully written to be independent of
+		// the definition of size_t and to avoid signed/unsigned warnings.
 		std::size_t max_size() const
 		{
-			// The following has been carefully written to be independent of
-			// the definition of size_t and to avoid signed/unsigned warnings.
 			return (static_cast<std::size_t>(0) - static_cast<std::size_t>(1)) / sizeof(T);
 		}
 
@@ -193,37 +103,30 @@ namespace dbj::nanolib::alloc
 		// DBJ NOTE: as of 2019 DEC 26, VStudio 2019 fully updated
 		// err's with complex compilation message
 		// if the following rebinding ctor is not defined as bellow
-		template <typename U> stack_allocator(const stack_allocator<U, size_template_arg>&) { }
+		template <typename U> stack_allocator(const stack_allocator<U> &) { }
 
 		// without these two
 		// allocator traits will not work
 		// get_allocator() too
-#ifdef DBJ_ALLOCATOR_INHERITS_FROM_STD_ALLOCATOR
 		using parent = std::allocator<T>;
 		using parent::parent;
-#endif
+
+		/// https://www.gnu.org/software/libc/manual/html_node/Advantages-of-Alloca.html
+		/// https://www.gnu.org/software/libc/manual/html_node/Disadvantages-of-Alloca.html#Disadvantages-of-Alloca
 
 		T* allocate(std::size_t n) noexcept
 		{
 			if (n == 0) {
 				return nullptr;
 			}
-			return reinterpret_cast<T*>(arena_.allocate(n * sizeof(T)));
+			return static_cast<T*>(alloca(n * sizeof(T)));
 		}
-		void deallocate(T* p, std::size_t n) noexcept
+		void deallocate(T* /*p*/, std::size_t /*n*/) noexcept
 		{
-			arena_.deallocate(reinterpret_cast<typename arena_type::buf_element_type*>(p), n * sizeof(T));
+			/* do not free alloca results! */
 		}
 
-	private:
-		arena_type arena_;
 	}; // stack_allocator
-
-
-	// very fast and very dangerous
-	template< template< class T_, class A_> typename container_type, typename value_type, size_t stack_alloc_size = 0xFFF,
-		typename stack_alloc_type = stack_allocator<value_type, stack_alloc_size> >
-		using small_container = container_type< value_type, stack_alloc_type >;
 
 } // namespace dbj::nanolib::alloc  
 
