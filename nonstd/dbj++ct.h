@@ -32,23 +32,32 @@ NOTE: arguments to ct functions have to be ct themselves, that means: literals
 #include <stddef.h> /* size_t */
 #endif
 
+#include <array>
+#include <string_view>
+
 namespace dbj::nanolib::ct
 {
 	constexpr char* str_ncpy(char* destination, const char* source, size_t num);
 
-	// this is peculiar?
-	// basically making char array on the stack
-	// copying a string to it
-	// and then carying it arround ... Hmm
-	// and it can work at compile time too ... Hmm
+
+	// this is peculiar? basically copy string data to static std::array
+	// which instance can be moved, as we know
+	// and this is compile tame capable too
 	template<size_t N>
-	constexpr auto assign( std::array<char,N> & mpa_, std::string_view sv_) noexcept
+	constexpr inline std::array<char, N> assign(std::string_view sv_) noexcept
 	{
-		mpa_.fill(0);
-		_ASSERTE(sv_.size() < mpa_.size());
-		str_ncpy(&mpa_[0], sv_.data(), mpa_.size());
-		return mpa_;
+		CT_ASSERT(sv_.size() < N); 
+		std::array<char, N> arr_{ {0} };
+		str_ncpy(&arr_[0], sv_.data(), arr_.size());
+		return arr_;
 	}
+
+#if __GNUC__
+	using namespace std::string_view_literals;
+	constexpr auto sv = "Abra Ka Dabra"sv;
+	constexpr auto sz = sv.size();
+	constexpr auto ar = dbj::nanolib::ct::assign< sz + 1 >(sv);
+#endif // __GNUC__
 
 	/*
 	----------------------------------------------------------------------------------------------------------------
@@ -209,7 +218,7 @@ namespace dbj::nanolib::ct
 	// NOTE: char16_t and char32_t are ok. if need them add them bellow
 	//
 	// NOTE: WIN32 is UTF-16 aka wchar_t universe, WIN32 char API's are all
-	// translated to wchar_t variants
+	// calling wchar_t variants
 	//
 	constexpr inline bool str_equal(char const* lhs, char const* rhs) noexcept
 	{
@@ -282,7 +291,7 @@ namespace dbj::nanolib::ct
 
 		static_assert(N < remove_ws_max_input_size, "remove_ws(), argument char array is longer than 1024");
 
-		array<C, N> rezult_{ {} }; // zero it
+		std::array<C, N> rezult_{ {} }; // zero it
 		size_t rezult_idx_{};
 
 		for (size_t j{}; j < N; ++j)

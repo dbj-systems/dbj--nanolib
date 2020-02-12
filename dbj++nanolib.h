@@ -17,7 +17,7 @@
 #error DBJ NANOLIB requires the standard C++17 compiler
 #endif
 #if (DBJ__STL_LANG > 201703L)
-#error DBJ NANOLIBis not ready yet for the standard C++20 (or higher)
+/// #error DBJ NANOLIBis not ready yet for the standard C++20 (or higher)
 #endif
 
 // new failure will provoke fast exit
@@ -39,6 +39,14 @@
 #include <cassert>
 #define DBJ_ASSERT assert
 #endif
+
+/*
+--------------------------------------------------------
+https://docs.microsoft.com/en-gb/windows/win32/api/winnt/nf-winnt-c_assert?redirectedfrom=MSDN
+
+dodgy?
+*/
+#define CT_ASSERT(e) typedef char __C_ASSERT__[(e)?1:-1]
 
 /*
 --------------------------------------------------------
@@ -394,7 +402,7 @@ struct v_buffer final
 };	 // v_buffer
 #pragma endregion
 
-#define DBJ_PRINT(FMT_, ...) (void)dbj::nanolib::logging::logf(FMT_, __VA_ARGS__)
+#define DBJ_PRINT(FMT_, ...) (void)::dbj::nanolib::logging::logf(FMT_, __VA_ARGS__)
 
 #define DBJ_FILE_LINE __FILE__ "(" _CRT_STRINGIZE(__LINE__) ")"
 #define DBJ_FILE_LINE_TSTAMP __FILE__ "(" _CRT_STRINGIZE(__LINE__) ")[" __TIMESTAMP__ "] "

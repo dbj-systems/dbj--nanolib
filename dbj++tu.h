@@ -281,7 +281,7 @@ constexpr /*inline*/ testing_system catalog;
 	{                                                                                                             \
 		if (false == (x))                                                                                         \
 		{                                                                                                         \
-			dbj::nanolib::logging::log(DBJ_FG_YELLOW, #x, DBJ_RESET, DBJ_FG_RED_BOLD, " -- Failed! ", DBJ_RESET); \
+			::dbj::nanolib::logging::log(DBJ_FG_YELLOW, #x, DBJ_RESET, DBJ_FG_RED_BOLD, " -- Failed! ", DBJ_RESET); \
 		}                                                                                                         \
 	} while (0)
 
