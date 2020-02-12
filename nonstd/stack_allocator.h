@@ -170,7 +170,7 @@ namespace dbj::nanolib::alloc
 #endif // DBJ_ALLOCATOR_INHERITS_FROM_STD_ALLOCATOR
 
 		// DBJ NOTE: as of 2019 DEC 26, VStudio 2019 fully updated
-		// err's wit compilation message: vector end of file not found
+		// err's with compilation message: vector end of file not found
 		// if rebind is not defined as bellow
 		template <typename U>
 		struct rebind
