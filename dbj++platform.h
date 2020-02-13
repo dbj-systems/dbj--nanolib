@@ -27,24 +27,24 @@
 #if !defined(DBJ_HAS_CXX17) && !defined(DBJ_HAS_CXX20)
 
 #if defined(_MSVC_LANG)
-#define DBJ__STL_LANG _MSVC_LANG
+#define DBJ_STL_LANG _MSVC_LANG
 #else
-#define DBJ__STL_LANG __cplusplus
+#define DBJ_STL_LANG __cplusplus
 #endif
 
-#if DBJ__STL_LANG > 201703L
+#if DBJ_STL_LANG > 201703L
 #define DBJ_HAS_CXX17 1
 #define DBJ_HAS_CXX20 1
-#elif DBJ__STL_LANG > 201402L
+#elif DBJ_STL_LANG > 201402L
 #define DBJ_HAS_CXX17 1
 #define DBJ_HAS_CXX20 0
-#else // DBJ__STL_LANG <= 201402L
+#else // DBJ_STL_LANG <= 201402L
 #define DBJ_HAS_CXX17 0
 #define DBJ_HAS_CXX20 0
-#endif // Use the value of DBJ__STL_LANG to define DBJ_HAS_CXX17 and \
+#endif // Use the value of DBJ_STL_LANG to define DBJ_HAS_CXX17 and \
        // DBJ_HAS_CXX20
 
-// #undef DBJ__STL_LANG
+// #undef DBJ_STL_LANG
 #endif // !defined(DBJ_HAS_CXX17) && !defined(DBJ_HAS_CXX20)
 
  /*
@@ -68,9 +68,11 @@ namespace dbj::nanolib {
 	/*
 	--------------------------------------------------------------------------------------------------
 	THE PLATFORM
+
+	what C++ compiler or C compiler and what platform are we on.
 	--------------------------------------------------------------------------------------------------
 	https://stackoverflow.com/a/42040445
-	Obviously users are free to add a pltfrom if missing. Example:
+	Obviously users are free to add a platform if missing. Example:
 
 		namespace pm = dbj::nanolib::platform ;
         
@@ -85,7 +87,7 @@ namespace dbj::nanolib {
 
 		/*
 		might be a double edged sword. non class enum  but adorned with namespace
-		for cleverness
+		for "cleverness"
 		*/
 		enum platform_code {
 			WINDOWS_32 = 0, WINDOWS_64, CYGWIN, ANDROID, LINUX, BSD, HP_UX, AIX, IOS, OSX, SOLARIS, UNKNOWN
@@ -184,7 +186,7 @@ namespace dbj::nanolib {
 
 		enum language_code { CPP17, CPP20, C90, C99, C11, C17, C18, C2x, UNKNOWN };
 
-#ifdef __cplusplus
+#ifdef DBJ_STL_LANG
 
 #ifdef DBJ_HAS_CXX17
 		constexpr auto CODE = CPP17;

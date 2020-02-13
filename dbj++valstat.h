@@ -25,7 +25,7 @@ Four (4) possible states of "occupancy" of this structure are
 
 */
 template <typename T1_, typename T2_>
-using pair_of_options = std::pair<optional<T1_>, optional<T2_>>;
+using pair_of_options = std::pair<std::optional<T1_>, std::optional<T2_>>;
 
 /*
 Thinking about and solving the architecture of my return type I have came to 
@@ -117,7 +117,7 @@ struct valstat_trait final
 {
 	using type = valstat_trait;
 	using value_type = value_type_;
-	using return_type = pair<optional<value_type>, optional<status_type>>;
+	using return_type = std::pair<std::optional<value_type>, std::optional<status_type>>;
 	using code_type = code_type_param;
 	constexpr static inline char const *category = category_name();
 

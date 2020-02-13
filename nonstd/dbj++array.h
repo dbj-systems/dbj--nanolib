@@ -229,7 +229,7 @@ public:
 template <class First_, class... Rest_>
 struct ensure_param_pack_same_type
 {
-    static_assert(conjunction_v<is_same<First_, Rest_>...>,
+    static_assert(std::conjunction_v<std::is_same<First_, Rest_>...>,
       "dbj::nanolib::array, user defined template guide, requires all the types to be the same!");
     using type = First_;
 };
