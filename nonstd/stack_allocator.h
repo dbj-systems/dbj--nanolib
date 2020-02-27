@@ -8,31 +8,29 @@
  number of uses cases where it can be used.
 
  Basically it is fast because it does not use heap at all. It will exit() if
- some container uysing it asks beyond avaialbe internal array.
+ some container using it asks beyond avaialbe stack space.
 
  It does not throw exceptions.
-
  It does not free what was taken.
-
  On stack exhaustion your app will very likely just vanish. Especially in a release mode.
 
- Ok, what's the point than?
+ Ok, what's the point then?
 
  The point is you want a std lib container API + you know how large it will be
- + you know it will not grow over certain limit.  For example vectorchar> is
+ + you know it will not grow over certain limit.  For example vector<char> is
  one very fast char buffer and has familiar and convenient API
 
  using namespace dbj::nanolib::alloc ;
- std::vector<char, stack_allocator< char, 2048> > my_buffer( 1024, '+') ;
+ std::vector<char, stack_allocator< char > > my_buffer( 1024, '+') ;
 
  Above is very fast anyway, but with stack allocator it is instant.
  Ok, says you, but why not just using:
 
- char my_buffer[2048] { 0 };
+ char my_buffer[1024] { 0 };
 
  Because you might use the libraries which do require std::vector, or std::string, etc..
-
  Also do not forget there are project which are forbidden to use heap!
+ If you place such a vector in a global space it will stay as long as the app stays.
 
 */
 
