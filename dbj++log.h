@@ -28,6 +28,15 @@
 #pragma region ostream operators for types
 #include <sstream>
 
+///------------------------------------------------------------------
+/// basically the rule is: do not incluide any output anywhere 
+/// but use the api presented in here
+///
+/// the most basic outout is achieved by redirecting stderr to a file
+/// so if you use stdout you will know (if you have a console that is)
+#define DBJ_DEFAULT_LOG_STD_TARGET stderr
+///------------------------------------------------------------------
+
 #pragma region tuple print
 namespace dbj::nanolib::logging
 {
@@ -79,7 +88,7 @@ using sink_function_p = void (*)(std::string_view);
 
 namespace detail
 {
-inline void default_sink_function(std::string_view log_line_) { fprintf(stdout, "\n%s", log_line_.data()); }
+inline void default_sink_function(std::string_view log_line_) { fprintf(DBJ_DEFAULT_LOG_STD_TARGET, "\n%s", log_line_.data()); }
 inline sink_function_p current_sink_function = default_sink_function;
 } // namespace detail
 
@@ -240,9 +249,11 @@ inline void log(const T1 &first_param, const T2 &... params)
     detail::current_sink_function(os_.str());
 }
 
-// formatted log
+///------------------------------------------------------------
+/// formatted log
+/// name logf no can use, dito logfmt it is
 template <typename... Args>
-inline void logf(const char *format_, Args... args) noexcept
+inline void logfmt(const char *format_, Args... args) noexcept
 {
     size_t sz = std::snprintf(nullptr, 0, format_, args...);
     std::vector<char> buffer_(sz + 1); // +1 for null terminator

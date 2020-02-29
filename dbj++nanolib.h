@@ -473,7 +473,7 @@ usage:	void thread_safe_fun() {		lock_unlock autolock_ ;  	}
 
 ///	-----------------------------------------------------------------------------------------
 /// 
-#define DBJ_PRINT(FMT_, ...) (void)::dbj::nanolib::logging::logf(FMT_, __VA_ARGS__)
+#define DBJ_PRINT(FMT_, ...) (void)::dbj::nanolib::logging::logfmt(FMT_, __VA_ARGS__)
 
 ///	-----------------------------------------------------------------------------------------
 /// 
