@@ -24,12 +24,17 @@
 /*
 testing nano-lib
 
-Usage is with this single macro bellow.
+Usage is as bellow.
 Testing unit is a lambda with no arguments.
 
 TU_REGISTER(
-	[]{ / * testing code goes here * / }
+	[]{ / * to be used testing code * / }
 );
+
+TU_REGISTER_NOT (
+	[]{ / * unused testing code * / }
+);
+
 
 void main() {
 	// execute all registered tests
@@ -38,7 +43,11 @@ void main() {
 
 */
 #define TU_REGISTER inline auto \
-						_DBJ_CONCATENATE(dbj_unused_tu_function_pointer_, __LINE__) = ::dbj::tu::testing_system::append_test_function
+_DBJ_CONCATENATE(dbj_unused_tu_function_pointer_, __LINE__) \
+= ::dbj::tu::testing_system::append_test_function
+
+#define TU_REGISTER_NOT inline auto \
+_DBJ_CONCATENATE(dbj_unused_tu_function_pointer_, __LINE__) = 
 
 #define DBJ_CHECKING_IS_TU_FP_UNIQUE 0
 
@@ -158,30 +167,35 @@ using tu_function = void (*)();
 #if (DBJ_USES_STATIC_STORAGE_FOR_TU == 1)
 
 /*
-		4095 test units is a lot of tet units for any kind of project
+		4095 test units is a lot of test units for any kind of project
 		more than 4095 test units means something is wrong with 
 		a project logic
 		*/
 constexpr size_t fp_storage_size{0xFFF};
 
-using units_ = DBJ_ARRAY_STORAGE<tu_function, fp_storage_size>;
+using units_sequence_type = DBJ_ARRAY_STORAGE<tu_function, fp_storage_size>;
 #else
 // CLANG 8.0.1, 9.x 10.x can not work on this design
 // https://stackoverflow.com/q/58569773/10870835
 // when CLANG 11 comes, leve this in to test
 // after tests are passed ok, then remove it
 // non vector design
-using units_ = DBJ_VECTOR<tu_function>;
+using units_sequence_type = DBJ_VECTOR<tu_function>;
 #endif // DBJ_USES_STATIC_STORAGE_FOR_TU
 
 inline void line() noexcept
 {
 	DBJ_PRINT("----------------------------------------------------------------------");
 }
-
+/// ---------------------------------------------------------------
+	inline units_sequence_type & units()
+	{
+		static units_sequence_type units_single_instance_{};
+		return units_single_instance_;
+	};
+/// ---------------------------------------------------------------
 struct testing_system final
 {
-	inline static units_ units{};
 
 	// method for adding test functions
 	// NOTE: __clang__ and __GNUC__  are following the standard
@@ -190,7 +204,7 @@ struct testing_system final
 	// side effect of that is same adresses for different lambdas
 	// meaning: loosing them
 	// so be sure to pass lambda/fp by const ref
-	static auto append_test_function(tu_function const &fun_) noexcept
+	static volatile auto append_test_function(tu_function const &fun_) noexcept
 	{
 #if DBJ_CHECKING_IS_TU_FP_UNIQUE
 		{
@@ -212,12 +226,12 @@ struct testing_system final
 			}
 		}
 #endif
-		auto rezult = units.push_back(fun_);
+		auto rezult = units().push_back(fun_);
 		DBJ_ASSERT(rezult != nullptr);
 		return fun_;
 	}
 
-	void start(int = 0, char ** = nullptr) const
+	static void start(int = 0, char ** = nullptr) noexcept
 	{
 		DBJ_PRINT(DBJ_FG_CYAN);
 		line();
@@ -236,22 +250,22 @@ struct testing_system final
 #else
 		DBJ_PRINT(DBJ_FG_RED_BOLD "\nProgram is configured to throw std::bad_alloc on heap memory exhaustion" DBJ_RESET);
 #endif
-		DBJ_PRINT("Catalogue has %zd test units", units.size());
+		DBJ_PRINT("Catalogue has %zd test units", units().size());
 		line();
 		DBJ_PRINT(DBJ_RESET);
 	}
 
-	void end() const
+	static void end() noexcept
 	{
 		DBJ_PRINT(DBJ_FG_CYAN "All tests done." DBJ_RESET);
 	}
 
-	void execute(bool listing_ = false) const
+	static void execute( bool listing_ = false) noexcept
 	{
 		unsigned counter_{};
 		start();
 
-		for (tu_function tu_ : units)
+		for (tu_function tu_ : units() )
 		{
 			DBJ_ASSERT(tu_);
 			DBJ_PRINT(DBJ_FG_CYAN "Test Unit:  " DBJ_FG_RED_BOLD "%d [%p]" DBJ_RESET, counter_++, tu_);
@@ -272,7 +286,7 @@ struct testing_system final
 	}
 }; // testing system
 
-constexpr /*inline*/ testing_system catalog;
+/// constexpr /*inline*/ testing_system catalog;
 
 #pragma region test macros
 
