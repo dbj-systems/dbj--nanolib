@@ -255,11 +255,16 @@ inline void log(const T1 &first_param, const T2 &... params)
 template <typename... Args>
 inline void logfmt(const char *format_, Args... args) noexcept
 {
+    DBJ_NANO_LIB_SYNC_ENTER;
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wformat-security"
     size_t sz = std::snprintf(nullptr, 0, format_, args...);
     std::vector<char> buffer_(sz + 1); // +1 for null terminator
     std::snprintf(&buffer_[0], buffer_.size(), format_, args...);
 
     log(buffer_.data());
+#pragma clang diagnostic pop
+    DBJ_NANO_LIB_SYNC_LEAVE ;
 }
 
 } // namespace dbj::nanolib::logging

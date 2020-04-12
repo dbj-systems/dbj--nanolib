@@ -241,7 +241,7 @@ struct testing_system final
 		//	__clang_minor__       // integer: minor marketing version number of clang
 		//	__clang_patchlevel__  // integer: marketing patch level of clang
 		//	__clang_version__     // string: full version number
-		DBJ_PRINT(DBJ_FG_CYAN "\nCLANG: %s" DBJ_RESET, __clang_version__);
+		DBJ_PRINT(DBJ_FG_CYAN "CLANG: %s" DBJ_RESET, __clang_version__);
 #else
 		DBJ_PRINT("_MSVC_LANG: %lu", _MSVC_LANG);
 #endif

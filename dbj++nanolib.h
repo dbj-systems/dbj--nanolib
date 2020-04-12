@@ -91,6 +91,8 @@
 #endif // NDEBUG
 
 ///-----------------------------------------------------------------------------------------
+/// internal (but not private) critical section
+#include "dbj_nano_synchro.h"
 /// no. this is not "nano" --> #include "dbj++platform.h"
 #include "dbj++log.h"
 
@@ -137,11 +139,14 @@ https://www.drdobbs.com/compile-time-assertions/184401873?pgno=1
 
 be carefull to use compile time values for this to work
 */
-#define assert_static(e) \
+extern "C" {
+
+#define dbj_assert_static(e) \
    do { \
       enum { assert_static__ = 1/(e) }; \
       } while (0)
 
+}
 /// --------------------------------------------------------
 /// decide which vector you will use
 /// call it DBJ_VECTOR in any case
@@ -209,12 +214,12 @@ namespace dbj::nanolib
 {
 	enum class SEMVER
 	{
-		major = 2,
-		minor = 9,
+		major = 3,
+		minor = 0,
 		patch = 0
 	};
 	// SEMVER + TIMESTAMP
-	constexpr auto VERSION = "2.9.0 " __TIME__ " " __DATE__;
+	constexpr auto VERSION = "3.0.0 " __TIME__ " " __DATE__;
 
 	/// -------------------------------------------------------------------------------
 	/* this can speed up things considerably. but test comprehensively first! */
