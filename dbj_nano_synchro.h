@@ -1,6 +1,15 @@
-#pragma once
 #ifndef _DBJ_NANO_CYNCHRO_INC_
 #define _DBJ_NANO_CYNCHRO_INC_
+
+#ifndef DBJ_NANOLIB_INCLUDED
+#error please include dbj++nanolib.h before dbj_nano_synchro.h
+#endif
+
+//#include <process.h> /* _beginthread, _endthread */
+
+#ifndef WIN32_LEAN_AND_MEAN
+#error please include windows before dbj_nano_synchro.h
+#endif // WIN32_LEAN_AND_MEAN
 
 /*
 dbj nano critical section
@@ -12,12 +21,19 @@ DBJ NANO LIB is single threaded by default in case user need the opposite please
 Note: this is obviously WIN32 only
 
 */
-#include <stdlib.h>
+#if defined(__GNUC__) || defined(__INTEL_COMPILER)
+#define DBJ_NANO_THREADLOCAL __thread
+#elif defined(_MSC_VER)
+#define DBJ_NANO_THREADLOCAL __declspec(thread)
+#else
+#error can not create DBJ_NANO_THREADLOCAL ?
+#endif
 
-#define VC_EXTRALEAN
-#define WIN32_LEAN_AND_MEAN
-#include <Windows.h>
-#include <process.h> /* _beginthread, _endthread */
+/// --------------------------------------------------------------------------------------------
+extern "C" {
+    int __cdecl atexit(void(__cdecl*)(void));
+}
+
 /// --------------------------------------------------------------------------------------------
 /// we need to make common function work in presence of multiple threads
 typedef struct

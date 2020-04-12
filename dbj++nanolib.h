@@ -6,6 +6,19 @@
 #error DBJ NANOLIB requires C++ compiler
 #endif
 
+#ifdef _MSVC_LANG
+#define DBJ_NANO_WIN32
+#endif
+
+/// https://stackoverflow.com/a/29253284/10870835
+#ifndef NDEBUG
+#if defined (DEBUG) || defined(_DEBUG)
+/* do nothing */
+#else
+#define NDEBUG
+#endif
+#endif // NDEBUG
+
 /// -------------------------------------------------------------------------------
 #include <stdint.h>
 #include <stdio.h>
@@ -16,6 +29,21 @@
 #include <optional>
 #include <utility>
 #include <mutex>
+
+#ifdef DBJ_NANO_WIN32
+
+#include <io.h>
+#include <fcntl.h>
+#define NOMINMAX
+#define min(x, y) ((x) < (y) ? (x) : (y))
+#define max(x, y) ((x) > (y) ? (x) : (y))
+#define STRICT 1
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#include <system_error>
+#include "vt100win10.h"
+
+#endif // DBJ_NANO_WIN32
 
 /// -------------------------------------------------------------------------------
 /// stolen from vcruntime.h 
@@ -76,23 +104,9 @@
 #endif
 
 ///-----------------------------------------------------------------------------------------
-#ifdef _MSVC_LANG
-#define DBJ_NANO_WIN32
-#endif
-
-///-----------------------------------------------------------------------------------------
-/// https://stackoverflow.com/a/29253284/10870835
-#ifndef NDEBUG
-#if defined (DEBUG) || defined(_DEBUG)
-#define NDEBUG
-#else
-/* do nothing */
-#endif
-#endif // NDEBUG
-
-///-----------------------------------------------------------------------------------------
 /// internal (but not private) critical section
 #include "dbj_nano_synchro.h"
+#include "nonstd/nano_printf.h"
 /// no. this is not "nano" --> #include "dbj++platform.h"
 #include "dbj++log.h"
 
@@ -175,22 +189,6 @@ extern "C" {
 #ifndef NDEBUG
 #define DBJ_NANOLIB_QUICK_COMPILE_TIME_TESTING
 #endif
-
-/// -------------------------------------------------------------------------------
-#ifdef DBJ_NANO_WIN32
-
-#include <io.h>
-#include <fcntl.h>
-#define NOMINMAX
-#define min(x, y) ((x) < (y) ? (x) : (y))
-#define max(x, y) ((x) > (y) ? (x) : (y))
-#define STRICT 1
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#include <system_error>
-#include "vt100win10.h"
-
-#endif // DBJ_NANO_WIN32
 
 /// -------------------------------------------------------------------------------
 /// there is no `repeat` in C++

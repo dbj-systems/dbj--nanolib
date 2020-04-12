@@ -12,18 +12,18 @@ extern "C" {
     typedef void (*putcf) (void*, char);
 
     // GCC thread_local macro
-    __declspec(thread) putcf stdout_putf;
-    __declspec(thread) void* stdout_putp;
+    static DBJ_NANO_THREADLOCAL putcf stdout_putf;
+    static DBJ_NANO_THREADLOCAL void* stdout_putp;
 
 	void nano_init_printf(void* putp, void (*putf) (void*, char));
     void nano_printf(const char* fmt, ...);
 	void nano_sprintf(char* s, const char* fmt, ...);
     void nano_format(void* putp, putcf putf, const char* fmt, va_list va);
 
-#ifdef NANO_PRINTF_RULES
+#ifdef NANO_PRINTF_IN_USE
 	#define printf nano_printf
 	#define sprintf nano_sprintf
-#endif // NANO_PRINTF_RULES
+#endif // NANO_PRINTF_IN_USE
 
 	/*
 	*******************************************************************************
