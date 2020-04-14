@@ -104,13 +104,6 @@
 #endif
 
 ///-----------------------------------------------------------------------------------------
-/// internal (but not private) critical section
-#include "dbj_nano_synchro.h"
-#include "nonstd/nano_printf.h"
-/// no. this is not "nano" --> #include "dbj++platform.h"
-#include "dbj++log.h"
-
-///-----------------------------------------------------------------------------------------
 // new failure will provoke fast exit is set to 1
 #define DBJ_TERMINATE_ON_BAD_ALLOC 1
 
@@ -239,7 +232,9 @@ namespace dbj::nanolib
 
 	/// -------------------------------------------------------------------------------
 #ifdef DBJ_NANO_WIN32
-	void enable_vt_100_and_unicode();
+	namespace logging {
+		void enable_vt_100_and_unicode();
+	}
 #endif // DBJ_NANO_WIN32
 
 	/// -------------------------------------------------------------------------------
@@ -295,7 +290,7 @@ namespace dbj::nanolib
 #ifdef DBJ_NANO_WIN32
  // currently (2019Q4) WIN10 CONSOLE "appears" to need manual enabling the ability to
  // interpret VT100 ESC codes
-		enable_vt_100_and_unicode(); // enable VT100 ESC code for WIN10 console
+		logging::enable_vt_100_and_unicode(); // enable VT100 ESC code for WIN10 console
 #endif // DBJ_NANO_WIN32
 
 #ifdef DBJ_SYNC_WITH_STDIO
@@ -476,6 +471,11 @@ usage:	void thread_safe_fun() {		lock_unlock autolock_ ;  	}
 
 ///	-----------------------------------------------------------------------------------------
 /// 
+	namespace logging {
+		template <typename... Args>
+		void logfmt(const char* format_, Args... args) noexcept ;
+	} 
+
 #define DBJ_PRINT(FMT_, ...) (void)::dbj::nanolib::logging::logfmt(FMT_, __VA_ARGS__)
 
 ///	-----------------------------------------------------------------------------------------
@@ -629,118 +629,18 @@ int main () {    char C = i2c<32>(); }
 		::SetLastError(0);
 	}
 
-	inline bool set_console_font(std::wstring_view font_name, SHORT font_height_ = SHORT(0))
-	{
-		CONSOLE_FONT_INFOEX font_info{};
-		font_info.cbSize = sizeof(CONSOLE_FONT_INFOEX);
-
-		HANDLE con_out_handle = ::GetStdHandle(STD_OUTPUT_HANDLE);
-		if (con_out_handle == INVALID_HANDLE_VALUE)
-			return false;
-
-		BOOL rez_ = GetCurrentConsoleFontEx(
-			con_out_handle,
-			TRUE,
-			&font_info);
-
-		if (rez_ == 0)
-		{
-			dbj::nanolib::last_perror("GetCurrentConsoleFontEx() failed with message: ");
-			return false;
-		}
-
-		// set the new font name
-		(void)memset(font_info.FaceName, 0, LF_FACESIZE);
-		std::copy(font_name.begin(), font_name.end(), std::begin(font_info.FaceName));
-
-		// if reuested set the new font size
-		if (font_height_ > 0)
-		{
-			// quietly discard the silly sizes
-			if ((font_height_ > 7) && (font_height_ < 145))
-			{
-				font_info.dwFontSize.Y = font_height_;
-			}
-		}
-
-		rez_ = SetCurrentConsoleFontEx(
-			con_out_handle,
-			TRUE, /* for the max window size */
-			&font_info);
-
-		if (rez_ == 0)
-		{
-			dbj::nanolib::last_perror("SetCurrentConsoleFontEx() failed with message: ");
-			return false;
-		}
-		return true;
-	}
-
 	/*
-				current machine may or may not  be on WIN10 where VT100 ESC codes are on by default
-				they are or have been off by default
+current machine may or may not  be on WIN10 where VT100 ESC codes are on by default
+they are or have been off by default
 
-				Reuired WIN10 build number is 10586 or greater
+Reuired WIN10 build number is 10586 or greater
 
-				to dance with exact win version please proceed here:
-				https://docs.microsoft.com/en-us/windows/win32/sysinfo/verifying-the-system-version
-				*/
+to dance with exact win version please proceed here:
+https://docs.microsoft.com/en-us/windows/win32/sysinfo/verifying-the-system-version
+*/
 
 #ifdef _WIN32_WINNT_WIN10
-
-#ifndef ENABLE_VIRTUAL_TERMINAL_PROCESSING
-#error ENABLE_VIRTUAL_TERMINAL_PROCESSING not found? Try re-targeting to the latest SDK.
-#endif
-
-				/*
-							will not exit the app *only* if app is started in WIN32 CONSOLE
-							Example: if running from git bash on win this will exit the app
-							if app output is redirected to file, this will also fail.
-							*/
-	inline void enable_vt_100_and_unicode()
-	{
-		static bool visited{ false };
-		if (visited)
-			return;
-
-		auto rez = ::SetConsoleOutputCP(CP_UTF8 /*65001*/);
-		{
-			if (rez == 0)
-			{
-				last_perror();
-				DBJ_PRINT("\nFile: %s\nLine: %ul\nWhy: %s\n", __FILE__, __LINE__, ", SetConsoleOutputCP() failed");
-				return;
-			}
-		}
-		// Set output mode to handle virtual terminal sequences
-		HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
-		if (hOut == INVALID_HANDLE_VALUE)
-		{
-			last_perror();
-			DBJ_PRINT("\nFile: %s\nLine: %ul\nWhy: %s\n", __FILE__, __LINE__, ", GetStdHandle() failed");
-			return;
-		}
-
-		DWORD dwMode{};
-		if (!GetConsoleMode(hOut, &dwMode))
-		{
-			last_perror();
-			DBJ_PRINT("\nFile: %s\nLine: %ul\nWhy: %s\n", __FILE__, __LINE__, ", GetConsoleMode() failed");
-			DBJ_PRINT("\nPlease re-run in either WIN console %s", " or powershell console\n");
-			return;
-		}
-
-		dwMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
-		if (!SetConsoleMode(hOut, dwMode))
-		{
-			last_perror();
-			DBJ_PRINT("\nFile: %s\nLine: %ul\nWhy: %s\n", __FILE__, __LINE__, ", SetConsoleMode() failed");
-			return;
-		}
-		visited = true;
-	}
-
-	// dbj::nanolib::system_call("@chcp 65001")
+// dbj::nanolib::system_call("@chcp 65001")
 	inline bool system_call(const char* cmd_)
 	{
 		_ASSERTE(cmd_);
@@ -769,10 +669,16 @@ int main () {    char C = i2c<32>(); }
 		}
 		return false;
 	}
-
 #endif // _WIN32_WINNT_WIN10
 
 } // namespace dbj::nanolib
 #endif // DBJ_NANO_WIN32
+
+///-----------------------------------------------------------------------------------------
+/// internal (but not private) critical section
+#include "dbj_nano_synchro.h"
+// 
+// includes "nonstd/nano_printf.h"
+#include "dbj++log.h"
 
 #endif // DBJ_NANOLIB_INCLUDED
