@@ -19,8 +19,12 @@ DBJ NANO LIB is single threaded by default in case user need the opposite please
 #define DBJ_NANO_LIB_MT
 
 Note: this is obviously WIN32 only
-
 */
+
+/// there is no pragma for the /kernel build
+#define DBJ_NANO_KERNEL_BUILD
+
+
 #if defined(__GNUC__) || defined(__INTEL_COMPILER)
 #define DBJ_NANO_THREADLOCAL __thread
 #elif defined(_MSC_VER)
@@ -28,6 +32,14 @@ Note: this is obviously WIN32 only
 #else
 #error can not create DBJ_NANO_THREADLOCAL ?
 #endif
+
+/*
+NOTE! __declspec(thread) is not supported with /kernel
+*/
+#ifdef DBJ_NANO_KERNEL_BUILD
+#undef DBJ_NANO_THREADLOCAL
+#define DBJ_NANO_THREADLOCAL
+#endif 
 
 /// --------------------------------------------------------------------------------------------
 extern "C" {
