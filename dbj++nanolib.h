@@ -187,11 +187,11 @@ extern "C" {
 /// there is no `repeat` in C++
 /*
 this macro is actually superior solution to the repeat template function
-_dbj_repeat_counter is local for each macro expansion
+dbj_repeat_counter_ is local for each macro expansion
 usage:
-	  DBJ_REPEAT(50){ std::printf("\n%d", _dbj_repeat_counter ); }
+	  DBJ_REPEAT(50){ std::printf("\n%d", dbj_repeat_counter_ ); }
 */
-#define DBJ_REPEAT(N) for (size_t _dbj_repeat_counter = 0; _dbj_repeat_counter != static_cast<size_t>(N); ++_dbj_repeat_counter)
+#define DBJ_REPEAT(N) for (size_t dbj_repeat_counter_ = 0; dbj_repeat_counter_ != static_cast<size_t>(N); ++dbj_repeat_counter_)
 
 /// -------------------------------------------------------------------------------
 #ifdef _unused
