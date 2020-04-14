@@ -3,6 +3,8 @@
 #ifndef DBJ_TU_INCLUDED
 #define DBJ_TU_INCLUDED
 
+#include <functional>
+
 #ifndef DBJ_NANOLIB_INCLUDED
 #include "dbj++nanolib.h"
 #endif
@@ -13,15 +15,8 @@
 
 #include "nonstd/dbj_timer.h"
 
-// please see this if wondering why do we use dbj::tu::fp_storage_limited
+// please see this if wondering why do we use array not vector
 // #error https://stackoverflow.com/q/58569773/10870835
-#define DBJ_USES_STATIC_STORAGE_FOR_TU 1
-
-#ifdef __clang__
-#ifdef NDEBUG
-#pragma clang system_header
-#endif
-#endif
 
 /*
 testing nano-lib
@@ -48,14 +43,12 @@ void main() {
 _DBJ_CONCATENATE(dbj_unused_tu_function_pointer_, __LINE__) \
 = ::dbj::tu::testing_system::append_test_function
 
-#define TUF_REG_( FP_ ) inline auto \
+// requires function pointer
+// they are in there but
+// for some reason clang loses lambdas somewhere
+#define TUF_REG( FP_ ) inline auto \
 _DBJ_CONCATENATE(dbj_unused_tu_function_pointer_, __LINE__) \
 = ::dbj::tu::testing_system::append_test_function( FP_ )
-
-#define TUF_REG \
-void _DBJ_CONCATENATE(dbj_unused_tu_function_pointer_, __COUNTER__) (  );\
-TUF_REG_( _DBJ_CONCATENATE(dbj_unused_tu_function_pointer_, (__COUNTER__ - 1)));\
-inline void _DBJ_CONCATENATE(dbj_unused_tu_function_pointer_, (__COUNTER__ - 1) ) ( )
 
 #define TU_REGISTER_NOT inline auto \
 _DBJ_CONCATENATE(dbj_unused_tu_function_pointer_, __LINE__) = 
@@ -64,137 +57,131 @@ _DBJ_CONCATENATE(dbj_unused_tu_function_pointer_, __LINE__) =
 
 namespace dbj::tu
 {
-using namespace std;
+	using namespace std;
 
-using tu_function = void (*)();
-#if (DBJ_USES_STATIC_STORAGE_FOR_TU == 1)
+	using tu_function = void (*)();
+	using tu_fun_obj  = function< void() > ;
 
-/*
-		4095 test units is a lot of test units for any kind of project
-		more than 4095 test units means something is wrong with 
-		a project logic
-		*/
-constexpr size_t fp_storage_size{0xFFF};
+	/*
+	4095 test units is a lot of test units for any kind of project
+	more than 4095 test units means something is wrong with
+	a project logic
+	*/
+	constexpr size_t fp_storage_size{ 0xFFF };
 
-using units_sequence_type 
-     = DBJ_ARRAY_STORAGE
-	<  tu_function , fp_storage_size>;
-#else
-// CLANG 8.0.1, 9.x 10.x can not work on this design
-// https://stackoverflow.com/q/58569773/10870835
-// when CLANG 11 comes, leve this in to test
-// after tests are passed ok, then remove it
-// non vector design
-using units_sequence_type = DBJ_VECTOR<tu_function>;
-#endif // DBJ_USES_STATIC_STORAGE_FOR_TU
+	using units_sequence_type
+		= DBJ_ARRAY_STORAGE
+		<  tu_fun_obj, fp_storage_size>;
 
-inline void line() noexcept
-{
-	DBJ_PRINT("----------------------------------------------------------------------");
-}
-/// ---------------------------------------------------------------
-	inline units_sequence_type & units()
+	inline void line() noexcept
+	{
+		DBJ_PRINT("----------------------------------------------------------------------");
+	}
+	/// ---------------------------------------------------------------
+	inline units_sequence_type& units()
 	{
 		static units_sequence_type units_single_instance_{};
 		return units_single_instance_;
 	};
-/// ---------------------------------------------------------------
-struct testing_system final
-{
-
-	// method for adding test functions
-	// NOTE: __clang__ and __GNUC__  are following the standard
-	// so passing lambda/fp by value does the "degrade"
-	// to the "function pointer"
-	// side effect of that is same adresses for different lambdas
-	// meaning: loosing them
-	// so be sure to pass lambda/fp by const ref
-	static volatile auto append_test_function
-	( tu_function const & fun_) noexcept
+	/// ---------------------------------------------------------------
+	struct testing_system final
 	{
-#if DBJ_CHECKING_IS_TU_FP_UNIQUE
+
+		// method for adding test functions
+		// NOTE: __clang__ and __GNUC__  are following the standard
+		// so passing lambda/fp by value does the "degrade"
+		// to the "function pointer"
+		// side effect of that is same adresses for different lambdas
+		// meaning: loosing them
+		// so be sure to pass lambda/fp by const ref
+		static volatile auto append_test_function
+		(tu_function const & fun_) noexcept
 		{
-			bool test_found_before_registration{false};
-			for (auto &elem : units)
+#if DBJ_CHECKING_IS_TU_FP_UNIQUE
 			{
-				if (elem == fun_)
+				bool test_found_before_registration{ false };
+				for (auto& elem : units)
 				{
-					test_found_before_registration = true;
-					break;
+					if (elem == fun_)
+					{
+						test_found_before_registration = true;
+						break;
+					}
+				}
+				if (test_found_before_registration)
+				{
+					using dbj::nanolib::v_buffer;
+					v_buffer::buffer_type report = v_buffer::format("Test Unit %s [%p], found before registration", typeid(fun_).name(), fun_);
+					wstring final(report.begin(), report.end());
+					_ASSERT_EXPR(false == test_found_before_registration, final.data());
 				}
 			}
-			if (test_found_before_registration)
-			{
-				using dbj::nanolib::v_buffer;
-				v_buffer::buffer_type report = v_buffer::format("Test Unit %s [%p], found before registration", typeid(fun_).name(), fun_);
-				wstring final(report.begin(), report.end());
-				_ASSERT_EXPR(false == test_found_before_registration, final.data());
-			}
-		}
 #endif
-		auto rezult = units().push_back(fun_);
-		DBJ_ASSERT(rezult != nullptr);
-		return fun_;
-	}
+			auto rezult = units().push_back(fun_);
+			DBJ_ASSERT(rezult != nullptr);
+			return fun_;
+		}
 
-	static void start(int = 0, char ** = nullptr) noexcept
-	{
-		DBJ_PRINT(DBJ_FG_CYAN);
-		line();
+		static void start(int = 0, char** = nullptr) noexcept
+		{
+			DBJ_PRINT(DBJ_FG_CYAN);
+			line();
 #ifdef __clang__
-		//__clang__             // set to 1 if compiler is clang
-		//	__clang_major__       // integer: major marketing version number of clang
-		//	__clang_minor__       // integer: minor marketing version number of clang
-		//	__clang_patchlevel__  // integer: marketing patch level of clang
-		//	__clang_version__     // string: full version number
-		DBJ_PRINT(DBJ_FG_CYAN "CLANG: %s" DBJ_RESET, __clang_version__);
+			//__clang__             // set to 1 if compiler is clang
+			//	__clang_major__       // integer: major marketing version number of clang
+			//	__clang_minor__       // integer: minor marketing version number of clang
+			//	__clang_patchlevel__  // integer: marketing patch level of clang
+			//	__clang_version__     // string: full version number
+			DBJ_PRINT(DBJ_FG_CYAN "CLANG: %s" DBJ_RESET, __clang_version__);
 #else
-		DBJ_PRINT("_MSVC_LANG: %lu", _MSVC_LANG);
+			DBJ_PRINT("_MSVC_LANG: %lu", _MSVC_LANG);
 #endif
 #if DBJ_TERMINATE_ON_BAD_ALLOC
-		DBJ_PRINT(DBJ_FG_RED_BOLD "Program is configured to terminate on heap memory exhaustion" DBJ_RESET);
+			DBJ_PRINT(DBJ_FG_RED_BOLD "Program is configured to terminate on heap memory exhaustion" DBJ_RESET);
 #else
-		DBJ_PRINT(DBJ_FG_RED_BOLD "\nProgram is configured to throw std::bad_alloc on heap memory exhaustion" DBJ_RESET);
+			DBJ_PRINT(DBJ_FG_RED_BOLD "\nProgram is configured to throw std::bad_alloc on heap memory exhaustion" DBJ_RESET);
 #endif
-		DBJ_PRINT("Catalogue has %zd test units", units().size());
-		line();
-		DBJ_PRINT(DBJ_RESET);
-	}
-
-	static void end() noexcept
-	{
-		DBJ_PRINT(DBJ_FG_CYAN "All tests done." DBJ_RESET);
-	}
-
-	static void execute( bool listing_ = false) noexcept
-	{
-		unsigned counter_{};
-		start();
-
-		for (tu_function tu_ : units() )
-		{
-			DBJ_ASSERT(tu_);
-			DBJ_PRINT(DBJ_FG_CYAN "Test Unit:  " DBJ_FG_RED_BOLD "%d [%p]" DBJ_RESET, counter_++, tu_);
-			if (listing_)
-				continue;
-
-			dbj::nanolib::timer timer_{};
-
-			_ASSERTE( tu_ ) ;
-			if ( tu_ )
-			     (*tu_)();
-			// line();
-			DBJ_PRINT(DBJ_FG_CYAN);
-			DBJ_PRINT("Done in: %s", as_buffer(timer_).data());
+			DBJ_PRINT("Catalogue has %zd test units", units().size());
 			line();
 			DBJ_PRINT(DBJ_RESET);
 		}
-		if (!listing_)
-			end();
-	}
-}; // testing system
 
-/// constexpr /*inline*/ testing_system catalog;
+		static void end() noexcept
+		{
+			DBJ_PRINT(DBJ_FG_CYAN "All tests done." DBJ_RESET);
+		}
+
+		static void execute(bool listing_ = false) noexcept
+		{
+			unsigned counter_{};
+			start();
+
+			for (const auto & tu_ : units())
+			{
+				DBJ_ASSERT(tu_);
+
+				DBJ_PRINT(DBJ_FG_CYAN "Test Unit:  " DBJ_FG_RED_BOLD "%d [%p]" DBJ_RESET,
+					counter_++, &(tu_) );
+				if (listing_)
+					continue;
+
+				dbj::nanolib::timer timer_{};
+
+				if (tu_)
+					(tu_)();
+
+				// line();
+				DBJ_PRINT(DBJ_FG_CYAN);
+				DBJ_PRINT("Done in: %s", as_buffer(timer_).data());
+				line();
+				DBJ_PRINT(DBJ_RESET);
+			}
+			if (!listing_)
+				end();
+		}
+	}; // testing system
+
+	/// constexpr /*inline*/ testing_system catalog;
 
 #pragma region test macros
 
@@ -234,7 +221,7 @@ thus I will put required operators in here
 to print them as strings
 */
 
-inline std::ostringstream &operator<<(std::ostringstream &os_, DBJ_VECTOR<char> buff_)
+inline std::ostringstream& operator<<(std::ostringstream& os_, DBJ_VECTOR<char> buff_)
 {
 	if (os_.good())
 	{
@@ -243,17 +230,7 @@ inline std::ostringstream &operator<<(std::ostringstream &os_, DBJ_VECTOR<char> 
 	return os_;
 }
 
-inline std::ostringstream &operator<<(std::ostringstream &os_, DBJ_VECTOR<wchar_t> buff_)
-{
-	if (os_.good())
-	{
-		os_ << buff_.data();
-	}
-	return os_;
-}
-
-template <size_t N>
-inline std::ostringstream &operator<<(std::ostringstream &os_, std::array<char, N> buff_)
+inline std::ostringstream& operator<<(std::ostringstream& os_, DBJ_VECTOR<wchar_t> buff_)
 {
 	if (os_.good())
 	{
@@ -263,7 +240,7 @@ inline std::ostringstream &operator<<(std::ostringstream &os_, std::array<char, 
 }
 
 template <size_t N>
-inline std::ostringstream &operator<<(std::ostringstream &os_, std::array<wchar_t, N> buff_)
+inline std::ostringstream& operator<<(std::ostringstream& os_, std::array<char, N> buff_)
 {
 	if (os_.good())
 	{
@@ -272,7 +249,17 @@ inline std::ostringstream &operator<<(std::ostringstream &os_, std::array<wchar_
 	return os_;
 }
 
-inline std::ostringstream &operator<<(std::ostringstream &os_, std::nullopt_t const &)
+template <size_t N>
+inline std::ostringstream& operator<<(std::ostringstream& os_, std::array<wchar_t, N> buff_)
+{
+	if (os_.good())
+	{
+		os_ << buff_.data();
+	}
+	return os_;
+}
+
+inline std::ostringstream& operator<<(std::ostringstream& os_, std::nullopt_t const&)
 {
 	if (os_.good())
 	{
@@ -286,7 +273,7 @@ no this does not help
 https://www.boost.org/doc/libs/1_34_0/boost/optional/optional_io.hpp
 */
 template <typename T1>
-inline std::ostringstream &operator<<(std::ostringstream &os_, std::optional<T1> const &opt_)
+inline std::ostringstream& operator<<(std::ostringstream& os_, std::optional<T1> const& opt_)
 {
 	if (os_.good())
 	{
@@ -302,7 +289,7 @@ inline std::ostringstream &operator<<(std::ostringstream &os_, std::optional<T1>
 std::pair pair **was** the core of valstat_1
 */
 template <typename T1, typename T2>
-inline std::ostringstream &operator<<(std::ostringstream &os_, std::pair<T1, T2> pair_)
+inline std::ostringstream& operator<<(std::ostringstream& os_, std::pair<T1, T2> pair_)
 {
 	if (os_.good())
 	{

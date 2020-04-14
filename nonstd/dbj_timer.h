@@ -1,6 +1,12 @@
 #ifndef DBJ_TIMER_INC_
 #define DBJ_TIMER_INC_
 
+
+#ifdef __clang__
+#pragma clang system_header
+#endif // __clang__
+
+
 #include <array>
 #include <chrono>
 #include <atomic>
