@@ -1,6 +1,18 @@
 #pragma once
 #ifndef DBJ_LOG_INC_
 #define DBJ_LOG_INC_
+
+// will exit if formating strings have escape chars
+// never used in release builds
+#ifndef NDEBUG
+#define DBJ_NANO_LOG_NO_ESCAPE_CODES_FATAL
+#endif // !NDEBUG
+//
+#ifndef DBJ_ERR_PROMPT
+#define DBJ_FILE_LINE_TSTAMP __FILE__ "(" _CRT_STRINGIZE(__LINE__) ")[" __TIMESTAMP__ "] "
+/* will not compile if MSG_ is not string literal */
+#define DBJ_ERR_PROMPT(MSG_) DBJ_FILE_LINE_TSTAMP MSG_
+#endif // DBJ_ERR_PROMPT
 //
 #define _CRT_SECURE_NO_WARNINGS 1
 //
@@ -256,14 +268,31 @@ template <typename... Args>
 inline void logfmt(const char *format_, Args... args) noexcept
 {
     DBJ_NANO_LIB_SYNC_ENTER;
+
+#ifdef DBJ_NANO_LOG_NO_ESCAPE_CODES_FATAL
+    if (
+        strchr(format_, '\n') ||
+        strchr(format_, '\r') ||
+        strchr(format_, '\t')
+        )
+    {
+        perror("\n\nFATAL ERROR\n\n" DBJ_ERR_PROMPT( "\n\nDo not use escape codes in dbj nano logging formatting\n"  ));
+        exit(1);
+    }
+#endif // NDEBUG
+
+#ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wformat-security"
+#endif __clang__
     size_t sz = std::snprintf(nullptr, 0, format_, args...);
     std::vector<char> buffer_(sz + 1); // +1 for null terminator
     std::snprintf(&buffer_[0], buffer_.size(), format_, args...);
 
     log(buffer_.data());
+#ifdef __clang__
 #pragma clang diagnostic pop
+#endif __clang__
     DBJ_NANO_LIB_SYNC_LEAVE ;
 }
 
