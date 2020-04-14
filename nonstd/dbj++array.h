@@ -345,8 +345,10 @@ struct array_storage : DBJ_ARRAY< T_, S_ >
 	bool is_empty() const { return level_ == 0; }
 	bool is_full() const { return level_ == storage_capacity; }
 
-	T_ push_back(T_ next_fp) {
-		if (is_full()) return nullptr;
+	T_ push_back(T_ next_fp) 
+    {
+        _ASSERTE( ! is_full() );
+        if (is_full()) return {}; // dbj 2020-APR-14 nullptr;
 		(*this)[level_] = next_fp;
 		level_ += 1;
 		return next_fp;

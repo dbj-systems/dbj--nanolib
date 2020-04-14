@@ -288,7 +288,7 @@ inline void logfmt(const char *format_, Args... args) noexcept
 #ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wformat-security"
-#endif __clang__
+#endif // __clang__
     size_t sz = std::snprintf(nullptr, 0, format_, args...);
     std::vector<char> buffer_(sz + 1); // +1 for null terminator
     std::snprintf(&buffer_[0], buffer_.size(), format_, args...);
@@ -296,7 +296,7 @@ inline void logfmt(const char *format_, Args... args) noexcept
     log(buffer_.data());
 #ifdef __clang__
 #pragma clang diagnostic pop
-#endif __clang__
+#endif // __clang__
     DBJ_NANO_LIB_SYNC_LEAVE ;
 }
 
