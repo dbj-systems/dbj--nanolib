@@ -3,6 +3,8 @@
 #ifndef DBJ_TU_INCLUDED
 #define DBJ_TU_INCLUDED
 
+#include <atomic>
+
 #ifndef DBJ_NANOLIB_INCLUDED
 #include "dbj++nanolib.h"
 #endif
