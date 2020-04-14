@@ -385,7 +385,7 @@ namespace dbj::nanolib::containers
 			else
 				throw std::out_of_range("accessed position is out of range");
 #else
-			_ASSERTE(pos < data_size_)
+			_ASSERTE(pos < data_size_);
 				return  data_[pos];
 #endif
 		}
@@ -398,7 +398,7 @@ namespace dbj::nanolib::containers
 			else
 				throw std::out_of_range("accessed position is out of range");
 #else
-			_ASSERTE(pos < data_size_)
+			_ASSERTE(pos < data_size_);
 				return  data_[pos];
 #endif
 		}
