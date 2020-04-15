@@ -153,7 +153,7 @@ extern "C" {
       enum { assert_static__ = 1/(e) }; \
       } while (0)
 
-}
+} // "C"
 /// --------------------------------------------------------
 /// decide which vector you will use
 /// call it DBJ_VECTOR in any case
@@ -244,17 +244,21 @@ namespace dbj::nanolib
 		/*
 				WIN32 console is one notorious 30+ years old brat
 				WIN32 UNICODE situation does not help at all
-				UCRT team started well then dispersed
+				MSFT UCRT team started well then dispersed
+
 				https://www.goland.org/unicode_c_windows/
 
 				To stay sane and healthy, the rules are:
 
-				0. stick to UTF8 as much as you can -- article above is good but sadly wrong about UTF16, see www.utf8.com
+				0. If you need unicode glyphs stick to UTF8 as much as you can 
+				   -- article above is good but sadly wrong about UTF16, see www.utf8.com
 				1. NEVER mix printf and wprintf
-				1.1 you can mix printf and std::cout but very carefully
-				1.2 UCRT and printf and _setmode() are not friends see the commenct bellow, just here
+				   1.1 you can mix printf and std::cout but very carefully
+				   1.2 UCRT and printf and _setmode() are not friends see the commenct bellow, just here
 				2. NEVER mix std::cout  and std::wcout
-				3. be (very_ aware that you need particular font to see *all* of your funky unicode glyphs is windows console
+				3. be (very) aware that you need particular font to see *all* of your funky unicode glyphs is windows console
+				4. never (ever) use C++20 char8_t and anything using it
+				   4.1 if you need to use <cuchar> for utf translations
 
 				Steve Wishnousky (MSFT) publicly has advised me personaly, against
 				using _setmode(), at all
@@ -309,7 +313,7 @@ namespace dbj::nanolib
 	///	-----------------------------------------------------------------------------------------
 	using void_void_function_ptr = void (*)(void);
 	// yes I am aware of: https://ricab.github.io/scope_guard/
-	// but I do not see the point ;)
+	// but I do not see the point of that complexity ;)
 	template <typename Function_PTR = dbj::nanolib::void_void_function_ptr>
 	struct on_scope_exit final
 	{
@@ -336,7 +340,7 @@ namespace dbj::nanolib
 	{
 		/// DBJ_ASSERT(msg_ && file_ && line_);
 		/// all the bets are of so no point of using some logging
-		perror("dbj nanolib Terminating error!");
+		perror("\n\n" __FILE__ "\n\ndbj nanolib Terminating error!");
 		std::exit(EXIT_FAILURE);
 	}
 
@@ -350,19 +354,7 @@ namespace dbj::nanolib
 #define DBJ_VERIFY(x) DBJ_VERIFY_(x, __FILE__, __LINE__)
 #endif
 
-///	-----------------------------------------------------------------------------------------
-#pragma region synchronisation
-/*
-usage:	void thread_safe_fun() {		lock_unlock autolock_ ;  	}
-*/
-	struct lock_unlock final
-	{
-		mutable std::mutex mux_;
-		lock_unlock() noexcept { mux_.lock(); }
-		~lock_unlock() { mux_.unlock(); }
-	};
 
-#pragma endregion
 
 	///	-----------------------------------------------------------------------------------------
 #pragma region buffer type and helper
@@ -629,15 +621,7 @@ int main () {    char C = i2c<32>(); }
 		::SetLastError(0);
 	}
 
-	/*
-current machine may or may not  be on WIN10 where VT100 ESC codes are on by default
-they are or have been off by default
 
-Reuired WIN10 build number is 10586 or greater
-
-to dance with exact win version please proceed here:
-https://docs.microsoft.com/en-us/windows/win32/sysinfo/verifying-the-system-version
-*/
 
 #ifdef _WIN32_WINNT_WIN10
 // dbj::nanolib::system_call("@chcp 65001")

@@ -65,7 +65,7 @@ namespace dbj::nanolib::logging
 // https://stackoverflow.com/a/54383242/10870835
 // currently (2020 Q1) we base output processing
 // on ostringstream
-// when C++20 compilkers stabilize we will switch to std::format
+// when C++20 compilers stabilize we will switch to std::format
 
 namespace detail
 {
@@ -136,7 +136,11 @@ inline timestamp_buffer_type high_precision_timestamp()
     }
 
     // CL err's on using std::gmtime but offers no explanation about __STDC_LIB_EXT1__ requirement
+#ifdef DBJ_NANOLIB_TSTAMP_INCLUDES_UTC
     std::strftime(hours_mins_secs, sizeof hours_mins_secs, "%T (UTC%z)", &time_buf);
+#else
+    std::strftime(hours_mins_secs, sizeof hours_mins_secs, "%T", &time_buf);
+#endif // DBJ_NANOLIB_TSTAMP_INCLUDES_UTC
 
     timestamp_buffer_type time_stamp_{{}}; // value initalization of native array inside std::array aggregate
 
@@ -301,6 +305,15 @@ inline void logfmt(const char *format_, Args... args) noexcept
 }
 
 #ifdef _WIN32_WINNT_WIN10
+/*
+current machine may or may not  be on WIN10 where VT100 ESC codes are on by default
+they are or have been off by default
+
+Reuired WIN10 build number is 10586 or greater
+
+to dance with exact win version please proceed here:
+https://docs.microsoft.com/en-us/windows/win32/sysinfo/verifying-the-system-version
+*/
 
 #ifndef ENABLE_VIRTUAL_TERMINAL_PROCESSING
 #error ENABLE_VIRTUAL_TERMINAL_PROCESSING not found? Try re-targeting to the latest SDK.

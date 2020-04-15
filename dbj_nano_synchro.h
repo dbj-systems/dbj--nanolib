@@ -91,4 +91,29 @@ inline void synchro_leave() { LeaveCriticalSection(&dbj_nano_crit_sect_initor()-
 #define DBJ_NANO_LIB_SYNC_LEAVE 
 #endif
 
+#ifdef __cplusplus
+#include <mutex>
+///	-----------------------------------------------------------------------------------------
+#pragma region synchronisation
+/*
+usage:	void thread_safe_fun() 
+{	
+lock_unlock autolock_ ;  	
+
+. . . 
+wahtever happens here is not entered before it is finished 
+. . .
+
+}
+*/
+struct lock_unlock final
+{
+    mutable std::mutex mux_;
+    lock_unlock() noexcept { mux_.lock(); }
+    ~lock_unlock() { mux_.unlock(); }
+};
+
+#pragma endregion
+#endif // __cplusplus
+
 #endif // !_DBJ_NANO_CYNCHRO_INC_
