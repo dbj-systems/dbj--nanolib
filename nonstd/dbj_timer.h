@@ -57,8 +57,9 @@ namespace stopwatch
 } // namespace stopwatch
 
 /*
+ ****************************************************************************
 	times as decimals
-*/
+ */
 struct timer final
 {
 	using buffer = std::array<char, 24>;
@@ -77,7 +78,6 @@ struct timer final
 	double micro() const { return nano() / 1000.0; }
 	double milli() const { return micro() / 1000.0; }
 	double seconds() const { return milli() / 1000.0; }
-	// double decimal3(double arg) { return (std::round(arg * 1000)) / 1000; }
 
 	enum class kind
 	{
@@ -88,10 +88,13 @@ struct timer final
 	};
 
 	/*
+	   Usage: 
+
 	   timer timer_{} ;
 
-	   auto microsecs_ = as_buffer( timer_ );
-	   auto secs_ = as_buffer( timer_, timer::kind::second );
+	   auto nanosecs_  = timer_.nano() ;
+	   auto microsecs_str_ = as_buffer( timer_ );
+	   auto secs_str_ = as_buffer( timer_, timer::kind::second );
 	*/
 	friend buffer as_buffer(timer const& timer_, kind which_ = kind::milli)
 	{
