@@ -191,7 +191,7 @@ dbj_repeat_counter_ is local for each macro expansion
 usage:
 	  DBJ_REPEAT(50){ std::printf("\n%d", dbj_repeat_counter_ ); }
 */
-#define DBJ_REPEAT(N) for (size_t dbj_repeat_counter_ = 0; dbj_repeat_counter_ != static_cast<size_t>(N); ++dbj_repeat_counter_)
+#define DBJ_REPEAT(N) for (size_t dbj_repeat_counter_ = 0; dbj_repeat_counter_ < static_cast<size_t>(N); ++dbj_repeat_counter_)
 
 /// -------------------------------------------------------------------------------
 #ifdef _unused
@@ -207,10 +207,10 @@ namespace dbj::nanolib
 	{
 		major = 3,
 		minor = 0,
-		patch = 0
+		patch = 1
 	};
 	// SEMVER + TIMESTAMP
-	constexpr auto VERSION = "3.0.0 " __TIME__ " " __DATE__;
+	constexpr auto VERSION = "3.0.1 " __TIME__ " " __DATE__;
 
 	/// -------------------------------------------------------------------------------
 	/* this can speed up things considerably. but test comprehensively first! */
