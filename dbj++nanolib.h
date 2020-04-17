@@ -628,6 +628,8 @@ int main () {    char C = i2c<32>(); }
 	inline bool system_call(const char* cmd_)
 	{
 		_ASSERTE(cmd_);
+		volatile auto whatever_ = cmd_;
+
 		if (0 != system(NULL))
 		{
 			if (-1 == system(cmd_)) // utf-8 codepage!

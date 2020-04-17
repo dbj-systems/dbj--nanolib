@@ -148,10 +148,10 @@ namespace dbj::tu
 
 		static void end() noexcept
 		{
-			DBJ_PRINT(DBJ_FG_CYAN "All tests done." DBJ_RESET);
+			DBJ_PRINT(DBJ_FG_CYAN "%s" DBJ_RESET, "All tests done." );
 		}
 
-		static void execute(bool listing_ = false) noexcept
+		static int execute(bool listing_ = false) noexcept
 		{
 			unsigned counter_{};
 			start();
@@ -178,6 +178,8 @@ namespace dbj::tu
 			}
 			if (!listing_)
 				end();
+
+			return EXIT_SUCCESS;
 		}
 	}; // testing system
 
