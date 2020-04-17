@@ -470,6 +470,7 @@ namespace dbj::nanolib
 
 #define DBJ_PRINT(FMT_, ...) (void)::dbj::nanolib::logging::logfmt(FMT_, __VA_ARGS__)
 
+
 ///	-----------------------------------------------------------------------------------------
 /// 
 /*
