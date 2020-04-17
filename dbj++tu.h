@@ -151,6 +151,10 @@ namespace dbj::tu
 			DBJ_PRINT(DBJ_FG_CYAN "%s" DBJ_RESET, "All tests done." );
 		}
 
+		// do not warn about address %4X formating char
+#pragma warning( push )
+#pragma warning( disable : 4477 4313 )
+
 		static int execute(bool listing_ = false) noexcept
 		{
 			unsigned counter_{};
@@ -160,7 +164,7 @@ namespace dbj::tu
 			{
 				DBJ_ASSERT(tu_);
 
-				DBJ_PRINT(DBJ_FG_CYAN "Test Unit:  " DBJ_FG_RED_BOLD "%d [%p]" DBJ_RESET,
+				DBJ_PRINT(DBJ_FG_CYAN "Test Unit:  " DBJ_FG_RED_BOLD "%d [%4X]" DBJ_RESET,
 					counter_++, &(tu_) );
 				if (listing_)
 					continue;
@@ -182,6 +186,7 @@ namespace dbj::tu
 			return EXIT_SUCCESS;
 		}
 	}; // testing system
+#pragma warning( pop )
 
 	/// constexpr /*inline*/ testing_system catalog;
 
