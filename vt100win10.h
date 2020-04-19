@@ -1,15 +1,13 @@
-#pragma once
-/* (c) 2019 by dbj.org   -- CC BY-SA 4.0 -- https://creativecommons.org/licenses/by-sa/4.0/ */
 #ifndef DBJ_VT100WIN10_INCLUDED
 #define DBJ_VT100WIN10_INCLUDED
+/* (c) 2019 by dbj.org   -- CC BY-SA 4.0 -- https://creativecommons.org/licenses/by-sa/4.0/ */
 
-#ifdef DBJ_NANO_WIN32
 /*
 VT100 ESC codes for coloring the WIN10 PRO console output
 full explanation:
 https://docs.microsoft.com/en-us/windows/console/console-virtual-terminal-sequences?redirectedfrom=MSDN
 */
-#define DBJ_ESC "\x1b"
+// #define DBJ_ESC "\x1b"
 #define DBJ_CSI "\x1b["
 
 #define DBJ_CLS DBJ_CSI "2J"
@@ -39,7 +37,4 @@ https://docs.microsoft.com/en-us/windows/console/console-virtual-terminal-sequen
 #define DBJ_BG_YELLOW DBJ_CSI "43m"
 #define DBJ_BG_BLUE DBJ_CSI "44m"
 
-#else
-#error VT100 escape codes are defined only for WIN10 builds
-#endif // DBJ_NANO_WIN32
 #endif // DBJ_VT100WIN10_INCLUDED
