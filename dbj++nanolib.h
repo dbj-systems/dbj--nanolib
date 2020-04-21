@@ -42,6 +42,19 @@
 #include <windows.h>
 #include <system_error>
 #include "vt100win10.h"
+/// -------------------------------------------------------------------------------
+/// now here is the secret sauce key ingredient
+/// on windows machine these are the fastest
+/// proven and measured
+
+#define DBJ_NANO_ALLOC(T_,S_) \
+(T_*)::HeapAlloc(::GetProcessHeap(), 0, S_ * sizeof(T_))
+
+#define DBJ_NANO_ALLOC_2(T_,S_) \
+(T_*)::HeapAlloc(::GetProcessHeap(), 0, S_)
+
+#define DBJ_NANO_FREE(P_) \
+::HeapFree(::GetProcessHeap(), 0, (void*)P_)
 
 #endif // DBJ_NANO_WIN32
 
