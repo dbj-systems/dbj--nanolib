@@ -297,7 +297,7 @@ inline void logfmt(const char *format_, Args... args) noexcept
     std::vector<char> buffer_(sz + 1); // +1 for null terminator
     std::snprintf(&buffer_[0], buffer_.size(), format_, args...);
 
-    log(buffer_.data());
+    detail::current_sink_function(buffer_.data());
 #ifdef __clang__
 #pragma clang diagnostic pop
 #endif // __clang__

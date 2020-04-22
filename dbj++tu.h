@@ -166,6 +166,8 @@ namespace dbj::tu
 
 				DBJ_PRINT(DBJ_FG_CYAN "Test Unit:  " DBJ_FG_RED_BOLD "%d [%4X]" DBJ_RESET,
 					counter_++, &(tu_) );
+				line();
+
 				if (listing_)
 					continue;
 
@@ -174,7 +176,6 @@ namespace dbj::tu
 				if (tu_)
 					(tu_)();
 
-				// line();
 				DBJ_PRINT(DBJ_FG_CYAN);
 				DBJ_PRINT("Done in: %s", as_buffer(timer_).data());
 				line();

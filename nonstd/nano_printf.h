@@ -128,10 +128,9 @@ extern "C" {
 
     inline void nano_format(void* putp, putcf putf, const char* fmt, va_list va)
     {
+        _ASSERTE(putf);
         char bf[24];
-
         char ch;
-
 
         while ((ch = *(fmt++))) {
             if (ch != '%')
@@ -189,13 +188,22 @@ extern "C" {
                     putchw(putp, putf, w, lz, bf);
                     break;
                 case 'p':
-                { /* Print one or two lots of %x depending on sizeof(size_t) */
+                { /* 
+                  Print one or two lots of %x depending on sizeof(size_t) 
+                  */
+#ifdef WIN64
+                    constexpr auto mask = 0xffffffff;
+                    constexpr auto shift_size = 32;
+#else // WIN32
+                    constexpr auto mask = 0xffffffff;
+                    constexpr auto shift_size = 32;
+#endif // WIN32
                     size_t pointer = (size_t)va_arg(va, void*);
                     lz = 1;
                     w = 8;
                     if (sizeof(size_t) > 4)
                     {
-                        ui2a((unsigned int)((pointer >> 32) & 0xffffffff), 16, 0, bf);
+                        ui2a((unsigned int)((pointer >> shift_size) & 0xffffffff), 16, 0, bf);
                         putchw(putp, putf, w, lz, bf);
                     }
                     ui2a((unsigned int)(pointer & 0xffffffff), 16, 0, bf);
