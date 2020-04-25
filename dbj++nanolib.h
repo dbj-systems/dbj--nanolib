@@ -38,20 +38,10 @@
 #define STRICT 1
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+// can be used on its own
+#include "dbj_heap_alloc.h"
+
 #include "vt100win10.h"
-/// -------------------------------------------------------------------------------
-/// now here is the secret sauce key ingredient
-/// on windows machine these are the fastest
-/// proven and measured
-
-#define DBJ_NANO_CALLOC(S_, T_) \
-(T_*)::HeapAlloc(::GetProcessHeap(), 0, S_ * sizeof(T_))
-
-#define DBJ_NANO_MALLOC(T_,S_) \
-(T_*)::HeapAlloc(::GetProcessHeap(), 0, S_)
-
-#define DBJ_NANO_FREE(P_) \
-::HeapFree(::GetProcessHeap(), 0, (void*)P_)
 
 /// -------------------------------------------------------------------------------
 /// stolen from vcruntime.h 
