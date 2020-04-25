@@ -12,9 +12,6 @@
 */
 #ifdef _WIN32
 
-#ifdef __cplusplus
-extern "C" {
-#endif __cplusplus
 
 #define DBJ_NANO_CALLOC(T_,S_) (T_*)HeapAlloc(GetProcessHeap(), 0, S_ * sizeof(T_))
 
@@ -24,16 +21,30 @@ extern "C" {
 
 #ifndef _INC_WINDOWS
 
+#ifdef __cplusplus
+extern "C" {
+#endif __cplusplus
+
 __declspec(dllimport) void* __stdcall  GetProcessHeap(void);
 __declspec(allocator) void* __stdcall HeapAlloc(void* /*hHeap*/, int /* flags */, size_t /*dwBytes*/);
 int __stdcall HeapFree(void* /*hHeap*/, int  /*dwFlags*/, void* /*lpMem*/);
-
-#endif // _INC_WINDOWS
 
 #ifdef __cplusplus
 } // extern "C"
 #endif __cplusplus
 
-#endif // _WIN32
+#endif // _INC_WINDOWS
+
+#else // not WIN32
+
+/// no WIN32 -- standard allocation
+
+#define DBJ_NANO_CALLOC(T_,S_) (T_*)calloc( S_ , sizeof(T_))
+
+#define DBJ_NANO_MALLOC_2(T_,S_)(T_*)malloc( S_ )
+
+#define DBJ_NANO_FREE(P_) free ((void*)P_)
+
+#endif // not WIN32
 
 #endif // DBJ_HEAP_ALLOC_INCLUDE
