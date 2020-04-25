@@ -6,10 +6,8 @@
 #error DBJ NANOLIB requires C++ compiler
 #endif
 
-#ifdef _MSVC_LANG
-#define DBJ_NANO_WIN32
-#endif
-
+/// -------------------------------------------------------------------------------
+/// NDEBUG *is* standard macro and it is used
 /// https://stackoverflow.com/a/29253284/10870835
 #ifndef NDEBUG
 #if defined (DEBUG) || defined(_DEBUG)
@@ -29,8 +27,8 @@
 #include <optional>
 #include <utility>
 #include <mutex>
-
-#ifdef DBJ_NANO_WIN32
+// DBJ TODO: get rid of <system_error>
+#include <system_error>
 
 #include <io.h>
 #include <fcntl.h>
@@ -40,23 +38,20 @@
 #define STRICT 1
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-#include <system_error>
 #include "vt100win10.h"
 /// -------------------------------------------------------------------------------
 /// now here is the secret sauce key ingredient
 /// on windows machine these are the fastest
 /// proven and measured
 
-#define DBJ_NANO_ALLOC(T_,S_) \
+#define DBJ_NANO_CALLOC(S_, T_) \
 (T_*)::HeapAlloc(::GetProcessHeap(), 0, S_ * sizeof(T_))
 
-#define DBJ_NANO_ALLOC_2(T_,S_) \
+#define DBJ_NANO_MALLOC(T_,S_) \
 (T_*)::HeapAlloc(::GetProcessHeap(), 0, S_)
 
 #define DBJ_NANO_FREE(P_) \
 ::HeapFree(::GetProcessHeap(), 0, (void*)P_)
-
-#endif // DBJ_NANO_WIN32
 
 /// -------------------------------------------------------------------------------
 /// stolen from vcruntime.h 
@@ -87,6 +82,8 @@
 
 #if !defined(DBJ_HAS_CXX17) && !defined(DBJ_HAS_CXX20)
 
+#undef DBJ_STL_LANG
+
 #if defined(_MSVC_LANG)
 #define DBJ_STL_LANG _MSVC_LANG
 #else
@@ -105,32 +102,34 @@
 #endif // Use the value of DBJ_STL_LANG to define DBJ_HAS_CXX17 and \
        // DBJ_HAS_CXX20
 
-// #undef DBJ_STL_LANG
 #endif // !defined(DBJ_HAS_CXX17) && !defined(DBJ_HAS_CXX20)
 
 /// usage is without ifndef/ifdef
 #if  ! DBJ_HAS_CXX17
-#error DBJ NANOLIB requires the standard C++17 compiler
+#error DBJ NANOLIB requires the standard C++17 (or better) compiler
 #endif
 #if DBJ_HAS_CXX20
-#pragma message( "WARNING -- DBJ NANOLIBis not ready yet for the standard C++20 (or higher) -- " __TIMESTAMP__ )
+#pragma message( "WARNING -- DBJ NANOLIBis not fully ready yet for the standard C++20 (or higher) -- " __TIMESTAMP__ )
 #endif
 
 ///-----------------------------------------------------------------------------------------
-// new failure will provoke fast exit is set to 1
+// new failure will provoke fast exit if set to 1
 #define DBJ_TERMINATE_ON_BAD_ALLOC 1
 
 #if DBJ_TERMINATE_ON_BAD_ALLOC
 // do not throw bad_alloc
 // call default termination on heap memory exhausted
+// NOTE: this is not declaration but immediate execution 
+// of anonymous lambda
 inline auto setting_new_handler_to_terminate_ = []() {
 	std::set_new_handler(
 		[] { perror(__FILE__ " Terminating because of heap exhaustion");   std::terminate(); }
 	);
 	return true;
 }();
+#pragma message( "WARNING -- DBJ NANOLIB has set std::new_handler() to immediately terminate. No std::bad_alloc!" )
 #else
-/* do nothing */
+#pragma message( "WARNING -- DBJ NANOLIB has *not* set std::new_handler()" )
 #endif
 
 ///-----------------------------------------------------------------------------------------
@@ -244,11 +243,9 @@ namespace dbj::nanolib
 	}
 
 	/// -------------------------------------------------------------------------------
-#ifdef DBJ_NANO_WIN32
 	namespace logging {
 		void enable_vt_100_and_unicode();
 	}
-#endif // DBJ_NANO_WIN32
 
 	/// -------------------------------------------------------------------------------
 	/* happens once and as soon as possible */
@@ -304,11 +301,10 @@ namespace dbj::nanolib
 		// error C2022:  '1082': too big for character and so on  for every character
 		// printf(  "\x043a\x043e\x0448\x043a\x0430 \x65e5\x672c\x56fd\n");
 #endif // 0
-#ifdef DBJ_NANO_WIN32
+
  // currently (2019Q4) WIN10 CONSOLE "appears" to need manual enabling the ability to
  // interpret VT100 ESC codes
 		logging::enable_vt_100_and_unicode(); // enable VT100 ESC code for WIN10 console
-#endif // DBJ_NANO_WIN32
 
 #ifdef DBJ_SYNC_WITH_STDIO
 		/*
@@ -446,7 +442,6 @@ namespace dbj::nanolib
 			return buff_;
 		}
 
-#ifdef DBJ_NANO_WIN32
 		/*
 		CP_ACP == ANSI
 		CP_UTF8
@@ -470,7 +465,6 @@ namespace dbj::nanolib
 			WideCharToMultiByte(CODE_PAGE_T_P_, 0, s.data(), slength, rez.data(), len, 0, 0);
 			return rez;
 		}
-#endif // DBJ_NANO_WIN32
 	};	 // v_buffer
 #pragma endregion
 
@@ -616,7 +610,6 @@ int main () {    char C = i2c<32>(); }
 #endif
 	}
 
-#ifdef  DBJ_NANO_WIN32
 	/* Last WIN32 error, message */
 	inline v_buffer::buffer_type last_win32_error_message(int code = 0)
 	{
@@ -672,7 +665,6 @@ int main () {    char C = i2c<32>(); }
 #endif // _WIN32_WINNT_WIN10
 
 } // namespace dbj::nanolib
-#endif // DBJ_NANO_WIN32
 
 ///-----------------------------------------------------------------------------------------
 /// internal (but not private) critical section

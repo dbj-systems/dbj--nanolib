@@ -267,8 +267,6 @@ using posix_valstat_trait = valstat_trait<
 	// category name
 	posix::category_name>;
 
-#ifdef DBJ_NANO_WIN32
-
 namespace win32
 {
 /* win32 error code as a (strong) type */
@@ -305,8 +303,6 @@ using win32_valstat_trait = valstat_trait<
 	win32::code_to_int,
 	// category name
 	win32::category_name>;
-
-#endif // DBJ_NANO_WIN32
 
 } // namespace dbj::nanolib
 
