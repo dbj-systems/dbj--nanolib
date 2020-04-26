@@ -15,7 +15,7 @@
 
 #define DBJ_NANO_CALLOC(T_,S_) (T_*)HeapAlloc(GetProcessHeap(), 0, S_ * sizeof(T_))
 
-#define DBJ_NANO_MALLOC_2(T_,S_)(T_*)HeapAlloc(GetProcessHeap(), 0, S_)
+#define DBJ_NANO_MALLOC(T_,S_)(T_*)HeapAlloc(GetProcessHeap(), 0, S_)
 
 #define DBJ_NANO_FREE(P_) HeapFree(GetProcessHeap(), 0, (void*)P_)
 
@@ -41,7 +41,7 @@ int __stdcall HeapFree(void* /*hHeap*/, int  /*dwFlags*/, void* /*lpMem*/);
 
 #define DBJ_NANO_CALLOC(T_,S_) (T_*)calloc( S_ , sizeof(T_))
 
-#define DBJ_NANO_MALLOC_2(T_,S_)(T_*)malloc( S_ )
+#define DBJ_NANO_MALLOC(T_,S_)(T_*)malloc( S_ )
 
 #define DBJ_NANO_FREE(P_) free ((void*)P_)
 
