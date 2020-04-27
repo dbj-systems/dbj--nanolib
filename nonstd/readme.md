@@ -1,5 +1,7 @@
 # `dbj::nanolib::nonstd`
 
+`dbj_memaligned.h` and `dbj_nanostring.h` are not in use currently.
+
 #### types in here, have the reason of existence if they do 
 
 - not use exceptions
