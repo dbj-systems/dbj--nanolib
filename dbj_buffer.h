@@ -16,6 +16,8 @@
 
 #pragma region buffer type and helper
 
+#include "./utf/dbj_utf_cpp.h"
+
 namespace dbj::nanolib {
 
 /*
@@ -33,6 +35,7 @@ namespace dbj::nanolib {
     */
 	struct v_buffer final
 	{
+		using type = v_buffer;
 
 		using buffer_type = DBJ_VECTOR<char>;
 
@@ -52,6 +55,48 @@ namespace dbj::nanolib {
 			retval_.push_back(char(0));
 			return retval_;
 		}
+
+		// conversions start here -------------------------------------------
+
+		/*
+		wchar_t - type for wide character representation (see wide strings). 
+		Required to be large enough to represent any supported character code point 
+		(32 bits on systems that support Unicode. A notable exception is Windows, 
+		where wchar_t is 16 bits and holds UTF-16 code units) It has the same size, 
+		signedness, and alignment as one of the integer types, but is a distinct type.
+		*/
+
+		static buffer_type make(std::basic_string_view<char32_t> sview_)
+		{
+			DBJ_ASSERT(sview_.size() > 0);
+			DBJ_ASSERT(DBJ_MAX_BUFER_SIZE >= sview_.size());
+			dbj::utf::utf8_string utf8_(
+				dbj::utf::utf32_string(sview_.data())
+			);
+			return type::make( (const char *)utf8_.get() );
+		}
+
+		static buffer_type make(std::basic_string_view<char16_t> sview_)
+		{
+			DBJ_ASSERT(sview_.size() > 0);
+			DBJ_ASSERT(DBJ_MAX_BUFER_SIZE >= sview_.size());
+			buffer_type retval_;
+			// zero terminate?
+			retval_.push_back(char(0));
+			return  type::w2n( (wchar_t*)sview_.data() ) ;
+		}
+
+#ifdef __cpp_char8_t
+
+		static buffer_type make(std::basic_string_view<char8_t> sview_)
+		{
+			DBJ_ASSERT(sview_.size() > 0);
+			DBJ_ASSERT(DBJ_MAX_BUFER_SIZE >= sview_.size());
+			return type::make((const char*)sview_.data());
+		}
+#endif // __cpp_char8_t
+
+		// conversions end here
 
 		template <typename... Args, size_t max_arguments = 255>
 		static buffer_type
