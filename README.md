@@ -6,21 +6,27 @@ Very opinionated and very small ISO C++ library. Testing, concepts, mechanisms.
 dbj nano lib, is not portable. It is developed on Windows 10 PRO, using Visual Studio and Windows SDK, the latest.
 
 ## The Purpose & Motivation
-However small they might be, C++ programs should always promote good design, good implementation and high degree of reusability.
+However small they might be, C/C++ programs should always promote good design, good implementation and high degree of reusability.
 
 Also, good coding solutions should not "get in the way". They should be small and transparent and comfortable to use, beside being resilient.
 
-## Modern C++
+## Caveat Emptor
 
-I am actively developing in C++ since 1992. C++ is a powerful beast. One is never sure is it tamed. Never turn your back to C++. The weeds of over engineering will very quickly stop your project and drag it to the bottom of the sea-of-redundant code.
+This is active project. This readme is forever shifting. This is not a product in the form of code library. Although it is very close. 
 
-Part of the required self discipline is to constantly develop and use mature core concepts one has proven to work.  
+In case you want to contact me about transforming this library, or its part, to your DEVENV please do contact me and I might help. I will also respond to issues posted here. Time permitting.
+
+## Modern C and C++
+
+I am actively developing in C and C++ since 1992. C is a powerful beast living bellow. C++ is powerful and complex. One is never sure it is tamed. Stay alert, never turn your back to C++. The weeds of over engineering will very quickly stop your project and drag it to the bottom of the sea-of-redundant-code.
+
+Part of the required self discipline is to constantly develop and use mature concepts, proven to work in real projects.  
 
 #### But, why not just using `std::` lib? 
 
-I do indeed. But my key concepts are not over there. I belong to the users of C++ and inevitably the std:: lib. Part of my responsibilities is to make sure organizations are adhering to rigour and method. Not just in Architecture (my primary role), but in developing , testing and delivering, what is architected.
+When runtime allows me to, I do indeed use the std lib. But std lib is designed so that my key concepts are not over there. Neither are yours. Part of my responsibilities is to make sure organizations are adhering to rigour and method. Not just in Architecture (my primary role), but in developing , testing and delivering, what is architected, designed and finally developed.
 
-But in doing so I know people are good and creative, thus I do not want to impose a lot of discipline, rigour and method. Thus my coding solutions tend to be more of an agreement than complex code. 
+In doing so, I know people are good and creative, thus I do not want to impose a lot of harhs discipline, rigour and method. My coding solutions tend to be more of an agreement than imposed and complex code. 
 
 Modern, fancy keyword is "contract". `dbj++ Nanolib` is primarily an tiny universal contract, I might advise you to impose on your projects.
 
@@ -34,29 +40,32 @@ Please keep in mind however, the prefix "nano" (aka tiny). In future sequence of
 
 ### How to use
 
-`dbj++nanolib` is C++17, Windows only library. It uses always the latest Visual Studio reincarnation. This is header only library.
+Use the this repository as a git submodule. That is by far the most feasible way.
+
+`dbj++nanolib` is primarily C++17, Windows only library. I use always, the latest Visual Studio reincarnation. This is primarily header only library.
+There might be one or two c files though. Just add them to your projects to be compiled.
 
 As per diagram above, one can include `dbj++nanolib.h` for the core functionality.
 
-Or just `dbj++tu.h` for the testing framework, or just `dbj++valstat` to start using `valstat` and two valstat traits from there, to achieve consistent but simple, returns consuming.
+Or just `dbj++tu.h` for the testing framework, or just `dbj++valstat` to start using `valstat` and two valstat traits from there, to achieve consistent , simple and exception free, function returns. 
 
 **Slight detour: Subset of UML**
 
-Whatever you do, always plan and think about it beforehand. Use simple diagrams before deciding your design is complete and you can freely proceed onto the implementation.
+Whatever you do, always plan and think about it beforehand. Use simple diagrams before deciding your design is complete and just then you can freely proceed onto the implementation.
 
-Designs and diagrams are invaluable. First for explaining to yourself your solution, and second to make others understand your solution, before you or them, loose the patience `¯\_(ツ)_/¯`
+Designs and diagrams are invaluable. First for explaining to yourself your solution, and second to make others understand your solution, before you or them, loose the patience with you `¯\_(ツ)_/¯`
 
 ## What's inside
 
 I see no much point of generating documentation from code, if code is available and properly commented. I tend to write a lot of comments.
 
-Please just dive in and enjoy. At last this is made for you, not for someone needing a book to understand how to use the modern C++ library.
+Please just dive in and enjoy. At last this is made for you, not for someone needing a paper book to understand how to use the modern C/C++ library.
 
 ## what is 'dbj++nano play'
 
 That is a twin project. We use it to test the quality of implementation and usability of the nanolib.
 
-Newcomers to `dbj++nanolib` should definitely start from that, as the entry point. It will contain more and more test to show how are the things from here to be used.
+Newcomers to `dbj++nanolib` should definitely start from that, as the entry point. It will contain more and more tests to show how are the things from here to be used.
 
 Next I will just list and quickly describe, in random order, important things in the Nanolib. As per your demand this documentation will be more detailed as `dbj++nanolib` spirals through time.
 
@@ -89,7 +98,7 @@ We use `iostreams`, only when testing. `dbj++tu.h` contains a tiny testing frame
   - Another peculiarity worth mentioning is we never use `printf`/`fprintf` naked but through  two variadic macros
     - DBJ_FPRINTF(...)
     - DBJ_PRINT(...)
-    - Primarily because debug build versions do contain checking the returns of `std::fprintf`. If you have  been (and I was) ever beaten by not checking `stdio.h` functions return values, you will understand.  Invaluable even if it works only once for you.
+    - Primarily because debug build versions do contain checking the returns of `std::fprintf`. If you have  been (and I was) ever beaten by not checking `stdio.h` functions return values, you will understand.  Invaluable even if it cathes a bug only once.
 
 ## dbj++tu.h
 
@@ -118,7 +127,7 @@ As expected for every decent testing framework, the coloured console output pops
 # Appendix A
 ## Key concepts
 
-This is the advice, I am advising you to respect.
+This is the advice, I am advising you not dictating.
 
 ### No sub-classing
 - inheritance in C++ is used for
@@ -129,6 +138,8 @@ This is the advice, I am advising you to respect.
   - Sub-classing inside the c++ std lib is very rare
 
 ### Optimise the std::string usage
+
+Hint: do not use it.
 
 - `std::string` is very versatile, but it is **not** made to be used as char buffer. 
   - it makes for one complex type and  large memory structure, too complex to act as a simple char buffer
@@ -145,37 +156,47 @@ This is the advice, I am advising you to respect.
 		reader->kv_map_[key].data() , '\n', value
 	);
   ```
-  Unless you are developing large and complex text processing, be very modest with `std::string`.
+  Unless you are developing large and complex text processing code, be very modest with `std::string`.
 ### No throwing and catching
+
+Hint: no exceptions
 
 First, if your executable, is intended to operate under continuous uptime requirement, it should never fail and never exhibit undefined behavior. Thus, the error handling is of utmost importance. It has to be very resilient, simple, explicit and unforgiving. Some advice.
 
 - throwing and catching do create slow applications, with many hidden paths of execution
 - the raising of the error and handling the error raised, should be tightly coupled and at the same place in the source code. Make it easy to understand what happens if error happens.
-  - if you need to throw an exception from a constructor, your design is probably wrong.
+  - if you need to throw an exception from a constructor, your design is wrong.
   - if your constructor is complex and might be source of operational error's consider factory functions or friends, whatever you fancy most.
-  - however silly that looks to a C++ developer consider removing tricky destructors into static or friend functions to be called by some external deterministic mechanism, similar to the lock unlock pattern.
+  - however silly that looks to a C++ developer consider removing tricky destructors into static or friend functions to be called by some external deterministic mechanism, similar to the lock/unlock idiom.
 
 ### Avoid system error
+
+Hint: do not use it.
+
 - `std::system_error` is old, over-engineered design and somewhat poor implementation
 - `std::system_error` was not designed to be universal error mechanism for C++ `std::` lib. Neither it was ever adopted or implemented, as such.
-- it is not a replacement but consider using a subset: `std::errc` with `std::generic_category()`
+- it is not a replacement but consider using a POSIX subset: `std::errc` with `std::generic_category()`
 - also, win32 errors are well implemented by MSVC and `std::system_category()`
 
 ### Avoid c++ streams
-- C++ streams is old, complex design too. 
+
+Hint: use them only when testing and only in concole apps.
+
+- C++ streams is old (ancient) complex design, too. 
 - using `iostreams` creates large and slow applications
 - if you need to do a lot of console output consider using the [fmt library](https://github.com/fmtlib/fmt).
      - Although, I am personally puzzled how is `fmt` better than `cstdio` functions
+     
+> Think. C and C++ are primarily used for server side modules. Thus, not console apps. Find and use good logging lib. In real life never (ever) write a server side module without using a [syslog](https://en.wikipedia.org/wiki/Syslog).      
 
 ### Standards
-- use ISO C++, which is C++17.
-- use ISO C++ std lib as much as possible
+- use the latest ISO C++ version.
+- use ISO C++ std lib as much as possible (run-time permitting)
 - Do not lose your C experience. 
   - C is simple and makes you deliver things, instead of re-inventing things before delivering things. 
    - take same time to learn about [modern ISO C](https://gforge.inria.fr/frs/?group_id=6881). It has advanced. A lot.
 
-The final advice:
+## The final advice:
 
 **This is "nano" lib. Before adding anything to it, think.**
 
