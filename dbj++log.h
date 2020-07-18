@@ -171,7 +171,11 @@ using namespace std;
 /*
 -----------------------------------------------------------------------------------------------------
 */
-inline array timestamp_functions{high_precision_timestamp<false>, high_precision_timestamp<true>, null_timestamp};
+inline std::array 
+   timestamp_functions
+    {
+    high_precision_timestamp<false>, high_precision_timestamp<true>, null_timestamp
+    };
 
 enum class timestamp_type : int
 {
@@ -219,7 +223,7 @@ void timestamp_output_function(  std::ostream & os_  )
         out(config::timestamp_functions[int(config::current_timestamp_idx)]().data());
     }
 }
-inline array timestamp_output_functions{
+inline std::array timestamp_output_functions{
     timestamp_output_function<timestamp_output_type::color>,   /* 0  == timestamp_output_type::color  */
     timestamp_output_function<timestamp_output_type::nocolor>  /* 1 == timestamp_output_type::nocolor */
 };

@@ -13,8 +13,8 @@
 OS agnostic typename
 works with GCC and CLANG on Linux etc ...
 */
-#define DBJ_TYPE_NAME(T) dbj::name<T>().c_str()
-#define DBJ_TYPENAME(T) dbj::name<decltype(T)>().c_str()
+#define DBJ_TYPE_NAME(T) dbj::nanolib::name<T>().data()
+#define DBJ_TYPENAME(T) dbj::nanolib::name<decltype(T)>().data()
 
 /*
 nano debugging 
@@ -28,26 +28,15 @@ show expression and it's type
 #define DBJ_SXT(x) std::cout << "\neXpression:\t\t" << #x << "\ntype\t\t\t" << DBJ_TYPENAME(x) << "\n\n"
 
 
-namespace dbj {
+namespace dbj::nanolib {
 
-
-	template<typename T, size_t N>
-	constexpr inline auto make_arr_buffer(const T(&string)[N])
-	{
-	   static_assert( N > 1);
-
-	   DBJ_ARRAY<T, N> buffy_{};
-		size_t k{};
-		for (auto CH : string)
-			buffy_[k++] = CH;
-		return buffy_;
-	}
+	using typename_buffer = typename v_buffer::buffer_type;
 
 	template < typename T >
-	const std::string name() noexcept
+	const typename_buffer name() noexcept
 	{
 #ifdef _WIN32
-		return { typeid(T).name() };
+		return v_buffer::make( typeid(T).name() ) ;
 #else // __linux__
 		// delete malloc'd memory
 		struct free_ {
@@ -60,11 +49,12 @@ namespace dbj {
 		int error{};
 		ptr_type name{ abi::__cxa_demangle(typeid(T).name(), 0, 0, &error) };
 
-		if (!error)        return { name.get() };
-		if (error == -1)   return { "memory allocation failed" };
-		if (error == -2)   return { "not a valid mangled name" };
+		if (!error)        return v_buffer::make( name.get() );
+		if (error == -1)   return v_buffer::make( "memory allocation failed" );
+		if (error == -2)   return v_buffer::make( "not a valid mangled name" );
 		// else if(error == -3)
-		return { "bad argument" };
+		return v_buffer::make( "bad argument" );
 #endif // __linux__
 	} // name()
-} // dbj
+
+} // dbj::nanolib

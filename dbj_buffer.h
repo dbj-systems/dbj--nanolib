@@ -16,6 +16,7 @@
 
 #pragma region buffer type and helper
 
+#include "./nonstd/dbj++array.h"
 #include "./utf/dbj_utf_cpp.h"
 
 namespace dbj::nanolib {
@@ -80,14 +81,20 @@ namespace dbj::nanolib {
 		{
 			DBJ_ASSERT(sview_.size() > 0);
 			DBJ_ASSERT(DBJ_MAX_BUFER_SIZE >= sview_.size());
-			buffer_type retval_;
 			// zero terminate?
-			retval_.push_back(char(0));
 			return  type::w2n( (wchar_t*)sview_.data() ) ;
 		}
 
-#ifdef __cpp_char8_t
+		static buffer_type make(std::basic_string_view<wchar_t> sview_)
+		{
+			DBJ_ASSERT(sview_.size() > 0);
+			DBJ_ASSERT(DBJ_MAX_BUFER_SIZE >= sview_.size());
+			// zero terminate?
+			return  type::w2n( sview_.data() ) ;
+		}
 
+#ifdef __cpp_char8_t
+		// C++20 or better
 		static buffer_type make(std::basic_string_view<char8_t> sview_)
 		{
 			DBJ_ASSERT(sview_.size() > 0);
@@ -161,6 +168,24 @@ namespace dbj::nanolib {
 			return rez;
 		}
 	};	 // v_buffer
+
+	/*
+	make compile time dbj_array. Simple usage idiom:
+
+	constexpr auto arr_ = make_arr_buffer("string literal") ;
+	*/
+	template<typename T, size_t N >
+	constexpr inline auto
+		make_arr_buffer(const T(&string_)[N]) noexcept
+	{
+		static_assert(N > 1);
+
+		::dbj_array<T,N> buffy_{};
+		size_t k{};
+		for (auto CH : string_)
+			buffy_[k++] = CH;
+		return buffy_;
+	}
 
 } // namespace dbj::nanolib 
 
