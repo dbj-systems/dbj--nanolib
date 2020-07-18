@@ -212,6 +212,6 @@ In case you hotly dislike or just like my work, or anything in between, for what
 
 ---
 [![dbjdbj github avatar](https://github.com/dbjdbj.png)
- &copy; 2019](https://dbj.netlify.com)
+ &copy; 2020](https://dusanjovanovic.org)
 
 
