@@ -1,7 +1,7 @@
 # dbj++nanolib&trade; 
 &copy; 2019 by dbj.org
 
-### Very opinionated and very small ISO C++ library. Testing, concepts, mechanisms. 
+### Very opinionated and very small ISO C/C++ library. Testing, concepts, mechanisms. 
 
 ## General strategy
 
@@ -12,14 +12,14 @@
            that means no console, syslog and such	     
 - prefix is "Nano", keep that in mind
     - do not be affraid to "take things out"
-        - for eaxmple DBJ++TU (unit testing) will ba taken out
+        - for eaxmple DBJ++TU (unit testing) will be taken out into separate lib
 - develop for constrained run-time environment
     - no exceptions
     - no STL
     - modern C as much as possible
     - C++17 
     - iostreams just when testing
-    - develop console programs just when testing
+    - develop console programs just for testing
        -- we use DBJ++TU
 - for development use Windows and VisualStudio
     - dbj nano lib, is semi-portable portable. It is developed on Windows 10 PRO, using Visual Studio and Windows SDK, the latest.
@@ -44,13 +44,13 @@ Part of the required self discipline is to constantly develop and use mature con
 
 #### But, why not just using `std::` lib? 
 
-When runtime allows me to, I do indeed use the std lib. But std lib is designed so that my key concepts are not over there. Neither are yours. Part of my responsibilities is to make sure organizations are adhering to rigour and method. Not just in Architecture (my primary role), but in developing , testing and delivering, what is architected, designed and finally developed.
+When runtime allows me to, I do indeed use the std lib. But std lib is designed to be general purpose. My key concepts are not over there. Neither are yours. Part of my responsibilities is to make sure organizations are adhering to rigour and method. Not just in Architecture (my primary role), but in developing , testing and delivering, what is architected, designed and finally developed.
 
 In doing so, I know people are good and creative, thus I do not want to impose a lot of harhs discipline, rigour and method. My coding solutions tend to be more of an agreement than imposed and complex code. 
 
-Modern, fancy keyword is "contract". `dbj++ Nanolib` is primarily an tiny universal contract, I might advise you to impose on your projects.
+Modern, fancy keyword is "contract". `dbj++ Nanolib` is primarily an tiny universal contract. I might advise you to impose it on your projects.
 
-### Top Level Library Organization
+### Top Level Library Organization (W.I.P.)
 
 Diagram of the top level dependencies with some descriptions.
 
@@ -73,7 +73,7 @@ Or just `dbj++tu.h` for the testing framework, or just `dbj++valstat` to start u
 
 Whatever you do, always plan and think about it beforehand. Use simple diagrams before deciding your design is complete and just then you can freely proceed onto the implementation.
 
-Designs and diagrams are invaluable. First for explaining to yourself your solution, and second to make others understand your solution, before you or them, loose the patience with you `¯\_(ツ)_/¯`
+Designs and diagrams are invaluable. First for explaining to yourself your solution, and second to make others understand your solution, before they loose the patience with you `¯\_(ツ)_/¯`
 
 ## What's inside
 
@@ -83,9 +83,9 @@ Please just dive in and enjoy. At last this is made for you, not for someone nee
 
 ## what is 'dbj++nano play'
 
-That is a twin project. We use it to test the quality of implementation and usability of the nanolib.
+That is a twin project. We use it to test the quality of implementation and usability of the nanolib. That should be seen as used as "documentation" for dbj++nanolib.
 
-Newcomers to `dbj++nanolib` should definitely start from that, as the entry point. It will contain more and more tests to show how are the things from here to be used.
+Newcomers to `dbj++nanolib` should definitely start from dbj nano play, as the entry point. It will contain more and more tests to show how are the things from nanolib to be used.
 
 Next I will just list and quickly describe, in random order, important things in the Nanolib. As per your demand this documentation will be more detailed as `dbj++nanolib` spirals through time.
 
@@ -122,9 +122,9 @@ We use `iostreams`, only when testing. `dbj++tu.h` contains a tiny testing frame
 
 ## dbj++tu.h
 
-Fully functional Testing framework. namespace `dbj::tu`
+Fully functional Testing framework. namespace `dbj::tu`. Roadmap is to take it out in a separate lib. Thus all the testing now inside the nanolib will ba moved to the "playground".
 
-It works as one might expect C++ Testing Frameworks to work. You register the "Test Unit". It gets collected at compile time and executed at runtime.
+It works as one might expect an C++ Testing Framework. You register the "Test Unit". It gets collected at compile time and executed at runtime.
 
 Advisable to start understanding it, is to look at the bottom of the `dbj++valstat` header where one test resides. This is where you want to put your Visual Studio break point and hit F5, while in the [nano play project](https://github.com/dbj-systems/dbj--nanoplay).
 ```cpp
@@ -136,18 +136,18 @@ TU_REGISTER(
 
 Macro `DBJ_TX` is indeed using `iostreams`. That is ok in the context of testing apps. Makes for simpler and shorter testing macro. 
 
-Lastly, to run the test units collected, on has to call, somewhere from main():
+Lastly, to run the test units collected, on has to call the starting point, somewhere from the main():
 
 `dbj::tu::catalog.execute()`
 
-As expected for every decent testing framework, the coloured console output pops-up, and every TU is timed too.
+As expected for every decent testing framework, the coloured console output pops-up, and every TU is timed too. Like so.
 
 ![tu in action](docs/dbj_tu_in_action.jpg)
 
 # Appendix A
 ## Key concepts
 
-This is the advice, I am advising you not dictating.
+What follow is the advice, I am advising you, not dictating. This is general C++ advice too.
 
 ### No sub-classing
 - inheritance in C++ is used for
@@ -172,6 +172,7 @@ Hint: do not use it.
   new_val.append("\n").append(value);
 
   // instead dbj nano lib offers an elegant replacement
+  // example: append key, new line char and value and keep them in the buffer created
   	buffer_type new_val = buffer::format( "%s%c%s",
 		reader->kv_map_[key].data() , '\n', value
 	);
@@ -188,6 +189,8 @@ First, if your executable, is intended to operate under continuous uptime requir
   - if you need to throw an exception from a constructor, your design is wrong.
   - if your constructor is complex and might be source of operational error's consider factory functions or friends, whatever you fancy most.
   - however silly that looks to a C++ developer consider removing tricky destructors into static or friend functions to be called by some external deterministic mechanism, similar to the lock/unlock idiom.
+  
+  Exceptions ar proven to generate bigger and slower code. If still in shock please see the official C++ comitee [document on the subject](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p1640r1.html).
 
 ### Avoid system error
 
@@ -197,6 +200,8 @@ Hint: do not use it.
 - `std::system_error` was not designed to be universal error mechanism for C++ `std::` lib. Neither it was ever adopted or implemented, as such.
 - it is not a replacement but consider using a POSIX subset: `std::errc` with `std::generic_category()`
 - also, win32 errors are well implemented by MSVC and `std::system_category()`
+
+If interested on actual reasong [please proceed here](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0824r1.html).
 
 ### Avoid c++ streams
 
@@ -210,15 +215,16 @@ Hint: use them only when testing and only in concole apps.
 > Think. C and C++ are primarily used for server side modules. Thus, not console apps. Find and use good logging lib. In real life never (ever) write a server side module without using a [syslog](https://en.wikipedia.org/wiki/Syslog).      
 
 ### Standards
-- use the latest ISO C++ version.
-- use ISO C++ std lib as much as possible (run-time permitting)
+- use the latest and published ISO C++ version. 
+  (hint: C++20 is not yet)
+- use ISO C++ std lib as cautiously as possible (and run-time permitting)
 - Do not lose your C experience. 
   - C is simple and makes you deliver things, instead of re-inventing things before delivering things. 
    - take same time to learn about [modern ISO C](https://gforge.inria.fr/frs/?group_id=6881). It has advanced. A lot.
 
 ## The final advice:
 
-**This is "nano" lib. Before adding anything to it, think.**
+**This is "nano" lib. Before asking for adding anything to it, think.**
 
 ## Contact
 
