@@ -334,18 +334,18 @@ for traversal and usage
 */
 
 template<typename T_, size_t S_>
-struct array_storage : DBJ_ARRAY< T_, S_ >
+class array_storage final : public DBJ_ARRAY< T_, S_ >
 {
 	using base = DBJ_ARRAY< T_, S_ >;
 
 	constexpr static size_t storage_capacity{ S_ };
 
 	size_t level_{ 0 };
+public:
+	constexpr bool is_empty() const { return level_ == 0; }
+    constexpr bool is_full() const { return level_ == storage_capacity; }
 
-	bool is_empty() const { return level_ == 0; }
-	bool is_full() const { return level_ == storage_capacity; }
-
-	T_ push_back(T_ next_fp) 
+	constexpr T_ push_back(T_ next_fp) 
     {
         _ASSERTE( ! is_full() );
         if (is_full()) return {}; // dbj 2020-APR-14 nullptr;
@@ -372,8 +372,24 @@ struct array_storage : DBJ_ARRAY< T_, S_ >
 
 }; // array_storage
 
+} // namespace dbj::nanolib::containers
+
+/////////////////////////////////////////////////////////////////
+// WARNING! these are global space types
+namespace {
+    using namespace ::dbj::nanolib::containers;
+
+    template<typename T, size_t N>
+    using dbj_array = typename array<T, N>;
+
+    template<typename T, size_t N>
+    using dbj_array_storage = typename array_storage<T, N>;
+}
+/////////////////////////////////////////////////////////////////
+
 namespace always_repeated_compile_time_tests {
 
+    // note: template guides at work here
 	constexpr DBJ_ARRAY abc = { 'A', 'B', 'C' };
 	constexpr DBJ_ARRAY def = { 'D', 'E', 'F' };
 
@@ -385,7 +401,5 @@ namespace always_repeated_compile_time_tests {
 	static_assert( abc != def );
 
 } // always_repeated_compile_time_tests
-
-} // namespace dbj::nanolib::containers
 
 #endif // _DBJ_ARRAY_

@@ -40,9 +40,18 @@ namespace dbj::nanolib::ct
 	constexpr char* str_ncpy(char* destination, const char* source, size_t num);
 
 
-	// this is peculiar? basically copy string data to static std::array
-	// which instance can be moved, as we know
-	// and this is compile tame capable too
+	/*
+	This is peculiar? basically copy string data to static std::array
+	which instance can be moved, as we know
+	and this is compile tame capable too
+	why have not I thought of this before?
+
+	constexpr auto string_literal = assign("Whatever");
+
+	I have size() and data() now available ... and moveable object too.
+	And I have inde operator too []
+	And chars are owned, this is unlike string view.
+	*/
 	template<size_t N>
 	constexpr inline std::array<char, N> assign(std::string_view sv_) noexcept
 	{
