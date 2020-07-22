@@ -1,7 +1,11 @@
 #pragma once
-/* (c) 2019 by dbj.org   -- CC BY-SA 4.0 -- https://creativecommons.org/licenses/by-sa/4.0/ */
 #ifndef DBJ_TU_INCLUDED
 #define DBJ_TU_INCLUDED
+/* (c) 2019,2020 by dbj.org   -- CC BY-SA 4.0 -- https://creativecommons.org/licenses/by-sa/4.0/ */
+
+#ifdef __clang__
+#pragma clang system_header
+#endif // __clang__
 
 #include <functional>
 
@@ -238,7 +242,7 @@ inline std::ostringstream& operator<<(std::ostringstream& os_, DBJ_VECTOR<char> 
 	return os_;
 }
 
-inline std::ostringstream& operator<<(std::ostringstream& os_, DBJ_VECTOR<wchar_t> buff_)
+inline std::wostringstream& operator<<(std::wostringstream& os_, DBJ_VECTOR<wchar_t> buff_)
 {
 	if (os_.good())
 	{
