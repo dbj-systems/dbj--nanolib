@@ -1,14 +1,34 @@
 # dbj++nanolib&trade; 
 &copy; 2019 by dbj.org
 
-Very opinionated and very small ISO C++ library. Testing, concepts, mechanisms. 
+### Very opinionated and very small ISO C++ library. Testing, concepts, mechanisms. 
 
-dbj nano lib, is not portable. It is developed on Windows 10 PRO, using Visual Studio and Windows SDK, the latest.
+## General strategy
+
+- role of C/C++ is "system programing"
+    - C++ is *not* for "business logic" components"
+    - think of the run-time environment
+         - for example always assume "server side" run-time
+           that means no console, syslog and such	     
+- prefix is "Nano", keep that in mind
+    - do not be affraid to "take things out"
+        - for eaxmple DBJ++TU (unit testing) will ba taken out
+- develop for constrained run-time environment
+    - no exceptions
+    - no STL
+    - modern C as much as possible
+    - C++17 
+    - iostreams just when testing
+    - develop console programs just when testing
+       -- we use DBJ++TU
+- for development use Windows and VisualStudio
+    - dbj nano lib, is semi-portable portable. It is developed on Windows 10 PRO, using Visual Studio and Windows SDK, the latest.
+    - use clang (packaged with VS) as much as possible
 
 ## The Purpose & Motivation
-However small they might be, C/C++ programs should always promote good design, good implementation and high degree of reusability.
+However small they might be, C/C++ programs should always promote good design, good implementation and high degree of reusability. Also, good coding solutions should not "get in the way". They should be small and transparent and comfortable to use, beside being resilient.
 
-Also, good coding solutions should not "get in the way". They should be small and transparent and comfortable to use, beside being resilient.
+STL "out of the box" can not be used for Gaming, IoT, mission critical systems, medical systems and any other constrained run-times. Thus "DBJ Nanolib".
 
 ## Caveat Emptor
 
