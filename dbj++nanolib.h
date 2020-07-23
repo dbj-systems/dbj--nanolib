@@ -38,10 +38,6 @@
 #define STRICT 1
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-// can be used on its own
-#include "dbj_heap_alloc.h"
-
-#include "vt100win10.h"
 
 /// -------------------------------------------------------------------------------
 /// stolen from vcruntime.h 
@@ -550,11 +546,16 @@ int main () {    char C = i2c<32>(); }
 
 } // namespace dbj::nanolib
 
-///-----------------------------------------------------------------------------------------
+// can be used on its own
+#include "dbj_heap_alloc.h"
+#include "vt100win10.h"
+#include "dbj++debug.h"
+
 /// internal (but not private) critical section
 #include "dbj_nano_synchro.h"
 // 
 // includes "nonstd/nano_printf.h"
 #include "dbj++log.h"
+
 
 #endif // DBJ_NANOLIB_INCLUDED

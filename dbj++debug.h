@@ -9,6 +9,8 @@
 #include <cxxabi.h>
 #endif
 
+#include "dbj_buffer.h"
+
 /*
 OS agnostic typename
 works with GCC and CLANG on Linux etc ...
