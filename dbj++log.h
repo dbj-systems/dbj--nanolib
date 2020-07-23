@@ -422,6 +422,36 @@ inline bool set_console_font(std::wstring_view font_name, SHORT font_height_ = S
 
 #endif // _WIN32_WINNT_WIN10
 
+#pragma region test macros
+
+// all of a sudden here we use  ::dbj::nanolib::logging::log?
+// should these not be in that header?
+
+#undef TU_CHECK
+#define TU_CHECK(x) do {   \
+if (false == (x))      \
+{                      \
+::dbj::nanolib::logging::log(DBJ_FG_YELLOW, #x, DBJ_RESET, DBJ_FG_RED_BOLD, " -- Failed! ", DBJ_RESET); \
+}                      \
+} while (0)
+
+/*
+    TX stands for Test eXpression
+    I know my core principle is not to use iostringstreams, but I am not a zealot
+    I am an pragmatist. For simple and usefull test displays one can use iostreams,
+    like in this macro bellow.
+
+    Usage:
+
+    DBJ_TX( 4 + 2 );
+    */
+#undef DBJ_TX \
+#define DBJ_TX(x) do {\
+dbj::nanolib::logging::log("\n\nExpression: '", DBJ_FG_YELLOW, #x, DBJ_RESET, "'\nResult: ", DBJ_FG_YELLOW_BOLD, (x), DBJ_RESET, " -- Type: ", typeid(x).name()); \
+} while (0)
+
+#pragma endregion
+
 } // namespace dbj::nanolib::logging
 
 #endif // !DBJ_LOG_INC_
