@@ -43,7 +43,7 @@ int __stdcall HeapFree(void* /*hHeap*/, int  /*dwFlags*/, void* /*lpMem*/);
 
 #define DBJ_NANO_MALLOC(T_,S_)(T_*)malloc( S_ )
 
-#define DBJ_NANO_FREE(P_) free ((void*)P_)
+#define DBJ_NANO_FREE(P_) do { assert(P_ != NULL ); if(P_ != NULL) free(P_); P_ = NULL; } while(0)
 
 #endif // not WIN32
 

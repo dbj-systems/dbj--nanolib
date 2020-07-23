@@ -377,13 +377,14 @@ public:
 /////////////////////////////////////////////////////////////////
 // WARNING! these are global space types
 namespace {
-    using namespace ::dbj::nanolib::containers;
+    
+    namespace dbj_conts = ::dbj::nanolib::containers;
 
     template<typename T, size_t N>
-    using dbj_array = typename array<T, N>;
+    using dbj_array = typename dbj_conts::array<T, N>;
 
     template<typename T, size_t N>
-    using dbj_array_storage = typename array_storage<T, N>;
+    using dbj_array_storage = typename dbj_conts::array_storage<T, N>;
 }
 /////////////////////////////////////////////////////////////////
 
