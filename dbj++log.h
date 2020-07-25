@@ -48,7 +48,7 @@
 /// basically the rule is: do not incluide any output anywhere 
 /// but use the api presented in here
 ///
-/// the most basic outout is achieved by redirecting stderr to a file
+/// the most basic output is achieved by redirecting stderr to a file
 /// so if you use stdout you will know (if you have a console that is)
 #define DBJ_DEFAULT_LOG_STD_TARGET stderr
 ///------------------------------------------------------------------
@@ -288,8 +288,12 @@ inline void logfmt(const char *format_, Args... args) noexcept
         strchr(format_, '\t')
         )
     {
+#ifdef NDEBUG
         perror("\n\nFATAL ERROR\n\n" DBJ_ERR_PROMPT( "\n\nDo not use escape codes in dbj nano logging formatting\n"  ));
         exit(1);
+#else
+        printf("\n\nFATAL ERROR IN RELEASE BUILDS!\n\n" DBJ_ERR_PROMPT("\n\nDo not use escape codes in dbj nano logging formatting\n"));
+#endif // DEBUG
     }
 #endif // NDEBUG
 
@@ -297,11 +301,14 @@ inline void logfmt(const char *format_, Args... args) noexcept
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wformat-security"
 #endif // __clang__
-    size_t sz = std::snprintf(nullptr, 0, format_, args...);
-    std::vector<char> buffer_(sz + 1); // +1 for null terminator
-    std::snprintf(&buffer_[0], buffer_.size(), format_, args...);
 
-    detail::current_sink_function(buffer_.data());
+    auto buffy = v_buffer::format(format_, args...);
+
+    //size_t sz = std::snprintf(nullptr, 0, format_, args...);
+    //std::vector<char> buffer_(sz + 1); // +1 for null terminator
+    //std::snprintf(&buffer_[0], buffer_.size(), format_, args...);
+
+    detail::current_sink_function(buffy.data());
 #ifdef __clang__
 #pragma clang diagnostic pop
 #endif // __clang__
@@ -445,9 +452,12 @@ if (false == (x))      \
 
     DBJ_TX( 4 + 2 );
     */
-#undef DBJ_TX \
+#undef DBJ_TX 
+
 #define DBJ_TX(x) do {\
-dbj::nanolib::logging::log("\n\nExpression: '", DBJ_FG_YELLOW, #x, DBJ_RESET, "'\nResult: ", DBJ_FG_YELLOW_BOLD, (x), DBJ_RESET, " -- Type: ", typeid(x).name()); \
+dbj::nanolib::logging::log("\n\nExpression: '", DBJ_FG_YELLOW, #x, \
+DBJ_RESET, "'\nResult: ", DBJ_FG_YELLOW_BOLD, (x), \
+DBJ_RESET, " -- Type: ", typeid(x).name()); \
 } while (0)
 
 #pragma endregion

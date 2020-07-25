@@ -390,6 +390,8 @@ namespace {
 
 namespace always_repeated_compile_time_tests {
 
+    using std::get;
+
     // note: template guides at work here
 	constexpr DBJ_ARRAY abc = { 'A', 'B', 'C' };
 	constexpr DBJ_ARRAY def = { 'D', 'E', 'F' };

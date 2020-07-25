@@ -196,6 +196,8 @@ https://kallanreed.wordpress.com/2015/02/14/disabling-the-stack-cookie-generatio
 */
 TU_REGISTER(
 	[] {
+		DBJ_PRINT(DBJ_FG_CYAN_BOLD DBJ_FILE_LINE); DBJ_PRINT(" " DBJ_RESET);
+
 		using dbj::nanolib::strng;
 
 		constexpr auto loop_count = 0xFFFF;

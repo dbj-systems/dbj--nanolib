@@ -329,6 +329,8 @@ inline void prompt(const char *m_ = "")
 
 TU_REGISTER(
 	[] {
+		DBJ_PRINT(DBJ_FG_CYAN_BOLD DBJ_FILE_LINE); DBJ_PRINT(" " DBJ_RESET);
+
 		// here we pre-define the trait we will use
 		// here we are saying our status will be posix codes related
 		// and the value's return will be of the bool type
