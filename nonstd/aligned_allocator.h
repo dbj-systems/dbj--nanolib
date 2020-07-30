@@ -19,6 +19,7 @@
 #error C++17 or greater is required ...
 #endif
 
+#undef DBJ_ALLIGNED_ALLOCATOR_FAIL_POLICY
 // redefine this to return instead of exit() if required
 #define DBJ_ALLIGNED_ALLOCATOR_FAIL_POLICY( MSG_) \
 perror( " (" __FILE__ ") " MSG_ ); \
@@ -33,13 +34,15 @@ namespace dbj::nanolib::alloc
 	 */
 	template <typename T, std::size_t Alignment>
 	struct aligned_allocator
-		final
+	    // yes some people like to inherit this class
+		// ditto ...
+		// final
 		// DBJ -- G++ will not work if not inheriting from 
-		: std::allocator<T>
+		// : std::allocator<T>
 	{
 	public:
 
-#if 0
+#if 1 // not inheriting from std::alloc
 		// The following will be the same for virtually all allocators.
 		typedef T* pointer;
 		typedef const T* const_pointer;
@@ -48,7 +51,8 @@ namespace dbj::nanolib::alloc
 		typedef T value_type;
 		typedef std::size_t size_type;
 		typedef ptrdiff_t difference_type;
-#endif // 0
+#endif // not inheriting from std::alloc
+
 		// this is not part of standard allocator requirements
 		static std::size_t max_size()
 		{
@@ -58,7 +62,7 @@ namespace dbj::nanolib::alloc
 		}
 
 		// DBJ NOTE: as of 2019 DEC 26, VStudio 2019 fully updated
-		// err's wit compilation message: vector end of file not found
+		// compilation failes with following message: vector end of file not found
 		// if rebind is not defined as bellow
 		template <typename U>
 		struct rebind
@@ -67,12 +71,12 @@ namespace dbj::nanolib::alloc
 		};
 
 		// DBJ NOTE: as of 2019 DEC 26, VStudio 2019 fully updated
-		// err's with compilation message: default ctor not found
+		// compilation failes with following  message: default ctor not found
 		// if it is not defined as bellow
 		aligned_allocator() { }
 
 		// DBJ NOTE: as of 2019 DEC 26, VStudio 2019 fully updated
-		// err's with complex compilation message
+		//compilation failes 
 		// if the following rebinding ctor is not defined as bellow
 		template <typename U> aligned_allocator(const aligned_allocator<U, Alignment>&) { }
 
@@ -132,7 +136,8 @@ namespace dbj::nanolib::alloc
 		// "assignment operator could not be generated because a
 		// base class assignment operator is inaccessible" within
 		// the STL headers, but that warning is useless.
-		aligned_allocator& operator=(const aligned_allocator&) = delete ;
+		// aligned_allocator& operator=(const aligned_allocator&) = delete ;
+		// 2020-07-29 dbj: Above does not matter any more
 
 	}; // aligned_allocator
 
