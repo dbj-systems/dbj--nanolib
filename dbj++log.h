@@ -186,7 +186,8 @@ enum class timestamp_type : int
 
 inline timestamp_type current_timestamp_idx{timestamp_type::normal};
 
-inline void default_timestamp() { current_timestamp_idx = timestamp_type::normal; }
+// default is no timestamp!
+inline void default_timestamp() { current_timestamp_idx = timestamp_type::nots; }
 inline void nanosecond_timestamp() { current_timestamp_idx = timestamp_type::nanoseconds; }
 
 // singularity in a design
