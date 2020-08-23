@@ -1,11 +1,11 @@
 #ifndef DBJ_ALIGNED_ALLOCATOR_INC_
 #define DBJ_ALIGNED_ALLOCATOR_INC_
 
-#ifdef _WIN32
+// #ifdef _WIN32
 #include <malloc.h>
-#endif
+// #endif
 #include <cstdint>
-#include <vector>
+// #include <vector>
 
 #ifndef DBJ_CPLUSPLUS
 #if defined(_MSVC_LANG) && !defined(__clang__)

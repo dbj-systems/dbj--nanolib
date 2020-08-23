@@ -9,6 +9,9 @@
 
  Also here are the forward declaration to avoid 
  including windows.h
+
+ PPL.H -- Disclaimer: yes I know about parrallel maloc and free.  
+          This is for when you do not want or cannot include ppl.h
 */
 #ifdef _WIN32
 
@@ -38,6 +41,8 @@ int __stdcall HeapFree(void* /*hHeap*/, int  /*dwFlags*/, void* /*lpMem*/);
 #else // not WIN32
 
 /// no WIN32 -- standard allocation
+/// be advised clang can sometimes do some serious magic 
+/// with opitmizing these calls
 
 #define DBJ_NANO_CALLOC(T_,S_) (T_*)calloc( S_ , sizeof(T_))
 

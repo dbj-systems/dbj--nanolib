@@ -12,7 +12,9 @@
 #endif // WIN32_LEAN_AND_MEAN
 
 /*
-dbj nano critical section
+ONE SINGLE PER PROCESS dbj nano critical section
+Thus using it in one pleace locks eveything else using it in every other place!
+
 used internaly. if one wants to be in sync with dbj nanolib the one can use this
 
 DBJ NANO LIB is single threaded by default in case user need the opposite please 
@@ -21,8 +23,19 @@ DBJ NANO LIB is single threaded by default in case user need the opposite please
 Note: this is obviously WIN32 only
 */
 
-/// there is no pragma for the /kernel build
+#ifdef __cplusplus
+extern "C" {
+#endif // __cplusplus
+
+#undef DBJ_NANO_KERNEL_BUILD
+
+    // /kernel CL switch macro
+#ifdef _KERNEL_MODE
+#define NONPAGESECTION __declspec(code_seg("$kerneltext$"))
 #define DBJ_NANO_KERNEL_BUILD
+#else
+#define NONPAGESECTION
+#endif
 
 
 #if defined(__GNUC__) || defined(__INTEL_COMPILER)
@@ -42,46 +55,47 @@ NOTE! __declspec(thread) is not supported with /kernel
 #endif 
 
 /// --------------------------------------------------------------------------------------------
-extern "C" {
-    int __cdecl atexit(void(__cdecl*)(void));
-}
-
-/// --------------------------------------------------------------------------------------------
-/// we need to make common function work in presence of multiple threads
-typedef struct
-{
-    bool initalized;
-    CRITICAL_SECTION crit_sect;
-} dbj_nano_synchro_type;
-
-dbj_nano_synchro_type* dbj_nano_crit_sect_initor();
-
-inline void exit_common(void)
-{
-    dbj_nano_synchro_type crit_ = *dbj_nano_crit_sect_initor();
-
-    if (crit_.initalized)
-    {
-        DeleteCriticalSection(&crit_.crit_sect);
-        crit_.initalized = false;
-    }
-}
-
-inline dbj_nano_synchro_type* dbj_nano_crit_sect_initor()
-{
-    static dbj_nano_synchro_type synchro_ = { false };
-    if (!synchro_.initalized)
-    {
-        InitializeCriticalSection(&synchro_.crit_sect);
-        synchro_.initalized = true;
-        atexit(exit_common);
+    extern "C" {
+        int __cdecl atexit(void(__cdecl*)(void));
     }
 
-    return &synchro_;
-}
+    /// --------------------------------------------------------------------------------------------
+    /// we need to make common function work in presence of multiple threads
+    typedef struct
+    {
+        bool initalized;
+        CRITICAL_SECTION crit_sect;
+    } dbj_nano_synchro_type;
 
-inline void synchro_enter() { EnterCriticalSection(&dbj_nano_crit_sect_initor()->crit_sect); }
-inline void synchro_leave() { LeaveCriticalSection(&dbj_nano_crit_sect_initor()->crit_sect); }
+    dbj_nano_synchro_type* dbj_nano_crit_sect_initor();
+
+    inline void exit_common(void)
+    {
+        dbj_nano_synchro_type crit_ = *dbj_nano_crit_sect_initor();
+
+        if (crit_.initalized)
+        {
+            DeleteCriticalSection(&crit_.crit_sect);
+            crit_.initalized = false;
+        }
+    }
+
+    inline dbj_nano_synchro_type* dbj_nano_crit_sect_initor()
+    {
+        // this means: one per process
+        static dbj_nano_synchro_type synchro_ = { false };
+        if (!synchro_.initalized)
+        {
+            InitializeCriticalSection(&synchro_.crit_sect);
+            synchro_.initalized = true;
+            atexit(exit_common);
+        }
+
+        return &synchro_;
+    }
+
+    inline void synchro_enter() { EnterCriticalSection(&dbj_nano_crit_sect_initor()->crit_sect); }
+    inline void synchro_leave() { LeaveCriticalSection(&dbj_nano_crit_sect_initor()->crit_sect); }
 
 #ifdef DBJ_NANO_LIB_MT
 #define DBJ_NANO_LIB_SYNC_ENTER synchro_enter()
@@ -92,10 +106,15 @@ inline void synchro_leave() { LeaveCriticalSection(&dbj_nano_crit_sect_initor()-
 #endif
 
 #ifdef __cplusplus
-#include <mutex>
+} // extern "C" 
+#endif // __cplusplus
+
 ///	-----------------------------------------------------------------------------------------
-#pragma region synchronisation
+#ifdef __cplusplus
+#pragma region cpp oo synchronisation
 /*
+This uses process wide single ciritical section! Be warned.
+
 usage:	void thread_safe_fun() 
 {	
 lock_unlock autolock_ ;  	
@@ -108,9 +127,12 @@ wahtever happens here is not entered before it is finished
 */
 struct lock_unlock final
 {
-    mutable std::mutex mux_;
-    lock_unlock() noexcept { mux_.lock(); }
-    ~lock_unlock() { mux_.unlock(); }
+    lock_unlock() noexcept {
+        synchro_enter();
+    }
+    ~lock_unlock() { 
+        synchro_leave();
+    }
 };
 
 #pragma endregion
