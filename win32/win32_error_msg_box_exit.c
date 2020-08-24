@@ -16,7 +16,7 @@ win32_error_msg_box_exit(
 {   // def value is empty string
     win32_error_msg result_err_msg = { (char)'\0' } ;
 
-    // if last erro not given ask for it
+    // if last error not given ask for it
     if (arg_ret_val.last_error < 1) arg_ret_val.last_error =  GetLastError() ;
 
     arg_ret_val.error_source = 

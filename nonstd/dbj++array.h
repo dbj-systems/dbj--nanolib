@@ -374,6 +374,32 @@ public:
 
 } // namespace dbj::nanolib::containers
 
+#include <sstream>
+
+namespace dbj::nanolib::containers {
+
+template <size_t N>
+inline std::ostringstream& operator<<(std::ostringstream& os_, std::array<char, N> buff_)
+{
+    if (os_.good())
+    {
+        os_ << buff_.data();
+    }
+    return os_;
+}
+
+template <size_t N>
+inline std::ostringstream& operator<<(std::ostringstream& os_, std::array<wchar_t, N> buff_)
+{
+    if (os_.good())
+    {
+        os_ << buff_.data();
+    }
+    return os_;
+}
+
+} // namespace dbj::nanolib::containers
+
 /////////////////////////////////////////////////////////////////
 // WARNING! these are global space types
 namespace {

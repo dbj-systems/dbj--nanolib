@@ -1589,6 +1589,36 @@ namespace dbj::nanolib::containers
 	{
 		data_size_ = 0;
 	}
+} // namespace dbj::nanolib::containers
+
+#include <sstream>
+
+namespace dbj::nanolib::containers {
+
+	/*
+primary runtime buffer is vector of a char_type
+primary compile time buffer is array of a char_type
+thus I will put required operators in here
+to print them as strings
+*/
+
+	inline std::ostringstream& operator<<(std::ostringstream& os_, DBJ_VECTOR<char> buff_)
+	{
+		if (os_.good())
+		{
+			os_ << buff_.data();
+		}
+		return os_;
+	}
+
+	inline std::wostringstream& operator<<(std::wostringstream& os_, DBJ_VECTOR<wchar_t> buff_)
+	{
+		if (os_.good())
+		{
+			os_ << buff_.data();
+		}
+		return os_;
+	}
 
 } // namespace dbj::nanolib::containers
 

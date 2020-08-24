@@ -31,10 +31,9 @@ extern "C" {
 
     // /kernel CL switch macro
 #ifdef _KERNEL_MODE
-#define NONPAGESECTION __declspec(code_seg("$kerneltext$"))
 #define DBJ_NANO_KERNEL_BUILD
 #else
-#define NONPAGESECTION
+#undef DBJ_NANO_KERNEL_BUILD
 #endif
 
 

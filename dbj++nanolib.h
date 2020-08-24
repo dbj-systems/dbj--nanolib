@@ -6,6 +6,12 @@
 #error DBJ NANOLIB requires C++ compiler
 #endif
 
+#if defined(__clang__) 
+#define DBJ_PURE_FUNCTION __attribute__((const))
+#else
+#define DBJ_PURE_FUNCTION 
+#endif
+
 /// -------------------------------------------------------------------------------
 /// NDEBUG *is* standard macro and it is used
 /// https://stackoverflow.com/a/29253284/10870835
@@ -99,7 +105,23 @@
 #endif
 
 ///-----------------------------------------------------------------------------------------
-// new failure will provoke fast exit if set to 1
+#ifdef _KERNEL_MODE
+#define NONPAGESECTION __declspec(code_seg("$dbj_nanolib_kerneltext$"))
+#else
+#define NONPAGESECTION
+#endif // _KERNEL_MODE
+/*
+class NONPAGESECTION MyNonPagedClass
+{
+	...
+};
+*/
+//-----------------------------------------------------------------------------------------
+// new failure will provoke fast exit -- ALWAYS!
+// this is APP WIDE for all users of dbj nanolib
+// Policy is to serve "noexcept people" with standard C++ core language
+// that means: no std lib
+// that is a immediate milestone on the roadmap as of 2020 Q3
 #define DBJ_TERMINATE_ON_BAD_ALLOC 1
 
 #if DBJ_TERMINATE_ON_BAD_ALLOC
@@ -113,9 +135,9 @@ inline auto setting_new_handler_to_terminate_ = []() {
 	);
 	return true;
 }();
-#pragma message( "WARNING -- DBJ NANOLIB has set std::new_handler() to immediately terminate. No std::bad_alloc!" )
+// #pragma message( "WARNING -- DBJ NANOLIB has set std::new_handler() to immediately terminate. No std::bad_alloc!" )
 #else
-#pragma message( "WARNING -- DBJ NANOLIB has *not* set std::new_handler()" )
+// #pragma message( "WARNING -- DBJ NANOLIB has *not* set std::new_handler()" )
 #endif
 
 ///-----------------------------------------------------------------------------------------
@@ -231,9 +253,11 @@ namespace dbj::nanolib
 	}
 
 	/// -------------------------------------------------------------------------------
-	namespace logging {
-		void enable_vt_100_and_unicode();
-	}
+	// nanolib loggin is deprecated
+
+	//namespace logging {
+	//	void enable_vt_100_and_unicode();
+	//}
 
 	/// -------------------------------------------------------------------------------
 	/* happens once and as soon as possible */
@@ -290,9 +314,10 @@ namespace dbj::nanolib
 		// printf(  "\x043a\x043e\x0448\x043a\x0430 \x65e5\x672c\x56fd\n");
 #endif // 0
 
- // currently (2019Q4) WIN10 CONSOLE "appears" to need manual enabling the ability to
- // interpret VT100 ESC codes
-		logging::enable_vt_100_and_unicode(); // enable VT100 ESC code for WIN10 console
+// currently (2019Q4) WIN10 CONSOLE "appears" to need manual enabling the ability to
+// interpret VT100 ESC codes
+// nanolib loggin is deprecated
+// logging::enable_vt_100_and_unicode(); // enable VT100 ESC code for WIN10 console
 
 #ifdef DBJ_SYNC_WITH_STDIO
 		/*
@@ -352,12 +377,19 @@ namespace dbj::nanolib
 #endif
 
 ///	-----------------------------------------------------------------------------------------
+/* 
+    deprecated
+
 	namespace logging {
 		template <typename... Args>
 		void logfmt(const char* format_, Args... args) noexcept ;
 	} 
-
 #define DBJ_PRINT(FMT_, ...) (void)::dbj::nanolib::logging::logfmt(FMT_, __VA_ARGS__)
+*/
+	// deprecated !
+	// use dbj--simplelog
+#undef  DBJ_PRINT
+#define DBJ_PRINT(FMT_, ...) fprintf(stderr, FMT_, __VA_ARGS__)
 
 ///	-----------------------------------------------------------------------------------------
 /*
@@ -554,8 +586,8 @@ int main () {    char C = i2c<32>(); }
 /// internal (but not private) critical section
 #include "dbj_nano_synchro.h"
 // 
-// includes "nonstd/nano_printf.h"
-#include "dbj++log.h"
+#include "nonstd/nano_printf.h"
+// deprecated #include "dbj++log.h"
 
 
 #endif // DBJ_NANOLIB_INCLUDED
