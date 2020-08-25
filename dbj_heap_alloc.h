@@ -3,11 +3,11 @@
 /*
 (c) 2020 by dbj@dbj.org CC BY SA 4.0
 
- Now here is the secret sauce key ingredient
- on windows machine these are the fastest
+ Now here is the secret sauce key ingredient:
+ on windows machine these are the fastest,
  proven and measured
 
- Also here are the forward declaration to avoid 
+ Here are the forward declaration to avoid 
  including windows.h
 
  PPL.H -- Disclaimer: yes I know about parrallel maloc and free.  

@@ -110,7 +110,7 @@ NOTE! __declspec(thread) is not supported with /kernel
 
 ///	-----------------------------------------------------------------------------------------
 #ifdef __cplusplus
-#pragma region cpp oo synchronisation
+#pragma region cpp oo sinchronisation
 /*
 This uses process wide single ciritical section! Be warned.
 
