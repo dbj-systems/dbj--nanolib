@@ -2,7 +2,7 @@
 
 #include "../dbj_windows_include.h"
 #include "../dbj_buffer.h"
-#include "../dbj_debug_print.h"
+#include "../dbj_debug.h"
 
 // DBJ TODO: get rid of <system_error>
 #include <system_error>
