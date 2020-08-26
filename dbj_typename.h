@@ -18,16 +18,6 @@ works with GCC and CLANG on Linux etc ...
 #define DBJ_TYPE_NAME(T) dbj::nanolib::name<T>().data()
 #define DBJ_TYPENAME(T) dbj::nanolib::name<decltype(T)>().data()
 
-/*
-nano debugging 
-
-show expression, it's type and its value
-*/
-#define DBJ_SX(x) std::cout << "\neXpression:\t\t" << #x << "\ntype\t\t\t" << DBJ_TYPENAME(x) << "\nvalue\t\t\t" << (x) << "\n\n"
-/*
-show expression and it's type
-*/
-#define DBJ_SXT(x) std::cout << "\neXpression:\t\t" << #x << "\ntype\t\t\t" << DBJ_TYPENAME(x) << "\n\n"
 
 
 namespace dbj::nanolib {
@@ -60,3 +50,17 @@ namespace dbj::nanolib {
 	} // name()
 
 } // dbj::nanolib
+
+#ifdef DBJ_TYPENAME
+/*
+nano debugging
+
+show expression, it's type and its value
+*/
+#define DBJ_SX(x) std::cout << "\neXpression:\t\t" << #x << "\ntype\t\t\t" << DBJ_TYPENAME(x) << "\nvalue\t\t\t" << (x) << "\n\n"
+/*
+show expression and it's type
+*/
+#define DBJ_SXT(x) std::cout << "\neXpression:\t\t" << #x << "\ntype\t\t\t" << DBJ_TYPENAME(x) << "\n\n"
+
+#endif // DBJ_TYPENAME

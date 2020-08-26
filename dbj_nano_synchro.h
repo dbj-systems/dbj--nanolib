@@ -5,7 +5,7 @@
 #error please include dbj++nanolib.h before dbj_nano_synchro.h
 #endif
 
-//#include <process.h> /* _beginthread, _endthread */
+#include "dbj_windows_include.h"
 
 #ifndef WIN32_LEAN_AND_MEAN
 #error please include windows before dbj_nano_synchro.h

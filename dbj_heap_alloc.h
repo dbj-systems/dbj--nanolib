@@ -13,6 +13,7 @@
  PPL.H -- Disclaimer: yes I know about parrallel maloc and free.  
           This is for when you do not want or cannot include ppl.h
 */
+
 #ifdef _WIN32
 
 
@@ -21,22 +22,6 @@
 #define DBJ_NANO_MALLOC(T_,S_)(T_*)HeapAlloc(GetProcessHeap(), 0, S_)
 
 #define DBJ_NANO_FREE(P_) HeapFree(GetProcessHeap(), 0, (void*)P_)
-
-#ifndef _INC_WINDOWS
-
-#ifdef __cplusplus
-extern "C" {
-#endif __cplusplus
-
-__declspec(dllimport) void* __stdcall  GetProcessHeap(void);
-__declspec(allocator) void* __stdcall HeapAlloc(void* /*hHeap*/, int /* flags */, size_t /*dwBytes*/);
-int __stdcall HeapFree(void* /*hHeap*/, int  /*dwFlags*/, void* /*lpMem*/);
-
-#ifdef __cplusplus
-} // extern "C"
-#endif __cplusplus
-
-#endif // _INC_WINDOWS
 
 #else // not WIN32
 

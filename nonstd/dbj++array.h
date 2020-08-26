@@ -2,6 +2,8 @@
 #ifndef DBJ_ARRAY_INCLUDED_
 #define DBJ_ARRAY_INCLUDED_
 
+#include "../dbj_debug.h"
+
 // not yet
 // #define DBJ_ARRAY_FULL_IMPLEMENTATION 
 

@@ -23,6 +23,8 @@
 #endif
 #endif // NDEBUG
 
+#include "dbj_debug.h" // DBJ_PRINT and friends
+
 /// -------------------------------------------------------------------------------
 #include <stdint.h>
 #include <stdio.h>
@@ -33,17 +35,10 @@
 #include <optional>
 #include <utility>
 #include <mutex>
-// DBJ TODO: get rid of <system_error>
-#include <system_error>
 
 #include <io.h>
 #include <fcntl.h>
-#define NOMINMAX
-#define min(x, y) ((x) < (y) ? (x) : (y))
-#define max(x, y) ((x) > (y) ? (x) : (y))
-#define STRICT 1
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
+
 
 /// -------------------------------------------------------------------------------
 /// stolen from vcruntime.h 
@@ -147,18 +142,6 @@ inline auto setting_new_handler_to_terminate_ = []() {
 #endif
 #endif
 
-#ifdef DBJ_ASSERT
-#error remove previous DBJ_ASSERT definition
-#endif
-
-#ifdef _ASSERTE
-#define DBJ_ASSERT _ASSERTE
-#else
-/// NOTE! MSVC assert is not constexpr -- G++/CLANG is
-#include <cassert>
-#define DBJ_ASSERT assert
-#endif
-
 /*
 --------------------------------------------------------
 works for C too
@@ -217,7 +200,7 @@ usage:
 
 /// -------------------------------------------------------------------------------
 #ifdef _unused
-#error _unused is already defined somewhere ...
+#error dbj nanolib _unused is already defined somewhere ...?
 #else
 #define _unused(...) static_assert(noexcept(__VA_ARGS__, true))
 #endif
@@ -228,11 +211,11 @@ namespace dbj::nanolib
 	enum class SEMVER
 	{
 		major = 3,
-		minor = 0,
+		minor = 5,
 		patch = 1
 	};
 	// SEMVER + TIMESTAMP
-	constexpr auto VERSION = "3.0.1 " __TIME__ " " __DATE__;
+	constexpr auto VERSION = "3.5.1 " __TIME__ " " __DATE__;
 
 	/// -------------------------------------------------------------------------------
 	/* this can speed up things considerably. but test comprehensively first! */
@@ -353,60 +336,9 @@ namespace dbj::nanolib
 		}
 	}; // eof on_scope_exit
 	///	-----------------------------------------------------------------------------------------
-	   /*
-	 terror == terminating error
-	 NOTE: std::exit *is* different to C API exit()
-	 NOTE: all the bets are of so no point of using some logging
-	*/
-	[[noreturn]] inline void dbj_terror(const char* /*msg_*/, const char* /*file_*/, const int /*line_*/)
-	{
-		/// DBJ_ASSERT(msg_ && file_ && line_);
-		/// all the bets are of so no point of using some logging
-		perror("\n\n" __FILE__ "\n\ndbj nanolib Terminating error!");
-		std::exit(EXIT_FAILURE);
-	}
 
-	///	-----------------------------------------------------------------------------------------
-	// CAUTION! DBJ_VERIFY works in release builds too
-#ifndef DBJ_VERIFY
-#define DBJ_VERIFY_(x, file, line) \
-	if (false == x)                \
-	::dbj::nanolib::dbj_terror("Expression: " #x ", failed ", file, line)
 
-#define DBJ_VERIFY(x) DBJ_VERIFY_(x, __FILE__, __LINE__)
-#endif
 
-///	-----------------------------------------------------------------------------------------
-/* 
-    deprecated
-
-	namespace logging {
-		template <typename... Args>
-		void logfmt(const char* format_, Args... args) noexcept ;
-	} 
-#define DBJ_PRINT(FMT_, ...) (void)::dbj::nanolib::logging::logfmt(FMT_, __VA_ARGS__)
-*/
-	// deprecated !
-	// use dbj--simplelog
-#undef  DBJ_PRINT
-#define DBJ_PRINT(FMT_, ...) fprintf(stderr, FMT_, __VA_ARGS__)
-
-///	-----------------------------------------------------------------------------------------
-/*
-we use the macros bellow to create ever needed location info always
-associated with the offending expression
-timestamp included
-*/
-#define DBJ_FILE_LINE __FILE__ "(" _CRT_STRINGIZE(__LINE__) ")"
-#define DBJ_FILE_LINE_TSTAMP __FILE__ "(" _CRT_STRINGIZE(__LINE__) ")[" __TIMESTAMP__ "] "
-#define DBJ_FLT_PROMPT(x) DBJ_FILE_LINE_TSTAMP _CRT_STRINGIZE(x)
-
-/* will not compile if MSG_ is not string literal */
-#define DBJ_ERR_PROMPT(MSG_) DBJ_FILE_LINE_TSTAMP MSG_
-
-#define DBJ_CHK(x)    \
-	if (false == (x)) \
-	DBJ_PRINT("Evaluated to false! ", DBJ_FLT_PROMPT(x))
 ///	-----------------------------------------------------------------------------------------
 /*
 this is for variables only
@@ -507,13 +439,13 @@ int main () {    char C = i2c<32>(); }
 #ifdef _MSC_VER
 		v_buffer::buffer_type buffy_ = v_buffer::make(BUFSIZ);
 		if (0 != strerror_s(buffy_.data(), buffy_.size(), errno_))
-			dbj_terror("strerror_s failed", __FILE__, __LINE__);
+			dbj::terror("strerror_s failed", __FILE__, __LINE__);
 		return buffy_;
 #elif __GNUC__
 		// TODO: untested!
 		v_buffer::buffer_type buffy_ = v_buffer::make(BUFSIZ);
 		(void)strerror_r(errno_, buffy_.data(), buffy_.size()))
-		dbj_terror("strerror_r failed", __FILE__, __LINE__);
+		dbj::terror("strerror_r failed", __FILE__, __LINE__);
 		return buffy_;
 #else
 		// TODO: untested!
@@ -522,66 +454,14 @@ int main () {    char C = i2c<32>(); }
 #endif
 	}
 
-	/* Last WIN32 error, message */
-	inline v_buffer::buffer_type last_win32_error_message(int code = 0)
-	{
-		std::error_code ec(
-			(code ? code : ::GetLastError()),
-			std::system_category());
-		::SetLastError(0); //yes this helps
-		return v_buffer::format("%s", ec.message().c_str());
-	}
 
-	/* like perror but for WIN32 */
-	inline void last_perror(char const* prompt = nullptr)
-	{
-		std::error_code ec(::GetLastError(), std::system_category());
-		DBJ_PRINT("\n\n%s\nLast WIN32 Error message: %s\n\n", (prompt ? prompt : ""), ec.message().c_str());
-		::SetLastError(0);
-	}
-
-
-
-#ifdef _WIN32_WINNT_WIN10
-// dbj::nanolib::system_call("@chcp 65001")
-	inline bool system_call(const char* cmd_)
-	{
-		_ASSERTE(cmd_);
-		volatile auto whatever_ = cmd_;
-
-		if (0 != system(NULL))
-		{
-			if (-1 == system(cmd_)) // utf-8 codepage!
-			{
-				switch (errno)
-				{
-				case E2BIG:
-					last_perror("The argument list(which is system - dependent) is too big");
-					break;
-				case ENOENT:
-					last_perror("The command interpreter cannot be found.");
-					break;
-				case ENOEXEC:
-					last_perror("The command - interpreter file cannot be executed because the format is not valid.");
-					break;
-				case ENOMEM:
-					last_perror("Not enough memory is available to execute command; or available memory has been corrupted; or a non - valid block exists, which indicates that the process that's making the call was not allocated correctly.");
-					break;
-				}
-				return false;
-			}
-			return true;
-		}
-		return false;
-	}
-#endif // _WIN32_WINNT_WIN10
 
 } // namespace dbj::nanolib
 
 // can be used on its own
 #include "dbj_heap_alloc.h"
-#include "vt100win10.h"
-#include "dbj++debug.h"
+// #include "vt100win10.h"
+// #include "dbj++debug.h"
 
 /// internal (but not private) critical section
 #include "dbj_nano_synchro.h"
@@ -589,5 +469,6 @@ int main () {    char C = i2c<32>(); }
 #include "nonstd/nano_printf.h"
 // deprecated #include "dbj++log.h"
 
+#include "dbj_typename.h" // DBJ_SX and DBJ_SXT
 
 #endif // DBJ_NANOLIB_INCLUDED

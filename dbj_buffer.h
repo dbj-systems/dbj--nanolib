@@ -10,12 +10,17 @@
 #include <cstdint>
 #include <string.h>
 
+#ifndef CP_UTF8
+#define CP_UTF8   65001 // UTF-8 translation, from winnls.h
+#endif 
+
 #ifndef DBJ_NANOLIB_INCLUDED
 #error For now dbj_buffer.h can not be included on its own
 #endif // DBJ_NANOLIB_INCLUDED
 
 #pragma region buffer type and helper
 
+#include "dbj_windows_include.h"
 #include "./nonstd/dbj++array.h"
 #include "./utf/dbj_utf_cpp.h"
 
