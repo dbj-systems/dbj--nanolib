@@ -1,6 +1,52 @@
-/* (c) 2019, 2020 by dbj.org   -- CC BY-SA 4.0 -- https://creativecommons.org/licenses/by-sa/4.0/ */
 #ifndef DBJ_NANOLIB_INCLUDED
 #define DBJ_NANOLIB_INCLUDED
+/*
+   (c) 2019-2020 by dbj.org   -- LICENSE DBJ -- https://dbj.org/license_dbj/
+*/
+
+#ifdef __STDC_ALLOC_LIB__
+#define __STDC_WANT_LIB_EXT2__ 1
+#else
+#define _POSIX_C_SOURCE 200809L
+#endif
+
+/// -------------------------------------------------------------------------------
+#include <assert.h>
+#include <errno.h>
+#include <stdio.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <math.h>
+#include <io.h>
+#include <fcntl.h>
+/// -------------------------------------------------------------------------------
+#include <array>
+#include <chrono>
+#include <string_view>
+#include <optional>
+#include <utility>
+#include <mutex>
+
+#undef  DBJ_PERROR 
+#ifdef _DEBUG
+#define DBJ_PERROR (perror(__FILE__ " # " _CRT_STRINGIZE(__LINE__))) 
+#else
+#define DBJ_PERROR
+#endif // _DEBUG
+
+#undef DBJ_FERROR
+#ifdef _DEBUG
+#define DBJ_FERROR( FP_) \
+do { \
+if (ferror(FP_) != 0) {\
+	DBJ_PERROR ;\
+	clearerr_s(FP_);\
+} \
+} while(0)
+#else
+#define DBJ_FERROR( FP_ )
+#endif // _DEBUG
 
 #ifndef __cplusplus
 #error DBJ NANOLIB requires C++ compiler
@@ -22,23 +68,6 @@
 #define NDEBUG
 #endif
 #endif // NDEBUG
-
-#include "dbj_debug.h" // DBJ_PRINT and friends
-
-/// -------------------------------------------------------------------------------
-#include <stdint.h>
-#include <stdio.h>
-#include <array>
-#include <chrono>
-#include <cmath>
-#include <string_view>
-#include <optional>
-#include <utility>
-#include <mutex>
-
-#include <io.h>
-#include <fcntl.h>
-
 
 /// -------------------------------------------------------------------------------
 /// stolen from vcruntime.h 
@@ -111,6 +140,11 @@ class NONPAGESECTION MyNonPagedClass
 	...
 };
 */
+
+//-----------------------------------------------------------------------------------------
+
+#include "dbj_debug.h" // DBJ_PRINT and friends
+
 //-----------------------------------------------------------------------------------------
 // new failure will provoke fast exit -- ALWAYS!
 // this is APP WIDE for all users of dbj nanolib
@@ -137,9 +171,7 @@ inline auto setting_new_handler_to_terminate_ = []() {
 
 ///-----------------------------------------------------------------------------------------
 #ifdef __clang__
-#ifdef NDEBUG
 #pragma clang system_header
-#endif
 #endif
 
 extern "C" {
@@ -201,11 +233,11 @@ namespace dbj::nanolib
 	enum class SEMVER
 	{
 		major = 3,
-		minor = 5,
-		patch = 1
+		minor = 7,
+		patch = 0
 	};
 	// SEMVER + TIMESTAMP
-	constexpr auto VERSION = "3.5.1 " __TIME__ " " __DATE__;
+	constexpr auto VERSION = "3.7.0 " __TIME__ " " __DATE__;
 
 	/// -------------------------------------------------------------------------------
 	/* this can speed up things considerably. but test comprehensively first! */
@@ -255,11 +287,13 @@ namespace dbj::nanolib
 				4. never (ever) use C++20 char8_t and anything using it
 				   4.1 if you need to use <cuchar> for utf translations
 
-				Steve Wishnousky (MSFT) publicly has advised me personaly, against
-				using _setmode(), at all
-				https://developercommunity.visualstudio.com/solutions/411680/view.html
 				*/
 #if 0
+		/*
+		Steve Wishnousky (MSFT) publicly has advised me personaly, against
+		using _setmode(), at all
+		https://developercommunity.visualstudio.com/solutions/411680/view.html
+		*/
 				//#define _O_TEXT        0x4000  // file mode is text (translated)
 				//#define _O_BINARY      0x8000  // file mode is binary (untranslated)
 				//#define _O_WTEXT       0x10000 // file mode is UTF16 (translated)
@@ -340,74 +374,6 @@ long var [[maybe_unused]] {42L} ;
 #define DBJ_MAYBE(x) x[[maybe_unused]]
 
 ///	-----------------------------------------------------------------------------------------
-#pragma region very core type traits
-/*
-Check at compile time if value (of 'any' type) is inside given boundaries (inclusive)
-example usage:
-
-constexpr unsigned sixty_four = inside_inclusive_v<unsigned, 64, 0, 127> ;
-
-template<int K>
-using ascii_index_t = ::inside_inclusive_t<unsigned, K, 0, 127>;
-
-constexpr auto ascii_index = ascii_index_t<127>() ;
-
-template<int N>
-char i2c () {    return char(ascii_index_t<N>()) ; }
-
-int main () {    char C = i2c<32>(); }
-*/
-	template <typename T, T X, T L, T H>
-	using inside_inclusive_t =
-		::std::enable_if_t<(X <= H) && (X >= L),
-		::std::integral_constant<T, X>>;
-
-	template <typename T, T X, T L, T H>
-	inline constexpr bool inside_inclusive_v = inside_inclusive_t<T, X, L, H>();
-
-#ifdef DBJ_NANOLIB_QUICK_COMPILE_TIME_TESTING
-
-	/*
-		this is inclusive inside
-		this works if arguments are compile time values
-		*/
-	template <typename T, T L, T X, T H>
-	constexpr bool is_between()
-	{
-		return (X <= H) && (X >= L);
-	}
-
-	static_assert(is_between<unsigned, 0, 64, 127>());
-
-	template <typename T, T L, T X, T H>
-	constexpr T between()
-	{
-		static_assert(std::is_move_constructible_v<T>);
-		static_assert(std::is_move_assignable_v<T>);
-		static_assert((X <= H) && (X >= L));
-		return X;
-	}
-
-	static_assert(between<unsigned, 0, 64, 127>());
-
-	static_assert(inside_inclusive_v<unsigned, 64, 0, 127>);
-
-	template <int K>
-	using ascii_index_t = inside_inclusive_t<unsigned, K, 0, 127>;
-
-	static_assert(ascii_index_t<64>());
-#endif
-	/*
-		Example usage of bellow:
-		ok: static_assert(  all_same_type_v<float, float, float> ) ;
-		fails:	static_assert(  dbj::is_any_same_as_first_v<bool,  float, float>  );
-		*/
-	template <class _Ty,
-		class... _Types>
-		inline constexpr bool all_same_type_v = ::std::disjunction_v<::std::is_same<_Ty, _Types>...>;
-#pragma endregion
-
-	///	-----------------------------------------------------------------------------------------
 #pragma region numerics
 // compile time extremely precise PI approximation
 //
@@ -444,8 +410,6 @@ int main () {    char C = i2c<32>(); }
 #endif
 	}
 
-
-
 } // namespace dbj::nanolib
 
 // can be used on its own
@@ -455,9 +419,11 @@ int main () {    char C = i2c<32>(); }
 
 /// internal (but not private) critical section
 #include "dbj_nano_synchro.h"
-// 
-#include "nonstd/nano_printf.h"
-// deprecated #include "dbj++log.h"
+
+// why do we need this here?
+// #include "nonstd/nano_printf.h"
+
+// deprecated --> #include "dbj++log.h"
 
 #include "dbj_typename.h" // DBJ_SX and DBJ_SXT
 

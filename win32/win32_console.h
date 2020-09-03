@@ -20,7 +20,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-#include <Windows.h>
+#include "../dbj_windows_include.h"
 
 #ifdef _WIN32_WINNT_WIN10
 /*
@@ -47,18 +47,18 @@ extern "C" {
 	Example: if running from git bash on win this will exit the app
 	if app output is redirected to file, this will also fail.
 	*/
-	inline void win_enable_vt_100_and_unicode()
+	inline bool win_enable_vt_100_and_unicode()
 	{
 		static bool visited = false ;
 		if (visited)
-			return;
+			return true ;
 
 		int rez = SetConsoleOutputCP(CP_UTF8 /*65001*/);
 		{
 			if (rez == 0)
 			{
 				DBJ_PERROR;
-				exit(-1);
+				return false;
 			}
 		}
 		// Set output mode to handle virtual terminal sequences
@@ -66,7 +66,7 @@ extern "C" {
 		if (hOut == INVALID_HANDLE_VALUE)
 		{
 			DBJ_PERROR;
-			exit(-1);
+			return false;
 		}
 
 		DWORD dwMode ;
@@ -75,17 +75,17 @@ extern "C" {
 			fprintf(stderr,"\nFile: %s\nLine: %ul\nWhy: %s\n", __FILE__, __LINE__, ", GetConsoleMode() failed");
 			fprintf(stderr, "\nPlease re-run in either WIN console %s", " or powershell console\n");
 			DBJ_PERROR;
-			exit(-1);
-			return;
+			return false;
 		}
 
 		dwMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
 		if (!SetConsoleMode(hOut, dwMode))
 		{
 			DBJ_PERROR;
-			exit(-1);
+			return false;
 		}
 		visited = true;
+		return true ;
 	}
 
 	/*

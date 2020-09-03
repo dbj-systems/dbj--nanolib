@@ -1,5 +1,13 @@
 #pragma once
-/* (c) 2019, 2020 by dbj.org   -- CC BY-SA 4.0 -- https://creativecommons.org/licenses/by-sa/4.0/ */
+/*
+   (c) 2019-2020 by dbj.org   -- LICENSE DBJ -- https://dbj.org/license_dbj/
+*/
+
+#ifdef __STDC_ALLOC_LIB__
+#define __STDC_WANT_LIB_EXT2__ 1
+#else
+#define _POSIX_C_SOURCE 200809L
+#endif
 
 #include <typeinfo>
 #include <iostream>
@@ -17,8 +25,6 @@ works with GCC and CLANG on Linux etc ...
 */
 #define DBJ_TYPE_NAME(T) dbj::nanolib::name<T>().data()
 #define DBJ_TYPENAME(T) dbj::nanolib::name<decltype(T)>().data()
-
-
 
 namespace dbj::nanolib {
 

@@ -1,15 +1,15 @@
 
 #pragma once
 /*
-this is bottom line everything uses it; 'thing'
-thus no dependancies beside crt
+this is bottom line everything uses this 'thing'
+thus no dependancies beside crt and win32
 */
 
 #ifdef __clang__
-#ifdef NDEBUG
 #pragma clang system_header
 #endif
-#endif
+
+#include "win32/win32_console.h" // win_enable_vt_100_and_unicode
 
 #include <crtdbg.h>
 #include <stdio.h>
@@ -36,7 +36,17 @@ timestamp included
 
 namespace dbj {
 
-	/*
+	/* 
+	2020 SEP 03 -- it turns out (again) we need to initialize WIN10 terminal 
+	to show us VT100 colours
+	*/
+	inline auto win_vt100_initor_ = []() -> bool {
+		// this can fail for various reasons
+		// key reason being we are in the app with no console
+		// TODO: do it on different thread
+		return win_enable_vt_100_and_unicode();
+	}();
+/*
 terror == terminating error
 NOTE: std::exit *is* different to C API exit()
 NOTE: all the bets are of so no point of using some logging
@@ -66,6 +76,7 @@ NOTE: all the bets are of so no point of using some logging
 
 		constexpr inline bool release_mode_v = release_mode<release_mode_build>::value;
 #endif // 0
+
 		template < typename ... A >
 		inline void print(const char* format_string, A ... args_) noexcept
 		{
@@ -87,8 +98,8 @@ NOTE: all the bets are of so no point of using some logging
 	if (false == (x)) \
 	DBJ_PRINT("Evaluated to false! ", DBJ_FLT_PROMPT(x))
 
-	///	-----------------------------------------------------------------------------------------
-	// CAUTION! DBJ_VERIFY works in release builds too
+///	-----------------------------------------------------------------------------------------
+// CAUTION! DBJ_VERIFY works in release builds too
 #undef DBJ_VERIFY
 #undef DBJ_VERIFY_
 
