@@ -22,4 +22,11 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
+/*
+rudimentary runtime version checks
+https://docs.microsoft.com/en-us/windows/desktop/sysinfo/getting-the-system-version
+*/
+#include <VersionHelpers.h>
+
+
 #endif // DBJ_WINDOWS_INCLUDE_INC_
