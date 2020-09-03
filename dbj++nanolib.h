@@ -142,20 +142,10 @@ inline auto setting_new_handler_to_terminate_ = []() {
 #endif
 #endif
 
-/*
---------------------------------------------------------
-works for C too
-https://www.drdobbs.com/compile-time-assertions/184401873?pgno=1
-
-be carefull to use compile time values for this to work
-*/
 extern "C" {
-
-#define dbj_assert_static(e) \
-   do { \
-      enum { assert_static__ = 1/(e) }; \
-      } while (0)
-
+// https://godbolt.org/z/eP7Txf
+#undef  dbj_assert_static
+#define dbj_assert_static(e) (void)(1/(e))
 } // "C"
 /// --------------------------------------------------------
 /// decide which vector you will use
