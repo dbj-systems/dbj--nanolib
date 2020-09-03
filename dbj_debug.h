@@ -88,11 +88,13 @@ NOTE: all the bets are of so no point of using some logging
 	} // debug ns
 } // dbj ns
 
-#ifndef _DEBUG
+//#ifndef _DEBUG
+
+// naming is hard ... debug is a wrong name here
 #define DBJ_PRINT(...) dbj::debug::print(__VA_ARGS__)
-#else
-#define DBJ_PRINT(...) 
-#endif
+//#else
+//#define DBJ_PRINT(...) 
+//#endif
 
 #define DBJ_CHK(x)    \
 	if (false == (x)) \

@@ -111,29 +111,31 @@ NOTE! __declspec(thread) is not supported with /kernel
 ///	-----------------------------------------------------------------------------------------
 #ifdef __cplusplus
 #pragma region cpp oo sinchronisation
-/*
-This uses process wide single ciritical section! Be warned.
+namespace dbj {
+    /*
+    Be warned. This uses process wide but single instance critical section!
 
-usage:	void thread_safe_fun() 
-{	
-lock_unlock autolock_ ;  	
+    usage:	void thread_safe_fun()
+    {
+    dbj::lock_unlock autolock_ ;
 
-. . . 
-wahtever happens here is not entered before it is finished 
-. . .
+    . . .
+    wahtever happens here is not entered before it is finished
+    . . .
 
-}
-*/
-struct lock_unlock final
-{
-    lock_unlock() noexcept {
-        synchro_enter();
     }
-    ~lock_unlock() { 
-        synchro_leave();
-    }
-};
+    */
+    struct lock_unlock final
+    {
+        lock_unlock() noexcept {
+            synchro_enter();
+        }
+        ~lock_unlock() {
+            synchro_leave();
+        }
+    };
 
+} // dbj ns
 #pragma endregion
 #endif // __cplusplus
 
