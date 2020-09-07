@@ -22,10 +22,6 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
-#ifndef WIN32_LEAN_AND_MEAN
-#error please include windows before dbj_nano_synchro.h
-#endif // WIN32_LEAN_AND_MEAN
-
 /*
 ONE SINGLE PER PROCESS dbj nano critical section
 Thus using it in one place locks eveything else using it in every other place!
@@ -163,6 +159,7 @@ namespace dbj {
         ~local_lock_unlock() noexcept {
             DeleteCriticalSection(&crit_sect_);
             LeaveCriticalSection(&crit_sect_);
+        }
         private: 
          CRITICAL_SECTION crit_sect_{};
     };
@@ -170,5 +167,13 @@ namespace dbj {
 } // dbj ns
 #pragma endregion
 #endif // __cplusplus
+
+#ifdef DBJ_NANO_LIB_MT
+#define DBJ_GLOBAL_LOCK dbj::global_lock_unlock padlock_
+#define DBJ_LOCAL_LOCK  dbj::local_lock_unlock  padlock_
+#else
+#define DBJ_GLOBAL_LOCK 
+#define DBJ_LOCAL_LOCK  
+#endif 
 
 #endif // !_DBJ_NANO_CYNCHRO_INC_

@@ -36,16 +36,7 @@ timestamp included
 
 namespace dbj {
 
-	/* 
-	2020 SEP 03 -- it turns out (again) we need to initialize WIN10 terminal 
-	to show us VT100 colours
-	*/
-	inline auto win_vt100_initor_ = []() -> bool {
-		// this can fail for various reasons
-		// key reason being we are in the app with no console
-		// TODO: do it on different thread
-		return win_enable_vt_100_and_unicode();
-	}();
+
 /*
 terror == terminating error
 NOTE: std::exit *is* different to C API exit()
@@ -58,6 +49,23 @@ NOTE: all the bets are of so no point of using some logging
 		perror("\n\n" DBJ_ERR_PROMPT("\n\ndbj nanolib Terminating error!") );
 		::exit(EXIT_FAILURE);
 	}
+
+	/*
+2020 SEP 03 -- it turns out (again) we need to initialize WIN10 terminal
+to show us VT100 colours
+*/
+	inline auto win_vt100_initor_ = []() -> bool {
+		// this can fail for various reasons
+		// key reason being we are in the app with no console
+		// TODO: do it on different thread
+		bool rezult = win_enable_vt_100_and_unicode();
+
+		if (!rezult)
+		{
+			terror("win_enable_vt_100_and_unicode() failed!", __FILE__, __LINE__);
+		}
+		return rezult;
+	}();
 
 	namespace  debug
 	{

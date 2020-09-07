@@ -43,12 +43,12 @@ namespace dbj::nanolib {
 	{
 		using type = v_buffer;
 
-		using buffer_type = DBJ_VECTOR<char>;
+		using buffer_type = DBJ_VECTOR <char>;
 
-		static buffer_type make(size_t count_)
+		static buffer_type make( size_t count_)
 		{
 			DBJ_ASSERT(count_ < DBJ_MAX_BUFER_SIZE);
-			buffer_type retval_(count_ /*+ 1*/, char(0));
+			buffer_type retval_((buffer_type::size_type)count_ /*+ 1*/, char(0));
 			return retval_;
 		}
 

@@ -4,6 +4,16 @@
    (c) 2019-2020 by dbj.org   -- LICENSE DBJ -- https://dbj.org/license_dbj/
 */
 
+#ifndef __cplusplus
+#error DBJ NANOLIB requires C++ compiler
+#endif
+
+#if defined(__clang__) 
+#define DBJ_PURE_FUNCTION __attribute__((const))
+#else
+#define DBJ_PURE_FUNCTION 
+#endif
+
 #ifdef __STDC_ALLOC_LIB__
 #define __STDC_WANT_LIB_EXT2__ 1
 #else
@@ -20,20 +30,29 @@
 #include <math.h>
 #include <io.h>
 #include <fcntl.h>
-/// -------------------------------------------------------------------------------
-#include <array>
-#include <chrono>
-#include <string_view>
-#include <optional>
-#include <utility>
-#include <mutex>
 
+/// -------------------------------------------------------------------------------
+/// NDEBUG *is* standard macro and it is used
+/// https://stackoverflow.com/a/29253284/10870835
+
+#if ! defined (_DEBUG)
+#if ! defined (NDEBUG)
+#error  NDEBUG *is* standard macro.
+#endif
+#endif
+
+#undef DBJ_RELEASE_BUILD
+#ifdef NDEBUG 
+#define DBJ_RELEASE_BUILD
+#endif
+
+/// -------------------------------------------------------------------------------
 #undef  DBJ_PERROR 
-#ifdef _DEBUG
+#ifndef NDEBUG
 #define DBJ_PERROR (perror(__FILE__ " # " _CRT_STRINGIZE(__LINE__))) 
 #else
 #define DBJ_PERROR
-#endif // _DEBUG
+#endif // NDEBUG
 
 #undef DBJ_FERROR
 #ifdef _DEBUG
@@ -47,27 +66,6 @@ if (ferror(FP_) != 0) {\
 #else
 #define DBJ_FERROR( FP_ )
 #endif // _DEBUG
-
-#ifndef __cplusplus
-#error DBJ NANOLIB requires C++ compiler
-#endif
-
-#if defined(__clang__) 
-#define DBJ_PURE_FUNCTION __attribute__((const))
-#else
-#define DBJ_PURE_FUNCTION 
-#endif
-
-/// -------------------------------------------------------------------------------
-/// NDEBUG *is* standard macro and it is used
-/// https://stackoverflow.com/a/29253284/10870835
-#ifndef NDEBUG
-#if defined (DEBUG) || defined(_DEBUG)
-/* do nothing */
-#else
-#define NDEBUG
-#endif
-#endif // NDEBUG
 
 /// -------------------------------------------------------------------------------
 /// stolen from vcruntime.h 
@@ -85,9 +83,9 @@ if (ferror(FP_) != 0) {\
 
 #ifdef _MSVC_LANG
 // https://developercommunity.visualstudio.com/content/problem/195665/-line-cannot-be-used-as-an-argument-for-constexpr.html
-#define CONSTEXPR_LINE long(_DBJ_CONCATENATE(__LINE__, U))
+#define DBJ_CONSTEXPR_LINE long(_DBJ_CONCATENATE(__LINE__, U))
 #else
-#define CONSTEXPR_LINE __LINE__
+#define DBJ_CONSTEXPR_LINE __LINE__
 #endif
 
 
@@ -141,6 +139,47 @@ class NONPAGESECTION MyNonPagedClass
 };
 */
 
+/// --------------------------------------------------------
+
+#ifndef DBJ_USING_STD_VECTOR
+#include <EASTL/vector.h>
+#define DBJ_VECTOR eastl::vector
+#else
+#include <vector>
+#define DBJ_VECTOR std::vector
+#endif // DBJ_USING_STD_VECTOR
+
+#ifndef DBJ_USING_STD_ARRAY
+#include "nonstd/dbj++array.h"
+// in there we have
+#undef DBJ_ARRAY
+#define DBJ_ARRAY ::dbj::nanolib::containers::array
+
+#undef DBJ_ARRAY_WITH_PUSH
+#define DBJ_ARRAY_WITH_PUSH ::dbj::nanolib::containers::array_with_push
+
+#else
+#include <array>
+#define DBJ_ARRAY std::array
+#undef DBJ_ARRAY_WITH_PUSH
+#endif
+
+#ifndef DBJ_USING_STD_STRING
+#include <EASTL/string.h>
+#define DBJ_STRING eastl::string
+#else
+#include <string>
+#define DBJ_STRING std::string
+#endif
+
+#include <chrono>
+#include <string_view>
+#include <optional>
+#include <utility>
+#include <mutex>
+
+#pragma message("remove the dependancy on the std lib")
+
 //-----------------------------------------------------------------------------------------
 
 #include "dbj_debug.h" // DBJ_PRINT and friends
@@ -170,32 +209,12 @@ inline auto setting_new_handler_to_terminate_ = []() {
 #endif
 
 ///-----------------------------------------------------------------------------------------
-#ifdef __clang__
-#pragma clang system_header
-#endif
 
 extern "C" {
 // https://godbolt.org/z/eP7Txf
 #undef  dbj_assert_static
 #define dbj_assert_static(e) (void)(1/(e))
 } // "C"
-/// --------------------------------------------------------
-/// decide which vector you will use
-/// keep it behind macro DBJ_VECTOR in any case
-#define _DBJ_USING_STD_VECTOR 0
-
-#if _DBJ_USING_STD_VECTOR
-#include <vector>
-#define DBJ_VECTOR std::vector
-#else
-
-#include "nonstd/dbj++vector.h"
-
-#if !DBJ_TERMINATE_ON_BAD_ALLOC
-#pragma message("\n\nWARNING!\n\nUsing non standard vector with bad_alloc throwing enabled.\n\n")
-#endif
-
-#endif
 
 #include "dbj_buffer.h"
 
@@ -233,11 +252,13 @@ namespace dbj::nanolib
 	enum class SEMVER
 	{
 		major = 3,
-		minor = 7,
+		minor = 9,
 		patch = 0
 	};
 	// SEMVER + TIMESTAMP
-	constexpr auto VERSION = "3.7.0 " __TIME__ " " __DATE__;
+	constexpr auto VERSION = "3.9.0 " __TIME__ " " __DATE__;
+
+	_unused(VERSION);
 
 	/// -------------------------------------------------------------------------------
 	/* this can speed up things considerably. but test comprehensively first! */
@@ -257,12 +278,6 @@ namespace dbj::nanolib
 #endif
 	}
 
-	/// -------------------------------------------------------------------------------
-	// nanolib loggin is deprecated
-
-	//namespace logging {
-	//	void enable_vt_100_and_unicode();
-	//}
 
 	/// -------------------------------------------------------------------------------
 	/* happens once and as soon as possible */
@@ -359,9 +374,6 @@ namespace dbj::nanolib
 			callable_();
 		}
 	}; // eof on_scope_exit
-	///	-----------------------------------------------------------------------------------------
-
-
 
 ///	-----------------------------------------------------------------------------------------
 /*
@@ -413,18 +425,18 @@ long var [[maybe_unused]] {42L} ;
 } // namespace dbj::nanolib
 
 // can be used on its own
-#include "dbj_heap_alloc.h"
+// #include "dbj_heap_alloc.h"
 // #include "vt100win10.h"
 // #include "dbj++debug.h"
 
 /// internal (but not private) critical section
-#include "dbj_nano_synchro.h"
+//  #include "dbj_nano_synchro.h"
 
 // why do we need this here?
 // #include "nonstd/nano_printf.h"
 
 // deprecated --> #include "dbj++log.h"
 
-#include "dbj_typename.h" // DBJ_SX and DBJ_SXT
+// #include "dbj_typename.h" // DBJ_SX and DBJ_SXT
 
 #endif // DBJ_NANOLIB_INCLUDED

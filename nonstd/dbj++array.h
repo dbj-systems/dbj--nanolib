@@ -10,7 +10,7 @@
 // avoid names clashes with std::array
 // use these simple macros
 #define DBJ_ARRAY ::dbj::nanolib::containers::array
-#define DBJ_ARRAY_STORAGE ::dbj::nanolib::containers::array_storage
+#define DBJ_ARRAY_WITH_PUSH ::dbj::nanolib::containers::array_with_push
 
 namespace dbj::nanolib::containers
 {
@@ -336,7 +336,7 @@ for traversal and usage
 */
 
 template<typename T_, size_t S_>
-class array_storage final : public DBJ_ARRAY< T_, S_ >
+class array_with_push final : public DBJ_ARRAY< T_, S_ >
 {
 	using base = DBJ_ARRAY< T_, S_ >;
 
@@ -372,7 +372,7 @@ public:
 		return storage_capacity;
 	}
 
-}; // array_storage
+}; // array_with_push
 
 } // namespace dbj::nanolib::containers
 
@@ -412,7 +412,7 @@ namespace {
     using dbj_array = typename dbj_conts::array<T, N>;
 
     template<typename T, size_t N>
-    using dbj_array_storage = typename dbj_conts::array_storage<T, N>;
+    using dbj_array_storage = typename dbj_conts::array_with_push<T, N>;
 }
 /////////////////////////////////////////////////////////////////
 
