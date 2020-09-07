@@ -1,11 +1,26 @@
 #ifndef _DBJ_NANO_CYNCHRO_INC_
 #define _DBJ_NANO_CYNCHRO_INC_
 
-#ifndef DBJ_NANOLIB_INCLUDED
-#error please include dbj++nanolib.h before dbj_nano_synchro.h
+/*
+(c) 2019-2020 by dbj.org   -- LICENSE DBJ -- https://dbj.org/license_dbj/
+*/
+#ifdef __STDC_ALLOC_LIB__
+#define __STDC_WANT_LIB_EXT2__ 1
+#else
+#define _POSIX_C_SOURCE 200809L
 #endif
 
-#include "dbj_windows_include.h"
+#define NOMINMAX
+
+#undef  min
+#define min(x, y) ((x) < (y) ? (x) : (y))
+
+#undef  max
+#define max(x, y) ((x) > (y) ? (x) : (y))
+
+#define STRICT 1
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
 
 #ifndef WIN32_LEAN_AND_MEAN
 #error please include windows before dbj_nano_synchro.h
@@ -13,12 +28,7 @@
 
 /*
 ONE SINGLE PER PROCESS dbj nano critical section
-Thus using it in one pleace locks eveything else using it in every other place!
-
-used internaly. if one wants to be in sync with dbj nanolib the one can use this
-
-DBJ NANO LIB is single threaded by default in case user need the opposite please 
-#define DBJ_NANO_LIB_MT
+Thus using it in one place locks eveything else using it in every other place!
 
 Note: this is obviously WIN32 only
 */
@@ -27,9 +37,7 @@ Note: this is obviously WIN32 only
 extern "C" {
 #endif // __cplusplus
 
-#undef DBJ_NANO_KERNEL_BUILD
-
-    // /kernel CL switch macro
+// /kernel CL switch macro
 #ifdef _KERNEL_MODE
 #define DBJ_NANO_KERNEL_BUILD
 #else
@@ -125,14 +133,38 @@ namespace dbj {
 
     }
     */
-    struct lock_unlock final
+
+    struct no_copy_no_move 
     {
-        lock_unlock() noexcept {
+       no_copy_no_move() = default ;
+       no_copy_no_move( no_copy_no_move const & ) = delete ;     
+       no_copy_no_move & operator = ( no_copy_no_move const & ) = delete ;     
+
+       no_copy_no_move( no_copy_no_move      && ) = delete ;     
+       no_copy_no_move & operator = ( no_copy_no_move      && ) = delete ;     
+    } ;
+
+    struct global_lock_unlock final : private no_copy_no_move 
+    {
+        explicit global_lock_unlock() noexcept {
             synchro_enter();
         }
-        ~lock_unlock() {
+        ~global_lock_unlock() noexcept {
             synchro_leave();
         }
+    };
+
+    struct local_lock_unlock final : private no_copy_no_move 
+    {
+        explicit local_lock_unlock() noexcept {
+            InitializeCriticalSection(&crit_sect_);
+            EnterCriticalSection(&crit_sect_);
+        }
+        ~local_lock_unlock() noexcept {
+            DeleteCriticalSection(&crit_sect_);
+            LeaveCriticalSection(&crit_sect_);
+        private: 
+         CRITICAL_SECTION crit_sect_{};
     };
 
 } // dbj ns

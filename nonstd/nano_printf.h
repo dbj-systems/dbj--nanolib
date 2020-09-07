@@ -337,7 +337,7 @@ many embedded systems.
 To use the printf you need to supply your own character output function,
 something like :
 
-    void putc ( void* p, char c)
+    void my_putc ( void* p, char c)
         {
         while (!SERIAL_PORT_EMPTY) ;
         SERIAL_PORT_TX_REGISTER = c;
@@ -346,7 +346,7 @@ something like :
 Before you can call printf you need to initialize it to use your
 character output function with something like:
 
-    nano_init_printf(NULL,putc);
+    nano_init_printf(NULL, my_putc);
 
 Notice the 'NULL' in 'nano_init_printf' and the parameter 'void* p' in 'putc',
 the NULL (or any pointer) you pass into the 'nano_init_printf' will eventually be

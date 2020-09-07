@@ -23,19 +23,19 @@ namespace dbj {
 	 * Aligns the size by the machine word.
 	 http://dmitrysoshnikov.com/compilers/writing-a-memory-allocator/#memory-alignment
 	 */
-	constexpr inline size_t align(size_t n) {
+	constexpr inline size_t align(size_t n) noexcept {
 		return (n + sizeof(word_t) - 1) & ~(sizeof(word_t) - 1);
 	}
 
 	/// ----------------------------------------------------------------------
-	inline bool is_aligned(void *ptr, size_t alignment) {
+	inline bool is_aligned(void *ptr, size_t alignment) noexcept {
 		if (((unsigned long long)ptr % alignment) == 0)
 			return true;
 		return false;
 	}
 
 	/// ----------------------------------------------------------------------
-	inline void* aligned_malloc(size_t alignment, size_t size)
+	inline void* aligned_malloc(size_t alignment, size_t size) noexcept
 	{
 		void* p;
 #ifdef _MSC_VER
@@ -53,7 +53,7 @@ namespace dbj {
 	}
 
 	/// ----------------------------------------------------------------------
-	inline void aligned_free(void* mem_block) {
+	inline void aligned_free(void* mem_block) noexcept {
 		if (mem_block == nullptr) {
 			return;
 		}
@@ -67,5 +67,7 @@ namespace dbj {
 	}
 
 } // dbj 
+
+#undef mistery
 
 #endif // DBJ_MEMALIGNED_INC
