@@ -32,11 +32,6 @@ extern "C" {
 	void nano_sprintf(char* s, const char* fmt, ...);
     void nano_format(void* putp, putcf putf, const char* fmt, va_list va);
 
-//#ifdef NANO_PRINTF_IN_USE
-//	#define printf nano_printf
-//	#define sprintf nano_sprintf
-//#endif // NANO_PRINTF_IN_USE
-
 	/*
 	*******************************************************************************
 	*/

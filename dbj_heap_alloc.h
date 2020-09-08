@@ -1,5 +1,7 @@
 #ifndef DBJ_HEAP_ALLOC_INCLUDE
 #define DBJ_HEAP_ALLOC_INCLUDE
+
+#include "dbj_single_inclusor.h"
 /*
 (c) 2020 by dbj@dbj.org CC BY SA 4.0
 
