@@ -1,42 +1,51 @@
 #ifndef DBJ_HEAP_ALLOC_INCLUDE
 #define DBJ_HEAP_ALLOC_INCLUDE
-
-#include "dbj_single_inclusor.h"
 /*
-(c) 2020 by dbj@dbj.org CC BY SA 4.0
-
- Now here is the secret sauce key ingredient:
- on windows machine these are the fastest,
- proven and measured
-
- Here are the forward declaration to avoid 
- including windows.h
-
- PPL.H -- Disclaimer: yes I know about parrallel maloc and free.  
-          This is for when you do not want or cannot include ppl.h
+(c) 2019-2020 by dbj.org   -- LICENSE DBJ -- https://dbj.org/license_dbj/
 */
 
 #ifdef _WIN32
+#ifdef __STDC_ALLOC_LIB__
+#define __STDC_WANT_LIB_EXT2__ 1
+#else
+#define _POSIX_C_SOURCE 200809L
+#endif
 
+#define NOMINMAX
 
-#define DBJ_NANO_CALLOC(T_,S_) (T_*)HeapAlloc(GetProcessHeap(), 0, S_ * sizeof(T_))
+#undef  min
+#define min(x, y) ((x) < (y) ? (x) : (y))
 
-#define DBJ_NANO_MALLOC(T_,S_)(T_*)HeapAlloc(GetProcessHeap(), 0, S_)
+#undef  max
+#define max(x, y) ((x) > (y) ? (x) : (y))
 
-#define DBJ_NANO_FREE(P_) HeapFree(GetProcessHeap(), 0, (void*)P_)
+#define STRICT 1
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+/*
+ Now here is the secret sauce secret ingredient:
+ On windows machine these are faster vs crt malloc/free. Proven and measured.
+ PPL.H -- Disclaimer: yes I know about parrallel maloc and free.
+*/
 
-#else // not WIN32
+#define DBJ_CALLOC(S_,T_) HeapAlloc(GetProcessHeap(), 0, S_ * sizeof(T_))
 
-/// no WIN32 -- standard allocation
+#define DBJ_MALLOC( S_) HeapAlloc(GetProcessHeap(), 0, S_)
+
+#define DBJ_FREE(P_) HeapFree(GetProcessHeap(), 0, (void*)P_)
+
+#else // ! WIN32
+
+/// standard allocation
 /// be advised clang can sometimes do some serious magic 
-/// with opitmizing these calls
+/// while optimizing these calls
 
-#define DBJ_NANO_CALLOC(T_,S_) (T_*)calloc( S_ , sizeof(T_))
+#define DBJ_CALLOC(S_,T_) calloc( S_ , sizeof(T_))
 
-#define DBJ_NANO_MALLOC(T_,S_)(T_*)malloc( S_ )
+#define DBJ_MALLOC(S_)malloc( S_ )
 
-#define DBJ_NANO_FREE(P_) do { assert(P_ != NULL ); if(P_ != NULL) free(P_); P_ = NULL; } while(0)
+#define DBJ_FREE(P_) free(P_)
 
-#endif // not WIN32
+#endif // ! WIN32
 
 #endif // DBJ_HEAP_ALLOC_INCLUDE

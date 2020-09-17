@@ -20,7 +20,7 @@ namespace eastl {
 		) noexcept
 		{
 			// note: no checks whatsoever ...
-			return DBJ_NANO_MALLOC(void, size_);
+			return DBJ_MALLOC(size_);
 		}
 
 		// alligned allocation
@@ -38,7 +38,7 @@ namespace eastl {
 			// this allocator doesn't support alignment
 			EASTL_ASSERT(alignment_ <= 8);
 			// note: no checks whatsoever ...
-			return DBJ_NANO_MALLOC(void, size_);
+			return DBJ_MALLOC(size_);
 		}
 
 		// dbj eastl2010 change to allow for default allocator
@@ -46,7 +46,7 @@ namespace eastl {
 		// just like in this case
 		inline void user_defined_deallocate(void* ptr_) noexcept
 		{
-			DBJ_NANO_FREE(ptr_);
+			DBJ_FREE(ptr_);
 		}
 	} // "C"
 } // eastl ns
