@@ -98,7 +98,8 @@ to show us VT100 colours
 
 //#ifndef _DEBUG
 
-// naming is hard ... debug is a wrong name here
+// naming is hard ... DBJ_PRINT is a wrong name here
+// DBG_PRINT  would indicate there is NO release print from here
 #define DBJ_PRINT(...) dbj::debug::print(__VA_ARGS__)
 //#else
 //#define DBJ_PRINT(...) 

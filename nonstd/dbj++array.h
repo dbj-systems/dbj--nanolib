@@ -335,42 +335,85 @@ for traversal and usage
 -----------------------------------------------------------------------------------------------
 */
 
-template<typename T_, size_t S_>
-class array_with_push final : public DBJ_ARRAY< T_, S_ >
+
+template<typename TYP_, size_t SZE_> 
+class array_with_push final 
 {
-	using base = DBJ_ARRAY< T_, S_ >;
+    using type = array_with_push;
 
-	constexpr static size_t storage_capacity{ S_ };
+    using implementation_type = dbj::nanolib::containers::array<TYP_, SZE_>;
 
+    using value_type = TYP_;
+    using size_type = size_t;
+    using differencetype = ptrdiff_t;
+    using pointer = TYP_*;
+    using const_pointer = const TYP_*;
+    using reference = TYP_&;
+    using const_reference = const TYP_&;
+
+    using iterator = pointer;
+    using const_iterator = const_pointer;
+
+    // -------------------------------------------------
+
+    implementation_type implementation_;
+
+	constexpr static size_t storage_capacity{ SZE_ };
 	size_t level_{ 0 };
+
 public:
 	constexpr bool is_empty() const { return level_ == 0; }
     constexpr bool is_full() const { return level_ == storage_capacity; }
 
-	constexpr T_ push_back(T_ next_fp) 
+	constexpr TYP_ push_back(TYP_ next_fp)
     {
         _ASSERTE( ! is_full() );
         if (is_full()) return {}; // dbj 2020-APR-14 nullptr;
-		(*this)[level_] = next_fp;
+        implementation_[level_] = next_fp;
 		level_ += 1;
 		return next_fp;
 	}
 
-	[[nodiscard]] constexpr typename base::const_iterator end() const noexcept {
-		return typename base::const_iterator( this->elements_ + level_);
-	}
-
-	[[nodiscard]] constexpr typename  base::iterator end() noexcept {
-		return typename base::iterator( this->elements_ + level_);
-	}
-
-	[[nodiscard]] constexpr typename base::size_type size() const noexcept {
+	[[nodiscard]] constexpr  size_type size() const noexcept {
 		return level_;
 	}
 
-	[[nodiscard]] constexpr typename base::size_type max_size() const noexcept {
+	[[nodiscard]] constexpr  size_type max_size() const noexcept {
 		return storage_capacity;
 	}
+
+    [[nodiscard]] constexpr iterator begin() noexcept
+    {
+        return implementation_.begin() ;
+    }
+
+    [[nodiscard]] constexpr const_iterator begin() const noexcept
+    {
+        return implementation_.begin();
+    }
+
+    [[nodiscard]] constexpr iterator end() noexcept
+    {
+        return implementation_.end();
+    }
+
+    [[nodiscard]] constexpr const_iterator end() const noexcept
+    {
+        return implementation_.end();
+    }
+
+
+    [[nodiscard]] constexpr reference operator[](size_type idx_) noexcept
+    {
+        DBJ_ASSERT(idx_ < SZE_);
+        return implementation_[idx_];
+    }
+
+    [[nodiscard]] constexpr const_reference operator[](size_type idx_) const noexcept
+    {
+        DBJ_ASSERT(idx_ < SZE_);
+        return implementation_[idx_];
+    }
 
 }; // array_with_push
 
