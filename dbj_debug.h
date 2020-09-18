@@ -19,20 +19,27 @@ thus no dependancies beside crt and win32
 #undef DBJ_ASSERT
 #define DBJ_ASSERT _ASSERTE
 
+// -----------------------------------------------------------------------------
+#undef  DBJ_PRINT_ALWAYS
+#define DBJ_PRINT_ALWAYS
+
 /*
 we use the macros bellow to create ever needed location info always
 associated with the offending expression
 timestamp included
 */
+#undef  DBJ_FILE_LINE 
 #define DBJ_FILE_LINE __FILE__ "(" _CRT_STRINGIZE(__LINE__) ")"
+
+#undef  DBJ_FILE_LINE_TSTAMP
 #define DBJ_FILE_LINE_TSTAMP __FILE__ "(" _CRT_STRINGIZE(__LINE__) ")[" __TIMESTAMP__ "] "
+
+#undef  DBJ_FLT_PROMPT
 #define DBJ_FLT_PROMPT(x) DBJ_FILE_LINE_TSTAMP _CRT_STRINGIZE(x)
 
 /* will not compile if MSG_ is not string literal */
+#undef  DBJ_ERR_PROMPT
 #define DBJ_ERR_PROMPT(MSG_) DBJ_FILE_LINE_TSTAMP MSG_
-
-// -----------------------------------------------------------------------------
-#undef  DBJ_PRINT
 
 namespace dbj {
 
@@ -85,13 +92,22 @@ to show us VT100 colours
 		constexpr inline bool release_mode_v = release_mode<release_mode_build>::value;
 #endif // 0
 
+
 		template < typename ... A >
 		inline void print(const char* format_string, A ... args_) noexcept
 		{
+			// DBJ: TODO: must think about this
+			// basically if logging is used this 
+			// should print only in debug builds
+#ifndef DBJ_PRINT_ALWAYS
 			if constexpr (!release_mode_build)
 			{
+#endif // DBJ_PRINT_ALWAYS
 				::fprintf(stderr, format_string, args_ ...);
+#ifndef DBJ_PRINT_ALWAYS
 			}
+#endif // DBJ_PRINT_ALWAYS
+
 		}
 	} // debug ns
 } // dbj ns
@@ -100,11 +116,14 @@ to show us VT100 colours
 
 // naming is hard ... DBJ_PRINT is a wrong name here
 // DBG_PRINT  would indicate there is NO release print from here
+// -----------------------------------------------------------------------------
+#undef  DBJ_PRINT
 #define DBJ_PRINT(...) dbj::debug::print(__VA_ARGS__)
 //#else
 //#define DBJ_PRINT(...) 
 //#endif
 
+#undef DBJ_CHK
 #define DBJ_CHK(x)    \
 	if (false == (x)) \
 	DBJ_PRINT("Evaluated to false! ", DBJ_FLT_PROMPT(x))
