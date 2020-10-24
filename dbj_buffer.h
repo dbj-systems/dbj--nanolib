@@ -7,17 +7,16 @@
 -----------------------------------------------------------------------------------------
 */
 
-#include <cstdint>
-#include <string.h>
+#define DBJ_USES_STD_LIB
+#include "dbj_single_inclusor.h"
+#include "dbj_windows_include.h"
+#include "./utf/dbj_utf_cpp.h"
 
-#ifndef DBJ_NANOLIB_INCLUDED
-#error For now dbj_buffer.h can not be included on its own
-#endif // DBJ_NANOLIB_INCLUDED
+#ifndef CP_UTF8
+#define CP_UTF8   65001 // UTF-8 translation, from winnls.h
+#endif 
 
 #pragma region buffer type and helper
-
-#include "./nonstd/dbj++array.h"
-#include "./utf/dbj_utf_cpp.h"
 
 namespace dbj::nanolib {
 
@@ -38,12 +37,12 @@ namespace dbj::nanolib {
 	{
 		using type = v_buffer;
 
-		using buffer_type = DBJ_VECTOR<char>;
+		using buffer_type = DBJ_VECTOR <char>;
 
-		static buffer_type make(size_t count_)
+		static buffer_type make( size_t count_)
 		{
 			DBJ_ASSERT(count_ < DBJ_MAX_BUFER_SIZE);
-			buffer_type retval_(count_ /*+ 1*/, char(0));
+			buffer_type retval_((buffer_type::size_type)count_ /*+ 1*/, char(0));
 			return retval_;
 		}
 

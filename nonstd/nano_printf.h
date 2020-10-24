@@ -5,6 +5,18 @@
 #include <stdarg.h>
 #include <stddef.h>
 
+#ifndef DBJ_NANO_THREADLOCAL
+
+#if defined(__GNUC__) || defined(__INTEL_COMPILER)
+#define DBJ_NANO_THREADLOCAL __thread
+#elif defined(_MSC_VER)
+#define DBJ_NANO_THREADLOCAL __declspec(thread)
+#else
+#error can not create DBJ_NANO_THREADLOCAL ?
+#endif
+
+#endif // DBJ_NANO_THREADLOCAL
+
 extern "C" {
 
 #define PRINTF_LONG_SUPPORT
@@ -19,11 +31,6 @@ extern "C" {
     void nano_printf(const char* fmt, ...);
 	void nano_sprintf(char* s, const char* fmt, ...);
     void nano_format(void* putp, putcf putf, const char* fmt, va_list va);
-
-#ifdef NANO_PRINTF_IN_USE
-	#define printf nano_printf
-	#define sprintf nano_sprintf
-#endif // NANO_PRINTF_IN_USE
 
 	/*
 	*******************************************************************************
@@ -229,8 +236,8 @@ extern "C" {
 
     inline void nano_init_printf(void* putp, void (*putf) (void*, char))
     {
-        stdout_putf = putf;
         stdout_putp = putp;
+        stdout_putf = putf;
     }
 
     inline void nano_printf(const char* fmt, ...)
@@ -261,7 +268,7 @@ extern "C" {
 /*
 2020 APR 11	DBJ	Transformed into single header C lib
                 This version does not use heap allocations
-                See the long commnet just bellow
+                See the long comment just bellow
 
 This is an implementation of an embedded printf which makes
 no use of malloc. Taken from
@@ -325,7 +332,7 @@ many embedded systems.
 To use the printf you need to supply your own character output function,
 something like :
 
-    void putc ( void* p, char c)
+    void my_putc ( void* p, char c)
         {
         while (!SERIAL_PORT_EMPTY) ;
         SERIAL_PORT_TX_REGISTER = c;
@@ -334,7 +341,7 @@ something like :
 Before you can call printf you need to initialize it to use your
 character output function with something like:
 
-    nano_init_printf(NULL,putc);
+    nano_init_printf(NULL, my_putc);
 
 Notice the 'NULL' in 'nano_init_printf' and the parameter 'void* p' in 'putc',
 the NULL (or any pointer) you pass into the 'nano_init_printf' will eventually be

@@ -27,11 +27,10 @@ namespace dbj::nanolib {
         delimiters_function delimiters, 
         bool show_size) 
     {
-        using dbj::nanolib::logging::log;
         using namespace std;
         auto size_ = [&] { return  size_t(distance(begin_, end_));  };
         if (show_size) {
-            log( " sequence " , delimiters(dc::LEFT_SQ_BRACE) , "size:" , size_() , delimiters(dc::RIGHT_SQ_BRACE));
+            DBJ_PRINT( " sequence " , delimiters(dc::LEFT_SQ_BRACE) , "size:" , size_() , delimiters(dc::RIGHT_SQ_BRACE));
         }
         log( delimiters(dc::SPACE) , delimiters(dc::LEFT_BRACE));
         auto walker = begin_;
@@ -39,19 +38,19 @@ namespace dbj::nanolib {
         {
             // first sequence element
             // no leading comma
-            log( delimiters(dc::SPACE) , *walker);
+            DBJ_PRINT( delimiters(dc::SPACE) , *walker);
             walker++;
             // other elements, if any
              // with a leading comma
             while (walker != end_) {
-                log( delimiters(dc::SPACE) , delimiters(dc::COMMA) , delimiters(dc::SPACE) , *walker);
+                DBJ_PRINT( delimiters(dc::SPACE) , delimiters(dc::COMMA) , delimiters(dc::SPACE) , *walker);
                 // operator '++' advances the iterator
                 // logically to the 'right'
                 // see the diagram below
                 walker++;
             }
         }
-        log( delimiters(dc::SPACE) , delimiters(dc::RIGHT_BRACE));
+        DBJ_PRINT( delimiters(dc::SPACE) , delimiters(dc::RIGHT_BRACE));
     }
 
     // print a sequence with a comma in between elements

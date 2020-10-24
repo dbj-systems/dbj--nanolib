@@ -45,18 +45,6 @@
 #if ! (DBJ_CPLUSPLUS > 201402L )
 #error C++17 or greater is required ...
 #endif
-
-// MSVC STD LIB aka STL
-// _ITERATOR_DEBUG_LEVEL 2 is the DEBUG build default
-// and that will produce segv with dbj stack alocator 
-// that was not tested with stack allocator I suppose?
-// https://docs.microsoft.com/en-us/cpp/standard-library/iterator-debug-level?view=vs-2019
-
-#if (_ITERATOR_DEBUG_LEVEL != 0)
-#undef _ITERATOR_DEBUG_LEVEL
-#define _ITERATOR_DEBUG_LEVEL  0
-#endif
-
 // https://codereview.stackexchange.com/a/31575
 
 #include <cstddef>

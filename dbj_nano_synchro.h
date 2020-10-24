@@ -1,28 +1,44 @@
 #ifndef _DBJ_NANO_CYNCHRO_INC_
 #define _DBJ_NANO_CYNCHRO_INC_
 
-#ifndef DBJ_NANOLIB_INCLUDED
-#error please include dbj++nanolib.h before dbj_nano_synchro.h
+/*
+(c) 2019-2020 by dbj.org   -- LICENSE DBJ -- https://dbj.org/license_dbj/
+*/
+#ifdef __STDC_ALLOC_LIB__
+#define __STDC_WANT_LIB_EXT2__ 1
+#else
+#define _POSIX_C_SOURCE 200809L
 #endif
 
-//#include <process.h> /* _beginthread, _endthread */
+#define NOMINMAX
 
-#ifndef WIN32_LEAN_AND_MEAN
-#error please include windows before dbj_nano_synchro.h
-#endif // WIN32_LEAN_AND_MEAN
+#undef  min
+#define min(x, y) ((x) < (y) ? (x) : (y))
+
+#undef  max
+#define max(x, y) ((x) > (y) ? (x) : (y))
+
+#define STRICT 1
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
 
 /*
-dbj nano critical section
-used internaly. if one wants to be in sync with dbj nanolib the one can use this
-
-DBJ NANO LIB is single threaded by default in case user need the opposite please 
-#define DBJ_NANO_LIB_MT
+ONE SINGLE PER PROCESS dbj nano critical section
+Thus using it in one place locks eveything else using it in every other place!
 
 Note: this is obviously WIN32 only
 */
 
-/// there is no pragma for the /kernel build
+#ifdef __cplusplus
+extern "C" {
+#endif // __cplusplus
+
+// /kernel CL switch macro
+#ifdef _KERNEL_MODE
 #define DBJ_NANO_KERNEL_BUILD
+#else
+#undef DBJ_NANO_KERNEL_BUILD
+#endif
 
 
 #if defined(__GNUC__) || defined(__INTEL_COMPILER)
@@ -42,46 +58,47 @@ NOTE! __declspec(thread) is not supported with /kernel
 #endif 
 
 /// --------------------------------------------------------------------------------------------
-extern "C" {
-    int __cdecl atexit(void(__cdecl*)(void));
-}
-
-/// --------------------------------------------------------------------------------------------
-/// we need to make common function work in presence of multiple threads
-typedef struct
-{
-    bool initalized;
-    CRITICAL_SECTION crit_sect;
-} dbj_nano_synchro_type;
-
-dbj_nano_synchro_type* dbj_nano_crit_sect_initor();
-
-inline void exit_common(void)
-{
-    dbj_nano_synchro_type crit_ = *dbj_nano_crit_sect_initor();
-
-    if (crit_.initalized)
-    {
-        DeleteCriticalSection(&crit_.crit_sect);
-        crit_.initalized = false;
-    }
-}
-
-inline dbj_nano_synchro_type* dbj_nano_crit_sect_initor()
-{
-    static dbj_nano_synchro_type synchro_ = { false };
-    if (!synchro_.initalized)
-    {
-        InitializeCriticalSection(&synchro_.crit_sect);
-        synchro_.initalized = true;
-        atexit(exit_common);
+    extern "C" {
+        int __cdecl atexit(void(__cdecl*)(void));
     }
 
-    return &synchro_;
-}
+    /// --------------------------------------------------------------------------------------------
+    /// we need to make common function work in presence of multiple threads
+    typedef struct
+    {
+        bool initalized;
+        CRITICAL_SECTION crit_sect;
+    } dbj_nano_synchro_type;
 
-inline void synchro_enter() { EnterCriticalSection(&dbj_nano_crit_sect_initor()->crit_sect); }
-inline void synchro_leave() { LeaveCriticalSection(&dbj_nano_crit_sect_initor()->crit_sect); }
+    dbj_nano_synchro_type* dbj_nano_crit_sect_initor();
+
+    inline void exit_common(void)
+    {
+        dbj_nano_synchro_type crit_ = *dbj_nano_crit_sect_initor();
+
+        if (crit_.initalized)
+        {
+            DeleteCriticalSection(&crit_.crit_sect);
+            crit_.initalized = false;
+        }
+    }
+
+    inline dbj_nano_synchro_type* dbj_nano_crit_sect_initor()
+    {
+        // this means: one per process
+        static dbj_nano_synchro_type synchro_ = { false };
+        if (!synchro_.initalized)
+        {
+            InitializeCriticalSection(&synchro_.crit_sect);
+            synchro_.initalized = true;
+            atexit(exit_common);
+        }
+
+        return &synchro_;
+    }
+
+    inline void synchro_enter() { EnterCriticalSection(&dbj_nano_crit_sect_initor()->crit_sect); }
+    inline void synchro_leave() { LeaveCriticalSection(&dbj_nano_crit_sect_initor()->crit_sect); }
 
 #ifdef DBJ_NANO_LIB_MT
 #define DBJ_NANO_LIB_SYNC_ENTER synchro_enter()
@@ -92,28 +109,71 @@ inline void synchro_leave() { LeaveCriticalSection(&dbj_nano_crit_sect_initor()-
 #endif
 
 #ifdef __cplusplus
-#include <mutex>
+} // extern "C" 
+#endif // __cplusplus
+
 ///	-----------------------------------------------------------------------------------------
-#pragma region synchronisation
-/*
-usage:	void thread_safe_fun() 
-{	
-lock_unlock autolock_ ;  	
+#ifdef __cplusplus
+#pragma region cpp oo sinchronisation
+namespace dbj {
+    /*
+    Be warned. This uses process wide but single instance critical section!
 
-. . . 
-wahtever happens here is not entered before it is finished 
-. . .
+    usage:	void thread_safe_fun()
+    {
+    dbj::lock_unlock autolock_ ;
 
-}
-*/
-struct lock_unlock final
-{
-    mutable std::mutex mux_;
-    lock_unlock() noexcept { mux_.lock(); }
-    ~lock_unlock() { mux_.unlock(); }
-};
+    . . .
+    wahtever happens here is not entered before it is finished
+    . . .
 
+    }
+    */
+
+    struct no_copy_no_move 
+    {
+       no_copy_no_move() = default ;
+       no_copy_no_move( no_copy_no_move const & ) = delete ;     
+       no_copy_no_move & operator = ( no_copy_no_move const & ) = delete ;     
+
+       no_copy_no_move( no_copy_no_move      && ) = delete ;     
+       no_copy_no_move & operator = ( no_copy_no_move      && ) = delete ;     
+    } ;
+
+    struct global_lock_unlock final : private no_copy_no_move 
+    {
+        explicit global_lock_unlock() noexcept {
+            synchro_enter();
+        }
+        ~global_lock_unlock() noexcept {
+            synchro_leave();
+        }
+    };
+
+    struct local_lock_unlock final : private no_copy_no_move 
+    {
+        explicit local_lock_unlock() noexcept {
+            InitializeCriticalSection(&crit_sect_);
+            EnterCriticalSection(&crit_sect_);
+        }
+        ~local_lock_unlock() noexcept {
+            DeleteCriticalSection(&crit_sect_);
+            LeaveCriticalSection(&crit_sect_);
+        }
+        private: 
+         CRITICAL_SECTION crit_sect_{};
+    };
+
+} // dbj ns
 #pragma endregion
 #endif // __cplusplus
+
+#ifdef DBJ_NANO_LIB_MT
+#define DBJ_GLOBAL_LOCK dbj::global_lock_unlock padlock_
+#define DBJ_LOCAL_LOCK  dbj::local_lock_unlock  padlock_
+#else
+#define DBJ_GLOBAL_LOCK 
+#define DBJ_LOCAL_LOCK  
+#endif 
 
 #endif // !_DBJ_NANO_CYNCHRO_INC_
