@@ -92,18 +92,6 @@ namespace dbj::nanolib {
 			return  type::w2n( sview_.data() ) ;
 		}
 
-#ifdef __cpp_char8_t
-		// C++20 or better
-		static buffer_type make(std::basic_string_view<char8_t> sview_)
-		{
-			DBJ_ASSERT(sview_.size() > 0);
-			DBJ_ASSERT(DBJ_MAX_BUFER_SIZE >= sview_.size());
-			return type::make((const char*)sview_.data());
-		}
-#endif // __cpp_char8_t
-
-		// conversions end here
-
 		template <typename... Args, size_t max_arguments = 255>
 		static buffer_type
 			format(char const* format_, Args... args) noexcept
