@@ -46,7 +46,7 @@ Part of the required self discipline is to constantly develop and use mature con
 
 When runtime allows me to, I do indeed use the std lib. But std lib is designed to be general purpose. My key concepts are not over there. Neither are yours. Part of my responsibilities is to make sure organizations are adhering to rigour and method. Not just in Architecture (my primary role), but in developing , testing and delivering, what is architected, designed and finally developed.
 
-In doing so, I know people are good and creative, thus I do not want to impose a lot of harhs discipline, rigour and method. My coding solutions tend to be more of an agreement than imposed and complex code. 
+In doing so, I know people are good and creative, thus I do not want to impose a lot of harsh discipline, rigour and method. My coding solutions tend to be more of an agreement than imposed and complex code. 
 
 Modern, fancy keyword is "contract". `dbj++ Nanolib` is primarily an tiny universal contract. I might advise you to impose it on your projects.
 
@@ -97,7 +97,7 @@ The library core header. Namespace is:  `dbj::nanolib`.
 
 #### configuration
 
-`#define DBJ_TERMINATE_ON_BAD_ALLOC` in order yor project, does not to throw `bad_alloc`, on heap memory exhausted. Instead, default termination will be called.
+`#define DBJ_TERMINATE_ON_BAD_ALLOC` in order your project, does not throw `bad_alloc`, on heap memory exhausted. Instead, default termination will be called.
 ```cpp
   (std::set_new_handler([]{terminate();}););
 ```
@@ -205,7 +205,7 @@ If interested on actual reasong [please proceed here](http://www.open-std.org/jt
 
 ### Avoid c++ streams
 
-Hint: use them only when testing and only in concole apps.
+Hint: use them only when testing and only in console apps.
 
 - C++ streams is old (ancient) complex design, too. 
 - using `iostreams` creates large and slow applications
